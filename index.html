@@ -1,0 +1,2371 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+<title>星夜 — 你的情緒空間</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="星夜">
+<meta name="theme-color" content="#070f2b">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png">
+<link rel="apple-touch-icon" sizes="120x120" href="icons/icon-120.png">
+
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --night: #070f2b;
+    --deep: #0d1b3e;
+    --mid: #162050;
+    --soft: #1e2f5e;
+    --border: #2a3a6e;
+    --moon: #f5e6c8;
+    --star-white: #e8dff8;
+    --purple: #a78de0;
+    --blue: #7b9cf5;
+    --teal: #8dd4b8;
+    --coral: #f0a07a;
+    --text-main: #dde8ff;
+    --text-muted: #8090b8;
+    --text-dim: #4a5a8a;
+  }
+
+  body {
+    background: var(--night);
+    color: var(--text-main);
+    font-family: 'Noto Sans TC', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+    overflow-x: hidden;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Stars canvas background */
+  #star-bg {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* App shell */
+  .app {
+    position: relative;
+    z-index: 1;
+    max-width: 420px;
+    margin: 0 auto;
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* Screens */
+  .screen {
+    display: none;
+    flex-direction: column;
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    padding: 32px 20px 90px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    animation: fadeIn 0.5s ease;
+  }
+  .screen.active { display: flex; }
+  .screen::-webkit-scrollbar { display: none; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Bottom nav */
+  .nav {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 420px;
+    background: rgba(13, 27, 62, 0.92);
+    backdrop-filter: blur(12px);
+    border-top: 0.5px solid var(--border);
+    display: flex;
+    justify-content: space-around;
+    padding: 12px 0 20px;
+    z-index: 100;
+  }
+
+  .nav-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 16px;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+  }
+  .nav-btn.active { opacity: 1; }
+  .nav-btn svg { width: 22px; height: 22px; }
+  .nav-btn span { font-size: 10px; color: var(--text-muted); font-family: 'Noto Sans TC'; }
+  .nav-btn.active span { color: var(--blue); }
+
+  /* ===== HOME ===== */
+  .home-top {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 16px;
+    margin-top: 4px;
+  }
+
+  .moon-wrap {
+    position: relative;
+    width: 90px;
+    height: 90px;
+    margin-bottom: 12px;
+    cursor: pointer;
+  }
+  .moon-img {
+    width: 90px;
+    height: 90px;
+    object-fit: contain;
+    border-radius: 50%;
+    transition: transform 0.3s ease;
+    position: relative;
+    z-index: 1;
+  }
+  .moon-wrap:hover .moon-img { transform: scale(1.06); }
+  .moon {
+    width: 70px;
+    height: 70px;
+    background: var(--moon);
+    border-radius: 50%;
+    position: relative;
+    transition: transform 0.3s ease;
+  }
+
+  .moon-glow {
+    position: absolute;
+    inset: -15px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(245,230,200,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .greeting {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 13px;
+    color: var(--text-muted);
+    letter-spacing: 2px;
+    margin-bottom: 6px;
+  }
+  .question {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 16px;
+    color: var(--star-white);
+    letter-spacing: 1px;
+    text-align: center;
+    line-height: 1.6;
+  }
+
+  /* Mood picker */
+  .mood-label {
+    font-size: 11px;
+    color: var(--text-dim);
+    text-align: center;
+    letter-spacing: 1px;
+    margin-bottom: 16px;
+  }
+
+  .mood-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .mood-card {
+    background: var(--mid);
+    border: 0.5px solid var(--border);
+    border-radius: 14px;
+    padding: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.2s;
+  }
+  .mood-card:hover { background: var(--soft); transform: translateY(-2px); }
+  .mood-card.selected { border-color: var(--blue); background: rgba(123,156,245,0.1); }
+
+  .mood-dot {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .mood-name {
+    font-size: 13px;
+    color: var(--text-main);
+  }
+  .mood-sub {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  .enter-btn {
+    background: rgba(123,156,245,0.15);
+    border: 0.5px solid var(--blue);
+    border-radius: 24px;
+    padding: 14px;
+    color: var(--blue);
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 14px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    width: 100%;
+    transition: all 0.2s;
+  }
+  .enter-btn:hover { background: rgba(123,156,245,0.25); }
+
+  /* ===== CHAT ===== */
+  .chat-header {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  .chat-title {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 16px;
+    color: var(--star-white);
+    letter-spacing: 2px;
+    margin-bottom: 4px;
+  }
+  .chat-sub { font-size: 11px; color: var(--text-dim); letter-spacing: 1px; }
+
+  .chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding-right: 4px;
+    scrollbar-width: none;
+  }
+  .chat-messages::-webkit-scrollbar { display: none; }
+
+  .msg {
+    max-width: 85%;
+    padding: 12px 14px;
+    border-radius: 18px;
+    font-size: 14px;
+    line-height: 1.6;
+    animation: msgIn 0.3s ease;
+  }
+  @keyframes msgIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .msg.ai {
+    background: var(--mid);
+    border: 0.5px solid var(--border);
+    border-bottom-left-radius: 4px;
+    color: var(--text-main);
+    align-self: flex-start;
+  }
+  .msg.user {
+    background: rgba(123,156,245,0.15);
+    border: 0.5px solid rgba(123,156,245,0.3);
+    border-bottom-right-radius: 4px;
+    color: var(--star-white);
+    align-self: flex-end;
+  }
+  .msg.typing {
+    background: var(--mid);
+    border: 0.5px solid var(--border);
+    align-self: flex-start;
+    color: var(--text-muted);
+    font-size: 20px;
+    padding: 10px 16px;
+    letter-spacing: 4px;
+  }
+
+  .chat-input-wrap {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+  }
+  .chat-input {
+    flex: 1;
+    background: var(--mid);
+    border: 0.5px solid var(--border);
+    border-radius: 20px;
+    padding: 12px 16px;
+    color: var(--text-main);
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 14px;
+    font-weight: 300;
+    outline: none;
+    resize: none;
+    max-height: 100px;
+    line-height: 1.5;
+  }
+  .chat-input::placeholder { color: var(--text-dim); }
+  .chat-input:focus { border-color: rgba(123,156,245,0.5); }
+
+  .send-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: rgba(123,156,245,0.2);
+    border: 0.5px solid var(--blue);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+  .send-btn:hover { background: rgba(123,156,245,0.35); }
+  .send-btn svg { width: 16px; height: 16px; }
+
+  /* ===== CANVAS ===== */
+  .canvas-header {
+    text-align: center;
+    margin-bottom: 12px;
+  }
+  .canvas-title {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 16px;
+    color: var(--star-white);
+    letter-spacing: 2px;
+    margin-bottom: 4px;
+  }
+  .canvas-sub { font-size: 11px; color: var(--text-dim); }
+
+  .canvas-wrap {
+    position: relative;
+    border-radius: 20px;
+    overflow: hidden;
+    background: #05091a;
+    border: 0.5px solid var(--border);
+    flex: 1;
+    min-height: 260px;
+    margin-bottom: 12px;
+    cursor: crosshair;
+  }
+  #draw-canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+  }
+
+  /* Toolbar panel */
+  .canvas-toolbar {
+    background: var(--mid);
+    border: 0.5px solid var(--border);
+    border-radius: 16px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .toolbar-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .toolbar-label {
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    width: 28px;
+    flex-shrink: 0;
+  }
+
+  /* Color swatches */
+  .color-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    flex: 1;
+  }
+  .color-dot {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: transform 0.15s, border-color 0.15s;
+    flex-shrink: 0;
+  }
+  .color-dot:hover { transform: scale(1.2); }
+  .color-dot.selected { border-color: white; transform: scale(1.15); }
+
+  /* Brush type buttons */
+  .brush-types {
+    display: flex;
+    gap: 6px;
+    flex: 1;
+  }
+  .brush-btn {
+    background: var(--soft);
+    border: 0.5px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    padding: 5px 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    transition: all 0.15s;
+    flex: 1;
+  }
+  .brush-btn:hover { background: #253570; }
+  .brush-btn.selected { border-color: var(--blue); background: rgba(123,156,245,0.12); }
+  .brush-btn .b-icon { height: 18px; display: flex; align-items: center; justify-content: center; }
+  .brush-btn .b-name { font-size: 9px; color: var(--text-muted); letter-spacing: 0.5px; }
+  .brush-btn.selected .b-name { color: var(--blue); }
+
+  /* Size slider */
+  .size-slider {
+    flex: 1;
+    accent-color: var(--blue);
+    height: 3px;
+  }
+  .size-preview {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  #size-circle {
+    background: white;
+    border-radius: 50%;
+    transition: all 0.1s;
+  }
+
+  /* Opacity slider */
+  .opacity-slider {
+    flex: 1;
+    accent-color: var(--purple);
+    height: 3px;
+  }
+  .opacity-val {
+    font-size: 11px;
+    color: var(--text-muted);
+    width: 32px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  /* Action row */
+  .canvas-actions-row {
+    display: flex;
+    gap: 8px;
+  }
+  .clear-btn {
+    background: none;
+    border: 0.5px solid var(--border);
+    border-radius: 20px;
+    padding: 10px 16px;
+    color: var(--text-dim);
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .clear-btn:hover { border-color: var(--text-muted); color: var(--text-muted); }
+
+  .release-btn {
+    background: rgba(167,141,224,0.15);
+    border: 0.5px solid var(--purple);
+    border-radius: 20px;
+    padding: 10px 0;
+    color: var(--purple);
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 13px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex: 1;
+  }
+  .release-btn:hover { background: rgba(167,141,224,0.25); }
+
+  /* ===== DIARY ===== */
+  .diary-header {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .diary-title {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 16px;
+    color: var(--star-white);
+    letter-spacing: 2px;
+    margin-bottom: 4px;
+  }
+  .diary-sub { font-size: 11px; color: var(--text-dim); }
+
+  .star-map {
+    background: #05091a;
+    border: 0.5px solid var(--border);
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 16px;
+    position: relative;
+    height: 200px;
+  }
+  #star-map-canvas { display: block; width: 100%; height: 100%; }
+
+  .diary-entry {
+    background: var(--mid);
+    border: 0.5px solid var(--border);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .diary-entry-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .entry-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .entry-date { font-size: 11px; color: var(--text-muted); }
+  .entry-mood { font-size: 11px; color: var(--text-dim); margin-left: auto; }
+  .entry-text { font-size: 13px; color: var(--text-main); line-height: 1.7; }
+
+  .new-entry-btn {
+    background: rgba(141,212,184,0.1);
+    border: 0.5px solid var(--teal);
+    border-radius: 16px;
+    padding: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: var(--teal);
+    font-size: 13px;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+    width: 100%;
+    font-family: 'Noto Sans TC', sans-serif;
+  }
+  .new-entry-btn:hover { background: rgba(141,212,184,0.2); }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(7,15,43,0.88);
+    z-index: 200;
+    display: flex;
+    align-items: flex-end;
+    animation: fadeIn 0.3s ease;
+  }
+  .modal {
+    background: var(--deep);
+    border: 0.5px solid var(--border);
+    border-radius: 24px 24px 0 0;
+    padding: 28px 24px 40px;
+    width: 100%;
+    max-width: 420px;
+    margin: 0 auto;
+    animation: slideUp 0.3s ease;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(40px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  .modal-title {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 16px;
+    color: var(--star-white);
+    margin-bottom: 16px;
+    letter-spacing: 1px;
+  }
+  .diary-textarea {
+    width: 100%;
+    background: var(--mid);
+    border: 0.5px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+    color: var(--text-main);
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 14px;
+    font-weight: 300;
+    line-height: 1.7;
+    resize: none;
+    outline: none;
+    height: 140px;
+    margin-bottom: 14px;
+  }
+  .diary-textarea::placeholder { color: var(--text-dim); }
+  .diary-textarea:focus { border-color: rgba(141,212,184,0.4); }
+
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+  }
+  .modal-cancel {
+    flex: 1;
+    padding: 12px;
+    background: none;
+    border: 0.5px solid var(--border);
+    border-radius: 20px;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 13px;
+  }
+  .modal-save {
+    flex: 2;
+    padding: 12px;
+    background: rgba(141,212,184,0.15);
+    border: 0.5px solid var(--teal);
+    border-radius: 20px;
+    color: var(--teal);
+    cursor: pointer;
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 13px;
+    letter-spacing: 1px;
+  }
+
+  /* Shooting star animation */
+  @keyframes shoot {
+    0% { transform: translate(0,0) scale(1); opacity: 1; }
+    100% { transform: translate(120px, 120px) scale(0); opacity: 0; }
+  }
+  .shooting-star {
+    position: fixed;
+    pointer-events: none;
+    z-index: 300;
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: white;
+    animation: shoot 1.2s ease-out forwards;
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--soft);
+    border: 0.5px solid var(--border);
+    border-radius: 20px;
+    padding: 10px 20px;
+    font-size: 13px;
+    color: var(--text-muted);
+    z-index: 400;
+    animation: toastIn 0.3s ease, toastOut 0.3s ease 1.7s forwards;
+  }
+  @keyframes toastIn { from { opacity:0; transform: translateX(-50%) translateY(10px); } to { opacity:1; transform: translateX(-50%) translateY(0); } }
+  @keyframes toastOut { to { opacity:0; } }
+
+  /* ===== BIBLE VERSE ===== */
+  .verse-card {
+    background: rgba(245, 230, 200, 0.06);
+    border: 0.5px solid rgba(245, 230, 200, 0.2);
+    border-radius: 16px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  .verse-card:hover { background: rgba(245, 230, 200, 0.09); }
+  .verse-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: space-between;
+  }
+  .verse-label {
+    font-size: 10px;
+    color: rgba(245, 230, 200, 0.5);
+    letter-spacing: 1.5px;
+  }
+  .verse-ref {
+    font-size: 11px;
+    color: rgba(245, 230, 200, 0.6);
+    font-family: 'Noto Serif TC', serif;
+  }
+  .verse-chevron {
+    font-size: 10px;
+    color: rgba(245, 230, 200, 0.4);
+    transition: transform 0.3s ease;
+  }
+  .verse-card.open .verse-chevron { transform: rotate(180deg); }
+  .verse-body {
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.4s ease, opacity 0.3s ease, margin-top 0.3s ease;
+    opacity: 0;
+    margin-top: 0;
+  }
+  .verse-card.open .verse-body {
+    max-height: 200px;
+    opacity: 1;
+    margin-top: 10px;
+  }
+  .verse-text {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 13px;
+    color: rgba(245, 230, 200, 0.85);
+    line-height: 1.9;
+    letter-spacing: 0.5px;
+  }
+
+  /* ===== GAME ===== */
+  .game-screen {
+    position: fixed;
+    inset: 0;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    z-index: 50;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .game-screen.active { display: flex; }
+
+  #game-canvas {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 51;
+    cursor: pointer;
+    touch-action: none;
+  }
+
+  .game-hud {
+    position: fixed;
+    top: calc(env(safe-area-inset-top) + 16px);
+    left: 0; right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 52;
+    pointer-events: none;
+  }
+  .game-score-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .game-score-label {
+    font-size: 10px;
+    color: rgba(200,184,232,0.5);
+    letter-spacing: 2px;
+  }
+  .game-score {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 28px;
+    color: #e8dff8;
+  }
+  .game-close-btn {
+    pointer-events: all;
+    background: rgba(22,32,80,0.7);
+    border: 0.5px solid rgba(42,58,110,0.8);
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #8090b8;
+    font-size: 16px;
+  }
+
+  .game-combo {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Noto Serif TC', serif;
+    font-size: 36px;
+    color: #ffe066;
+    pointer-events: none;
+    z-index: 53;
+    opacity: 0;
+    transition: none;
+  }
+  .game-combo.show {
+    animation: comboAnim 0.8s ease forwards;
+  }
+  @keyframes comboAnim {
+    0% { opacity: 1; transform: translate(-50%, -50%) scale(0.5); }
+    40% { opacity: 1; transform: translate(-50%, -60%) scale(1.2); }
+    100% { opacity: 0; transform: translate(-50%, -80%) scale(1); }
+  }
+
+  /* ===== LEGAL & PRIVACY ===== */
+  .disclaimer-bar {
+    font-size: 10px;
+    color: var(--text-dim);
+    text-align: center;
+    letter-spacing: 0.5px;
+    line-height: 1.6;
+    margin-top: 10px;
+    padding: 0 8px;
+  }
+  .disclaimer-bar a {
+    color: rgba(123,156,245,0.6);
+    text-decoration: none;
+    border-bottom: 0.5px solid rgba(123,156,245,0.3);
+  }
+
+  .chat-notice {
+    font-size: 10px;
+    color: var(--text-dim);
+    text-align: center;
+    letter-spacing: 0.3px;
+    padding: 6px 12px;
+    margin-bottom: 8px;
+    border-top: 0.5px solid var(--border);
+    line-height: 1.6;
+  }
+
+  /* First-open modal */
+  .welcome-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(7,15,43,0.95);
+    z-index: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    animation: fadeIn 0.4s ease;
+  }
+  .welcome-box {
+    background: var(--deep);
+    border: 0.5px solid var(--border);
+    border-radius: 24px;
+    padding: 28px 24px 24px;
+    max-width: 360px;
+    width: 100%;
+  }
+  .welcome-moon {
+    text-align: center;
+    font-size: 36px;
+    margin-bottom: 12px;
+  }
+  .welcome-title {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 18px;
+    color: var(--star-white);
+    text-align: center;
+    margin-bottom: 20px;
+    letter-spacing: 1px;
+  }
+  .welcome-section {
+    background: var(--mid);
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+  }
+  .welcome-section-title {
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+  .welcome-section-text {
+    font-size: 12px;
+    color: rgba(200,184,232,0.75);
+    line-height: 1.7;
+  }
+  .welcome-agree-btn {
+    width: 100%;
+    margin-top: 16px;
+    padding: 14px;
+    background: rgba(123,156,245,0.15);
+    border: 0.5px solid var(--blue);
+    border-radius: 20px;
+    color: var(--blue);
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 14px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .welcome-agree-btn:hover { background: rgba(123,156,245,0.25); }
+
+  /* Privacy page */
+
+  .privacy-title {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 18px;
+    color: var(--star-white);
+    letter-spacing: 2px;
+    margin-bottom: 6px;
+    text-align: center;
+  }
+  .privacy-updated {
+    font-size: 10px;
+    color: var(--text-dim);
+    text-align: center;
+    margin-bottom: 24px;
+    letter-spacing: 1px;
+  }
+  .privacy-section {
+    margin-bottom: 20px;
+  }
+  .privacy-section h3 {
+    font-size: 12px;
+    color: var(--blue);
+    letter-spacing: 1.5px;
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+  .privacy-section p {
+    font-size: 13px;
+    color: rgba(200,184,232,0.75);
+    line-height: 1.8;
+  }
+  .privacy-back {
+    background: none;
+    border: 0.5px solid var(--border);
+    border-radius: 20px;
+    padding: 10px 20px;
+    color: var(--text-muted);
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* ===== RESOURCES PAGE ===== */
+
+
+  .resources-title {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 16px;
+    color: var(--star-white);
+    letter-spacing: 2px;
+    text-align: center;
+    margin-bottom: 4px;
+  }
+  .resources-sub {
+    font-size: 11px;
+    color: var(--text-dim);
+    text-align: center;
+    letter-spacing: 1px;
+    margin-bottom: 20px;
+  }
+
+  .hotline-strip {
+    background: rgba(240,160,122,0.1);
+    border: 0.5px solid rgba(240,160,122,0.3);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .hotline-title {
+    font-size: 10px;
+    color: #f0a07a;
+    letter-spacing: 1.5px;
+  }
+  .hotline-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .hotline-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .hotline-name {
+    font-size: 12px;
+    color: var(--text-main);
+  }
+  .hotline-num {
+    font-size: 15px;
+    font-weight: 500;
+    color: #f5e6c8;
+    letter-spacing: 1px;
+  }
+
+  .region-label {
+    font-size: 10px;
+    color: var(--blue);
+    letter-spacing: 2px;
+    margin: 16px 0 8px;
+    padding-left: 2px;
+  }
+
+  .clinic-card {
+    background: var(--mid);
+    border: 0.5px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-bottom: 8px;
+  }
+  .clinic-name {
+    font-size: 14px;
+    color: var(--star-white);
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+  .clinic-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    margin-bottom: 3px;
+  }
+  .clinic-icon {
+    font-size: 11px;
+    color: var(--text-dim);
+    flex-shrink: 0;
+    margin-top: 1px;
+    width: 14px;
+  }
+  .clinic-info {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+  .clinic-info a {
+    color: rgba(123,156,245,0.8);
+    text-decoration: none;
+  }
+  .clinic-tag {
+    display: inline-block;
+    background: rgba(141,212,184,0.12);
+    border: 0.5px solid rgba(141,212,184,0.3);
+    border-radius: 8px;
+    padding: 2px 8px;
+    font-size: 10px;
+    color: var(--teal);
+    margin-top: 6px;
+    margin-right: 4px;
+  }
+  .clinic-tag.blue {
+    background: rgba(123,156,245,0.1);
+    border-color: rgba(123,156,245,0.3);
+    color: var(--blue);
+  }
+  .clinic-tag.coral {
+    background: rgba(240,160,122,0.1);
+    border-color: rgba(240,160,122,0.3);
+    color: var(--coral);
+  }
+
+  .resources-note {
+    font-size: 11px;
+    color: var(--text-dim);
+    text-align: center;
+    line-height: 1.7;
+    margin-top: 16px;
+    padding: 12px;
+    border-top: 0.5px solid var(--border);
+  }
+</style>
+</head>
+<body>
+
+<canvas id="star-bg"></canvas>
+
+<div class="app">
+
+  <!-- HOME -->
+  <div class="screen active" id="screen-home" style="display:flex;">
+    <div class="home-top">
+      <div class="moon-wrap" id="moon-btn" title="摸摸月亮">
+        <div class="moon-glow"></div>
+        <img src="moon.png" class="moon-img" alt="moon" draggable="false">
+      </div>
+      <p class="greeting">今晚好嗎</p>
+      <p class="question">你的心情是<br>什麼顏色？</p>
+    </div>
+
+    <p class="mood-label">選擇今天的狀態</p>
+    <div class="mood-grid">
+      <div class="mood-card" data-mood="平靜" data-color="#7b9cf5" onclick="selectMood(this)">
+        <div class="mood-dot" style="background:#7b9cf5"></div>
+        <div><div class="mood-name">平靜</div><div class="mood-sub">還算可以</div></div>
+      </div>
+      <div class="mood-card" data-mood="開心" data-color="#ffe066" onclick="selectMood(this)">
+        <div class="mood-dot" style="background:#ffe066"></div>
+        <div><div class="mood-name">開心</div><div class="mood-sub">今天很好</div></div>
+      </div>
+
+
+      <div class="mood-card" data-mood="疲憊" data-color="#aac4ff" onclick="selectMood(this)">
+        <div class="mood-dot" style="background:#aac4ff"></div>
+        <div><div class="mood-name">疲憊</div><div class="mood-sub">身體很累</div></div>
+      </div>
+      <div class="mood-card" data-mood="低落" data-color="#a78de0" onclick="selectMood(this)">
+        <div class="mood-dot" style="background:#a78de0"></div>
+        <div><div class="mood-name">低落</div><div class="mood-sub">心裡沉沉的</div></div>
+      </div>
+
+
+      <div class="mood-card" data-mood="委屈" data-color="#ffd6e0" onclick="selectMood(this)">
+        <div class="mood-dot" style="background:#ffd6e0"></div>
+        <div><div class="mood-name">委屈</div><div class="mood-sub">說不出口的難受</div></div>
+      </div>
+      <div class="mood-card" data-mood="孤單" data-color="#c8a8f8" onclick="selectMood(this)">
+        <div class="mood-dot" style="background:#c8a8f8"></div>
+        <div><div class="mood-name">孤單</div><div class="mood-sub">一個人的感覺</div></div>
+      </div>
+    </div>
+
+
+    <div class="verse-card open" id="verse-card" onclick="toggleVerse()">
+      <div class="verse-header">
+        <span class="verse-label">✦ 今日經文</span>
+        <span class="verse-ref" id="verse-ref"></span>
+        <span class="verse-chevron" id="verse-chevron">▼</span>
+      </div>
+      <div class="verse-body" id="verse-body">
+        <p class="verse-text" id="verse-text"></p>
+      </div>
+    </div>
+
+    <button class="enter-btn" onclick="goToChat()">進入星夜 →</button>
+    <p class="disclaimer-bar">
+      本 App 提供情緒抒發空間，不能取代專業心理諮商。<br>
+      如有緊急心理危機，請撥打 1925 安心專線。<br>
+      <a href="#" onclick="goScreen('resources', null); return false;">諮商資源</a>
+      &nbsp;·&nbsp;
+      <a href="#" onclick="goScreen('privacy', null); return false;">隱私政策</a>
+    </p>
+  </div>
+
+  <!-- CHAT -->
+  <div class="screen" id="screen-chat">
+    <div class="chat-header">
+      <div class="chat-title">傾訴</div>
+      <div class="chat-sub">說說你今天的心情</div>
+    </div>
+    <div class="chat-notice">
+      ✦ 對話內容將透過 AI 處理，請勿輸入個人敏感資料。本服務不儲存對話記錄。
+    </div>
+    <div class="chat-messages" id="chat-messages">
+      <div class="msg ai">嗨，今晚的星空很美。有什麼想說的嗎？我在這裡陪你。🌙</div>
+    </div>
+    <div class="chat-input-wrap">
+      <textarea class="chat-input" id="chat-input" placeholder="說說心裡的話..." rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+      <button class="send-btn" onclick="sendMsg()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#7b9cf5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"></line>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- CANVAS -->
+  <div class="screen" id="screen-canvas">
+    <div class="canvas-header">
+      <div class="canvas-title">星空畫布</div>
+      <div class="canvas-sub">自由揮灑，畫完就放飛</div>
+    </div>
+    <div class="canvas-wrap" id="canvas-wrap">
+      <canvas id="draw-canvas"></canvas>
+    </div>
+
+    <div class="canvas-toolbar">
+      <!-- Colors -->
+      <div class="toolbar-row">
+        <span class="toolbar-label">顏色</span>
+        <div class="color-grid" id="color-palette">
+          <div class="color-dot selected" style="background:#a78de0" data-color="#a78de0" onclick="setColor(this)"></div>
+          <div class="color-dot" style="background:#c8a8f8" data-color="#c8a8f8" onclick="setColor(this)"></div>
+          <div class="color-dot" style="background:#7b9cf5" data-color="#7b9cf5" onclick="setColor(this)"></div>
+          <div class="color-dot" style="background:#aac4ff" data-color="#aac4ff" onclick="setColor(this)"></div>
+          <div class="color-dot" style="background:#8dd4b8" data-color="#8dd4b8" onclick="setColor(this)"></div>
+          <div class="color-dot" style="background:#b8f0d8" data-color="#b8f0d8" onclick="setColor(this)"></div>
+          <div class="color-dot" style="background:#f0a07a" data-color="#f0a07a" onclick="setColor(this)"></div>
+          <div class="color-dot" style="background:#f5c8a0" data-color="#f5c8a0" onclick="setColor(this)"></div>
+          <div class="color-dot" style="background:#f5e6c8" data-color="#f5e6c8" onclick="setColor(this)"></div>
+          <div class="color-dot" style="background:#ffffff" data-color="#ffffff" onclick="setColor(this)"></div>
+          <div class="color-dot" style="background:#f08080" data-color="#f08080" onclick="setColor(this)"></div>
+          <div class="color-dot" style="background:#ffd6e0" data-color="#ffd6e0" onclick="setColor(this)"></div>
+          <div class="color-dot" style="background:#80d4f0" data-color="#80d4f0" onclick="setColor(this)"></div>
+          <div class="color-dot" style="background:#ffe066" data-color="#ffe066" onclick="setColor(this)"></div>
+          <div class="color-dot" style="background:#a0e878" data-color="#a0e878" onclick="setColor(this)"></div>
+          <div class="color-dot" style="background:#6c6c9e" data-color="#6c6c9e" onclick="setColor(this)"></div>
+        </div>
+      </div>
+
+      <!-- Brush type -->
+      <div class="toolbar-row">
+        <span class="toolbar-label">筆刷</span>
+        <div class="brush-types">
+          <button class="brush-btn selected" data-brush="pen" onclick="setBrush(this)">
+            <div class="b-icon">
+              <svg width="20" height="18" viewBox="0 0 20 18"><path d="M2 16 Q10 2 18 8" stroke="#aac4ff" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+            </div>
+            <span class="b-name">細筆</span>
+          </button>
+          <button class="brush-btn" data-brush="soft" onclick="setBrush(this)">
+            <div class="b-icon">
+              <svg width="20" height="18" viewBox="0 0 20 18"><path d="M2 16 Q10 2 18 8" stroke="#c8a8f8" stroke-width="5" fill="none" stroke-linecap="round" opacity="0.5"/></svg>
+            </div>
+            <span class="b-name">柔軟</span>
+          </button>
+          <button class="brush-btn" data-brush="marker" onclick="setBrush(this)">
+            <div class="b-icon">
+              <svg width="20" height="18" viewBox="0 0 20 18"><path d="M2 14 L18 6" stroke="#8dd4b8" stroke-width="4" fill="none" stroke-linecap="square"/></svg>
+            </div>
+            <span class="b-name">麥克筆</span>
+          </button>
+          <button class="brush-btn" data-brush="star" onclick="setBrush(this)">
+            <div class="b-icon">
+              <svg width="20" height="18" viewBox="0 0 20 18">
+                <text x="3" y="14" font-size="13" fill="#ffe066">✦</text>
+                <text x="11" y="10" font-size="8" fill="#f5e6c8">✦</text>
+              </svg>
+            </div>
+            <span class="b-name">星點</span>
+          </button>
+          <button class="brush-btn" data-brush="eraser" onclick="setBrush(this)">
+            <div class="b-icon">
+              <svg width="20" height="18" viewBox="0 0 20 18"><rect x="3" y="5" width="14" height="9" rx="2" stroke="#6c6c9e" stroke-width="1.2" fill="none"/><line x1="10" y1="5" x2="10" y2="14" stroke="#6c6c9e" stroke-width="0.8"/></svg>
+            </div>
+            <span class="b-name">橡皮擦</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Size -->
+      <div class="toolbar-row">
+        <span class="toolbar-label">大小</span>
+        <input type="range" class="size-slider" id="size-slider" min="1" max="40" value="4" oninput="updateSize(this)">
+        <div class="size-preview">
+          <div id="size-circle" style="width:4px;height:4px;"></div>
+        </div>
+      </div>
+
+      <!-- Opacity -->
+      <div class="toolbar-row">
+        <span class="toolbar-label">透明</span>
+        <input type="range" class="opacity-slider" id="opacity-slider" min="10" max="100" value="100" oninput="updateOpacity(this)">
+        <div class="opacity-val" id="opacity-val">100%</div>
+      </div>
+    </div>
+
+    <div class="canvas-actions-row">
+      <button class="clear-btn" onclick="clearCanvas()">清除</button>
+      <button class="release-btn" onclick="releaseCanvas()">✦ 放飛成流星</button>
+    </div>
+  </div>
+
+  <!-- DIARY -->
+  <div class="screen" id="screen-diary">
+    <div class="diary-header">
+      <div class="diary-title">情緒星圖</div>
+      <div class="diary-sub">每一天都是一顆星</div>
+    </div>
+    <div class="star-map">
+      <canvas id="star-map-canvas"></canvas>
+    </div>
+    <div id="diary-list"></div>
+    <button class="new-entry-btn" onclick="openDiaryModal()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8dd4b8" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      記錄今天的心情
+    </button>
+  </div>
+
+</div>
+
+<!-- Nav -->
+<nav class="nav">
+  <button class="nav-btn active" onclick="goScreen('home', this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#f5e6c8" stroke-width="1.5" stroke-linecap="round">
+      <circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+    </svg>
+    <span>星夜</span>
+  </button>
+  <button class="nav-btn" onclick="goScreen('chat', this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#7b9cf5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+    </svg>
+    <span>傾訴</span>
+  </button>
+  <button class="nav-btn" onclick="goScreen('canvas', this); initCanvas()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#a78de0" stroke-width="1.5" stroke-linecap="round">
+      <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+    </svg>
+    <span>畫布</span>
+  </button>
+  <button class="nav-btn" onclick="goScreen('diary', this); renderDiary()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#8dd4b8" stroke-width="1.5" stroke-linecap="round">
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+    </svg>
+    <span>星圖</span>
+  </button>
+  <button class="nav-btn" onclick="startGame(this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#f0a07a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/>
+      <circle cx="8" cy="10" r="1.5" fill="#f0a07a"/>
+      <circle cx="16" cy="10" r="1.5" fill="#f0a07a"/>
+      <path d="M8 15 Q12 18 16 15"/>
+    </svg>
+    <span>解壓</span>
+  </button>
+</nav>
+
+
+
+
+  <!-- RESOURCES -->
+  <div class="screen screen-resources" id="screen-resources" style="display:none;">
+    <button class="privacy-back" onclick="goScreen('home', document.querySelectorAll('.nav-btn')[0])">
+      ← 返回
+    </button>
+    <div class="resources-title">心理諮商資源</div>
+    <p class="resources-sub">你不需要一個人扛著</p>
+
+    <!-- 緊急專線 -->
+    <div class="hotline-strip">
+      <div class="hotline-title">✦ 24 小時緊急專線</div>
+      <div class="hotline-grid">
+        <div class="hotline-item">
+          <div class="hotline-name">安心專線</div>
+          <div class="hotline-num">1925</div>
+        </div>
+        <div class="hotline-item">
+          <div class="hotline-name">生命線</div>
+          <div class="hotline-num">1995</div>
+        </div>
+        <div class="hotline-item">
+          <div class="hotline-name">張老師專線</div>
+          <div class="hotline-num">1980</div>
+        </div>
+        <div class="hotline-item">
+          <div class="hotline-name">自殺防治專線</div>
+          <div class="hotline-num">0800-788-995</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 北部 -->
+    <div class="region-label">北部</div>
+
+    <div class="clinic-card">
+      <div class="clinic-name">台北市立聯合醫院松德院區</div>
+      <div class="clinic-row"><div class="clinic-icon">📍</div><div class="clinic-info">台北市信義區松德路309號</div></div>
+      <div class="clinic-row"><div class="clinic-icon">📞</div><div class="clinic-info">(02) 2726-3141</div></div>
+      <div class="clinic-row"><div class="clinic-icon">🔗</div><div class="clinic-info"><a href="https://www.tpech.gov.tw" target="_blank">www.tpech.gov.tw</a></div></div>
+      <span class="clinic-tag">精神科門診</span><span class="clinic-tag blue">心理治療</span>
+    </div>
+
+    <div class="clinic-card">
+      <div class="clinic-name">台大醫院精神醫學部</div>
+      <div class="clinic-row"><div class="clinic-icon">📍</div><div class="clinic-info">台北市中正區中山南路7號</div></div>
+      <div class="clinic-row"><div class="clinic-icon">📞</div><div class="clinic-info">(02) 2312-3456</div></div>
+      <span class="clinic-tag">心理諮詢</span><span class="clinic-tag blue">精神科</span>
+    </div>
+
+    <div class="clinic-card">
+      <div class="clinic-name">台北市社區心理衛生中心</div>
+      <div class="clinic-row"><div class="clinic-icon">📍</div><div class="clinic-info">台北市大安區建國南路二段342號B棟</div></div>
+      <div class="clinic-row"><div class="clinic-icon">📞</div><div class="clinic-info">(02) 3393-7885</div></div>
+      <div class="clinic-row"><div class="clinic-icon">💡</div><div class="clinic-info">提供免費心理諮商（需預約）</div></div>
+      <span class="clinic-tag coral">免費諮商</span><span class="clinic-tag">需預約</span>
+    </div>
+
+    <div class="clinic-card">
+      <div class="clinic-name">新北市心理健康中心</div>
+      <div class="clinic-row"><div class="clinic-icon">📍</div><div class="clinic-info">新北市板橋區中山路一段161號</div></div>
+      <div class="clinic-row"><div class="clinic-icon">📞</div><div class="clinic-info">(02) 2953-1287</div></div>
+      <span class="clinic-tag coral">免費諮商</span>
+    </div>
+
+    <!-- 中部 -->
+    <div class="region-label">中部</div>
+
+    <div class="clinic-card">
+      <div class="clinic-name">台中市立復健醫院精神科</div>
+      <div class="clinic-row"><div class="clinic-icon">📍</div><div class="clinic-info">台中市北區健行路1492號</div></div>
+      <div class="clinic-row"><div class="clinic-icon">📞</div><div class="clinic-info">(04) 2239-5221</div></div>
+      <span class="clinic-tag blue">精神科</span><span class="clinic-tag">心理治療</span>
+    </div>
+
+    <div class="clinic-card">
+      <div class="clinic-name">台中市社區心理衛生中心</div>
+      <div class="clinic-row"><div class="clinic-icon">📍</div><div class="clinic-info">台中市西區民權路105號</div></div>
+      <div class="clinic-row"><div class="clinic-icon">📞</div><div class="clinic-info">(04) 2228-0099</div></div>
+      <div class="clinic-row"><div class="clinic-icon">💡</div><div class="clinic-info">提供免費心理諮商、心理健康講座</div></div>
+      <span class="clinic-tag coral">免費諮商</span>
+    </div>
+
+    <div class="clinic-card">
+      <div class="clinic-name">彰化縣衛生局心理衛生科</div>
+      <div class="clinic-row"><div class="clinic-icon">📍</div><div class="clinic-info">彰化市中山路二段162號</div></div>
+      <div class="clinic-row"><div class="clinic-icon">📞</div><div class="clinic-info">(04) 722-2718</div></div>
+      <span class="clinic-tag coral">免費資源</span>
+    </div>
+
+    <!-- 南部 -->
+    <div class="region-label">南部</div>
+
+    <div class="clinic-card">
+      <div class="clinic-name">高雄市立凱旋醫院</div>
+      <div class="clinic-row"><div class="clinic-icon">📍</div><div class="clinic-info">高雄市苓雅區凱旋二路130號</div></div>
+      <div class="clinic-row"><div class="clinic-icon">📞</div><div class="clinic-info">(07) 751-3171</div></div>
+      <div class="clinic-row"><div class="clinic-icon">🔗</div><div class="clinic-info"><a href="https://www.ksph.gov.tw" target="_blank">www.ksph.gov.tw</a></div></div>
+      <span class="clinic-tag blue">精神科</span><span class="clinic-tag">心理治療</span>
+    </div>
+
+    <div class="clinic-card">
+      <div class="clinic-name">高雄市社區心理衛生中心</div>
+      <div class="clinic-row"><div class="clinic-icon">📍</div><div class="clinic-info">高雄市三民區九如二路150號</div></div>
+      <div class="clinic-row"><div class="clinic-icon">📞</div><div class="clinic-info">(07) 311-0580</div></div>
+      <div class="clinic-row"><div class="clinic-icon">💡</div><div class="clinic-info">提供免費心理諮商、危機處理</div></div>
+      <span class="clinic-tag coral">免費諮商</span>
+    </div>
+
+    <div class="clinic-card">
+      <div class="clinic-name">成大醫院精神科部</div>
+      <div class="clinic-row"><div class="clinic-icon">📍</div><div class="clinic-info">台南市北區勝利路138號</div></div>
+      <div class="clinic-row"><div class="clinic-icon">📞</div><div class="clinic-info">(06) 235-3535</div></div>
+      <span class="clinic-tag blue">精神科</span><span class="clinic-tag">心理評估</span>
+    </div>
+
+    <div class="clinic-card">
+      <div class="clinic-name">台南市社區心理衛生中心</div>
+      <div class="clinic-row"><div class="clinic-icon">📍</div><div class="clinic-info">台南市東區林森路一段418號</div></div>
+      <div class="clinic-row"><div class="clinic-icon">📞</div><div class="clinic-info">(06) 260-0022</div></div>
+      <span class="clinic-tag coral">免費諮商</span>
+    </div>
+
+    <p class="resources-note">
+      以上資訊僅供參考，建議來電確認最新服務內容與預約方式。<br>
+      若有緊急狀況，請直接撥打 1925 安心專線。
+    </p>
+  </div>
+
+  <!-- PRIVACY -->
+  <div class="screen screen-privacy" id="screen-privacy" style="display:none;">
+    <button class="privacy-back" onclick="goScreen('home', document.querySelectorAll('.nav-btn')[0])">
+      ← 返回
+    </button>
+    <div class="privacy-title">隱私權政策</div>
+    <p class="privacy-updated">最後更新：2026 年 3 月</p>
+
+    <div class="privacy-section">
+      <h3>關於星夜</h3>
+      <p>星夜是一個提供情緒抒發與陪伴的個人工具。本政策說明我們如何處理您的資料。</p>
+    </div>
+
+    <div class="privacy-section">
+      <h3>⚠️ 重要聲明</h3>
+      <p>星夜提供情緒表達與 AI 陪伴功能，<strong style="color:#f0a07a">不能取代專業心理諮商或治療</strong>。若您有緊急心理健康需求，請尋求專業協助或撥打安心專線 1925。</p>
+    </div>
+
+    <div class="privacy-section">
+      <h3>我們收集的資料</h3>
+      <p>• 您在傾訴功能中輸入的對話內容，將傳送至 OpenAI 處理並產生回應。<br>
+      • 情緒日記資料僅儲存於您的裝置本地，我們無法存取。<br>
+      • 我們不收集您的姓名、Email 或任何身份識別資料。</p>
+    </div>
+
+    <div class="privacy-section">
+      <h3>資料如何使用</h3>
+      <p>• 對話內容僅用於當次 AI 回應，不會被儲存於我們的伺服器。<br>
+      • OpenAI 的資料使用規範請參閱其官方隱私政策。<br>
+      • 我們不會將您的資料出售或分享給第三方。</p>
+    </div>
+
+    <div class="privacy-section">
+      <h3>資料刪除</h3>
+      <p>您可隨時在裝置設定中清除 App 的本地資料，包含情緒日記記錄。對話內容不會被保存，無需額外刪除。</p>
+    </div>
+
+    <div class="privacy-section">
+      <h3>適用年齡</h3>
+      <p>本 App 適合 13 歲以上使用者。未成年人使用前請取得監護人同意。</p>
+    </div>
+
+    <div class="privacy-section">
+      <h3>聯絡我們</h3>
+      <p>如有任何疑問，歡迎透過 App 的傾訴功能反映，或聯繫開發者。</p>
+    </div>
+  </div>
+
+  <!-- GAME -->
+  <div class="game-screen" id="screen-game">
+  </div>
+  <canvas id="game-canvas" style="display:none;" onclick="handleGameClick(event)"></canvas>
+  <div class="game-hud" id="game-hud" style="display:none;">
+    <div class="game-score-wrap">
+      <div class="game-score-label">已消除</div>
+      <div class="game-score" id="game-score">0</div>
+    </div>
+    <button class="game-close-btn" onclick="stopGame()">✕</button>
+  </div>
+  <div class="game-combo" id="game-combo"></div>
+
+<!-- Diary Modal -->
+<div class="modal-overlay" id="diary-modal" style="display:none" onclick="closeDiaryModal(event)">
+  <div class="modal">
+    <div class="modal-title">今天的心情</div>
+    <textarea class="diary-textarea" id="diary-input" placeholder="今天發生了什麼？心裡有什麼話想說..."></textarea>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeDiaryModal()">取消</button>
+      <button class="modal-save" onclick="saveDiaryEntry()">✦ 化作星星</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- First-open Welcome Modal -->
+<div class="welcome-overlay" id="welcome-overlay" style="display:none;">
+  <div class="welcome-box">
+    <div class="welcome-moon">🌙</div>
+    <div class="welcome-title">歡迎來到星夜</div>
+
+    <div class="welcome-section">
+      <div class="welcome-section-title">⚠️ 重要提醒</div>
+      <div class="welcome-section-text">
+        星夜提供情緒抒發與 AI 陪伴，<strong style="color:#f0a07a">無法取代專業心理諮商</strong>。如有緊急心理危機，請撥打安心專線 <strong style="color:#f5e6c8">1925</strong>。
+      </div>
+    </div>
+
+    <div class="welcome-section">
+      <div class="welcome-section-title">📋 資料使用說明</div>
+      <div class="welcome-section-text">
+        您的對話內容將透過 AI 處理以產生回應，不會被永久儲存。情緒日記僅保存於您的裝置中。
+      </div>
+    </div>
+
+    <div class="welcome-section">
+      <div class="welcome-section-title">✦ 使用條款</div>
+      <div class="welcome-section-text">
+        點擊「我了解，開始使用」即表示您已閱讀並同意本 App 的使用方式與隱私政策。
+      </div>
+    </div>
+
+    <p style="font-size:11px;color:var(--text-dim);text-align:center;margin-top:12px;line-height:1.6;">
+      如需協助，可至首頁查看<a href="#" onclick="agreeAndClose(); setTimeout(()=>goScreen('resources',null),300); return false;" style="color:rgba(123,156,245,0.7);text-decoration:none;">台灣諮商資源</a>
+    </p>
+    <button class="welcome-agree-btn" onclick="agreeAndClose()">我了解，開始使用 →</button>
+  </div>
+</div>
+<script>
+
+
+// ─── First Open & Legal ───
+function checkFirstOpen() {
+  const agreed = localStorage.getItem('starnight-agreed');
+  if (!agreed) {
+    document.getElementById('welcome-overlay').style.display = 'flex';
+  }
+}
+function agreeAndClose() {
+  localStorage.setItem('starnight-agreed', '1');
+  const overlay = document.getElementById('welcome-overlay');
+  overlay.style.opacity = '0';
+  overlay.style.transition = 'opacity 0.4s';
+  setTimeout(() => overlay.style.display = 'none', 400);
+}
+checkFirstOpen();
+
+// ─── Bible Verse ───
+const VERSES = [
+  { text: '你們要先求他的國和他的義，這些東西都要加給你們了。', ref: '馬太福音 6:33' },
+  { text: '我靠著那加給我力量的，凡事都能做。', ref: '腓立比書 4:13' },
+  { text: '耶和華是我的牧者，我必不至缺乏。', ref: '詩篇 23:1' },
+  { text: '你要專心仰賴耶和華，不可倚靠自己的聰明。', ref: '箴言 3:5' },
+  { text: '凡勞苦擔重擔的人，可以到我這裡來，我就使你們得安息。', ref: '馬太福音 11:28' },
+  { text: '我將這些事告訴你們，是要叫你們在我裡面有平安。', ref: '約翰福音 16:33' },
+  { text: '你們要將一切的憂慮卸給神，因為他顧念你們。', ref: '彼得前書 5:7' },
+  { text: '耶和華必在你前面行；他必與你同在，必不撇下你，也不丟棄你。', ref: '申命記 31:8' },
+  { text: '我的恩典夠你用的，因為我的能力是在人的軟弱上顯得完全。', ref: '哥林多後書 12:9' },
+  { text: '神是我們的避難所，是我們的力量，是我們在患難中隨時的幫助。', ref: '詩篇 46:1' },
+  { text: '你所不知道的事，你且呼求我，我就指示你。', ref: '耶利米書 33:3' },
+  { text: '應當一無掛慮，只要凡事藉著禱告、祈求和感謝，將你們所要的告訴神。', ref: '腓立比書 4:6' },
+  { text: '你們中間若有缺少智慧的，應當求那厚賜與眾人、也不斥責人的神，主就必賜給他。', ref: '雅各書 1:5' },
+  { text: '要剛強壯膽，不要懼怕，也不要驚惶；因為你無論往哪裡去，耶和華你的神必與你同在。', ref: '約書亞記 1:9' },
+  { text: '我們曉得萬事都互相效力，叫愛神的人得益處。', ref: '羅馬書 8:28' },
+  { text: '耶和華啊，你是我的神，我要尊崇你，我要稱讚你的名。', ref: '以賽亞書 25:1' },
+  { text: '你們祈求，就給你們；尋找，就尋見；叩門，就給你們開門。', ref: '馬太福音 7:7' },
+  { text: '以愛心說誠實話，凡事長進，連於元首基督。', ref: '以弗所書 4:15' },
+  { text: '信就是所望之事的實底，是未見之事的確據。', ref: '希伯來書 11:1' },
+  { text: '你的話是我腳前的燈，是我路上的光。', ref: '詩篇 119:105' },
+  { text: '那賜平安的神，要不久將撒但踐踏在你們腳下。', ref: '羅馬書 16:20' },
+  { text: '在主裡常常喜樂，我再說，你們要喜樂。', ref: '腓立比書 4:4' },
+  { text: '神愛世人，甚至將他的獨生子賜給他們，叫一切信他的，不至滅亡，反得永生。', ref: '約翰福音 3:16' },
+  { text: '耶和華以恩惠和慈悲為衣，以公義為護心鏡。', ref: '以賽亞書 59:17' },
+  { text: '少年人豈能潔淨他的行為呢？是要遵行你的話。', ref: '詩篇 119:9' },
+  { text: '我的心哪，你為何憂悶？為何在我裡面煩躁？應當仰望神！', ref: '詩篇 42:5' },
+  { text: '親愛的，我們應當彼此相愛，因為愛是從神來的。', ref: '約翰一書 4:7' },
+  { text: '耶和華必保護你，免受一切的災害；他必保護你的性命。', ref: '詩篇 121:7' },
+  { text: '聖靈所結的果子就是仁愛、喜樂、和平、忍耐、恩慈、良善、信實、溫柔、節制。', ref: '加拉太書 5:22-23' },
+  { text: '以色列的聖者耶和華說：我耶和華你的神，必攙扶你的右手，對你說：不要害怕，我必幫助你。', ref: '以賽亞書 41:13' },
+  { text: '你要以耶和華為樂，他就將你心裡所求的賜給你。', ref: '詩篇 37:4' },
+  { text: '你們要休息，要知道我是神！', ref: '詩篇 46:10' },
+  { text: '惟有等候耶和華的，必重新得力。', ref: '以賽亞書 40:31' },
+  { text: '我靠近呼求你的日子，你就應允我，鼓勵我，使我有力量。', ref: '詩篇 138:3' },
+  { text: '不要效法這個世界，只要心意更新而變化。', ref: '羅馬書 12:2' },
+  { text: '愛是恆久忍耐，又有恩慈；愛是不嫉妒，不自誇，不張狂。', ref: '哥林多前書 13:4' },
+  { text: '我已經告訴你們，叫你們在我裡面有平安。在世上你們有苦難，但你們可以放心，我已經勝了世界。', ref: '約翰福音 16:33' },
+];
+
+function getTodayVerse() {
+  const now = new Date();
+  const dayOfYear = Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 86400000);
+  return VERSES[dayOfYear % VERSES.length];
+}
+
+function initVerse() {
+  const v = getTodayVerse();
+  document.getElementById('verse-ref').textContent = v.ref;
+  document.getElementById('verse-text').textContent = v.text;
+}
+
+function toggleVerse() {
+  const card = document.getElementById('verse-card');
+  card.classList.toggle('open');
+}
+
+initVerse();
+
+// ─── Star background ───
+const starBg = document.getElementById('star-bg');
+const sbCtx = starBg.getContext('2d');
+let stars = [];
+
+function resizeStarBg() {
+  starBg.width = window.innerWidth;
+  starBg.height = window.innerHeight;
+  stars = Array.from({length: 100}, () => ({
+    x: Math.random() * starBg.width,
+    y: Math.random() * starBg.height,
+    r: Math.random() * 1.2 + 0.3,
+    a: Math.random(),
+    speed: Math.random() * 0.008 + 0.003,
+    phase: Math.random() * Math.PI * 2
+  }));
+}
+
+function drawStars(t) {
+  sbCtx.clearRect(0, 0, starBg.width, starBg.height);
+  stars.forEach(s => {
+    const alpha = 0.3 + 0.5 * (0.5 + 0.5 * Math.sin(t * s.speed + s.phase));
+    sbCtx.beginPath();
+    sbCtx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    sbCtx.fillStyle = `rgba(220, 210, 255, ${alpha})`;
+    sbCtx.fill();
+  });
+  requestAnimationFrame(drawStars);
+}
+
+resizeStarBg();
+requestAnimationFrame(drawStars);
+window.addEventListener('resize', resizeStarBg);
+
+// Moon touch
+document.getElementById('moon-btn').addEventListener('click', () => {
+  showToast('月亮說：今晚也辛苦你了 🌙');
+});
+
+// ─── Navigation ───
+let currentScreen = 'home';
+function goScreen(name, btn) {
+  document.querySelectorAll('.screen').forEach(s => {
+    s.classList.remove('active');
+    s.style.display = 'none';
+  });
+  const target = document.getElementById('screen-' + name);
+  if (target) {
+    target.style.display = 'flex';
+    target.classList.add('active');
+  }
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  currentScreen = name;
+}
+
+let selectedMood = null;
+function selectMood(el) {
+  document.querySelectorAll('.mood-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedMood = { name: el.dataset.mood, color: el.dataset.color };
+}
+
+function goToChat() {
+  if (!selectedMood) { showToast('先選一個今天的心情吧 ✦'); return; }
+  goScreen('chat', document.querySelectorAll('.nav-btn')[1]);
+  const greeting = {
+    '平靜': '還不錯的一天呢。有什麼想跟我說的嗎？我都在這裡。',
+    '開心': '聽到你今天開心，我也跟著輕鬆了起來 🌟 是什麼讓你這麼好心情呢？',
+    '疲憊': '身體累了，要好好休息。你今天撐了很久吧，辛苦了。',
+    '低落': '低落的感覺很沉重，我知道。你願意說說是什麼讓你心裡沉沉的嗎？',
+    '委屈': '委屈是一種很難說出口的感覺。我在這裡，你可以慢慢說。',
+    '孤單': '一個人的感覺有時很深很重。今晚我陪著你，有什麼想說的都可以。'
+  };
+  chatHistory = [];
+  const msgs = document.getElementById('chat-messages');
+  msgs.innerHTML = '';
+  addMsg('ai', greeting[selectedMood.name] || '今晚的星空很美。有什麼想說的嗎？我在這裡陪你。🌙');
+}
+
+// ─── Chat ───
+// ✦ 把下面這行換成你的 n8n webhook URL
+const N8N_WEBHOOK = 'https://n8n-k7xm2397.zeabur.app/webhook/773c08bf-bb59-4965-bd06-87936481947b';
+
+const FALLBACK_RESPONSES = [
+  '我聽到了，謝謝你願意告訴我。能說說更多嗎？',
+  '這種感覺真的不好受。你今天還好嗎？',
+  '嗯，我在這裡，你不用一個人扛著。',
+  '有時候把話說出來，心裡會輕一點。還有什麼想說的嗎？',
+  '我懂你說的那種感覺。你平常怎麼讓自己好過一些？',
+  '聽起來今天很辛苦。你已經很努力了。',
+  '謝謝你願意分享這些。你覺得有什麼事情能讓你現在好一點點？',
+];
+let responseIdx = 0;
+let chatHistory = [];
+
+function addMsg(type, text) {
+  const msgs = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = 'msg ' + type;
+  div.textContent = text;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+async function sendMsg() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+  addMsg('user', text);
+  input.value = '';
+  input.style.height = '';
+  chatHistory.push({ role: 'user', content: text });
+
+  const typing = document.createElement('div');
+  typing.className = 'msg typing';
+  typing.textContent = '···';
+  typing.id = 'typing';
+  document.getElementById('chat-messages').appendChild(typing);
+  document.getElementById('chat-messages').scrollTop = 99999;
+
+  if (N8N_WEBHOOK) {
+    try {
+      const res = await fetch(N8N_WEBHOOK, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: text,
+          mood: selectedMood ? selectedMood.name : '未知',
+          history: chatHistory.slice(-6),
+          token: '@Gkc5124451'
+        })
+      });
+      const data = await res.json();
+      const reply = data.reply || data.text || data.output || data.message || '我在這裡陪著你。';
+      const t = document.getElementById('typing');
+      if (t) t.remove();
+      addMsg('ai', reply);
+      chatHistory.push({ role: 'assistant', content: reply });
+      return;
+    } catch (err) {
+      console.warn('n8n error, using fallback', err);
+    }
+  }
+
+  // Fallback if no webhook or error
+  setTimeout(() => {
+    const t = document.getElementById('typing');
+    if (t) t.remove();
+    addMsg('ai', FALLBACK_RESPONSES[responseIdx % FALLBACK_RESPONSES.length]);
+    responseIdx++;
+  }, 1200 + Math.random() * 600);
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
+}
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+}
+
+// ─── Drawing Canvas ───
+let drawCanvas, dCtx, drawing = false;
+let brushColor = '#a78de0', brushSize = 4, brushOpacity = 1.0, brushType = 'pen';
+let hasDrawn = false;
+let lastX = 0, lastY = 0;
+let starQueue = [];
+
+function initCanvas() {
+  drawCanvas = document.getElementById('draw-canvas');
+  const wrap = document.getElementById('canvas-wrap');
+  if (drawCanvas._inited) return;
+  drawCanvas._inited = true;
+  drawCanvas.width = wrap.clientWidth;
+  drawCanvas.height = wrap.clientHeight;
+  dCtx = drawCanvas.getContext('2d');
+
+  const getPos = (e) => {
+    const r = drawCanvas.getBoundingClientRect();
+    const t = e.touches ? e.touches[0] : e;
+    return { x: (t.clientX - r.left) * (drawCanvas.width / r.width), y: (t.clientY - r.top) * (drawCanvas.height / r.height) };
+  };
+
+  drawCanvas.onpointerdown = (e) => {
+    drawing = true; hasDrawn = true;
+    const p = getPos(e);
+    lastX = p.x; lastY = p.y;
+    if (brushType === 'star') { drawStar(p.x, p.y); return; }
+    applyBrushStyle();
+    dCtx.beginPath(); dCtx.moveTo(p.x, p.y);
+    e.preventDefault();
+  };
+  drawCanvas.onpointermove = (e) => {
+    if (!drawing) return;
+    const p = getPos(e);
+    if (brushType === 'star') {
+      const dist = Math.hypot(p.x - lastX, p.y - lastY);
+      if (dist > brushSize * 2) { drawStar(p.x, p.y); lastX = p.x; lastY = p.y; }
+      return;
+    }
+    if (brushType === 'soft') {
+      drawSoftBrush(p.x, p.y);
+    } else {
+      dCtx.lineTo(p.x, p.y);
+      dCtx.stroke();
+    }
+    lastX = p.x; lastY = p.y;
+    e.preventDefault();
+  };
+  drawCanvas.onpointerup = () => { drawing = false; dCtx.beginPath(); };
+  drawCanvas.onpointerleave = () => { drawing = false; dCtx.beginPath(); };
+}
+
+function applyBrushStyle() {
+  const alpha = brushOpacity;
+  if (brushType === 'eraser') {
+    dCtx.globalCompositeOperation = 'destination-out';
+    dCtx.strokeStyle = 'rgba(0,0,0,1)';
+    dCtx.lineWidth = brushSize * 2.5;
+  } else if (brushType === 'marker') {
+    dCtx.globalCompositeOperation = 'source-over';
+    const c = hexToRgb(brushColor);
+    dCtx.strokeStyle = `rgba(${c.r},${c.g},${c.b},${Math.min(alpha, 0.7)})`;
+    dCtx.lineWidth = brushSize * 1.8;
+  } else {
+    dCtx.globalCompositeOperation = 'source-over';
+    const c = hexToRgb(brushColor);
+    dCtx.strokeStyle = `rgba(${c.r},${c.g},${c.b},${alpha})`;
+    dCtx.lineWidth = brushSize;
+  }
+  dCtx.lineCap = 'round'; dCtx.lineJoin = 'round';
+}
+
+function drawSoftBrush(x, y) {
+  const c = hexToRgb(brushColor);
+  const r = brushSize * 3;
+  const grd = dCtx.createRadialGradient(x, y, 0, x, y, r);
+  grd.addColorStop(0, `rgba(${c.r},${c.g},${c.b},${brushOpacity * 0.3})`);
+  grd.addColorStop(1, `rgba(${c.r},${c.g},${c.b},0)`);
+  dCtx.globalCompositeOperation = 'source-over';
+  dCtx.fillStyle = grd;
+  dCtx.beginPath();
+  dCtx.arc(x, y, r, 0, Math.PI * 2);
+  dCtx.fill();
+}
+
+function drawStar(x, y) {
+  const c = hexToRgb(brushColor);
+  dCtx.globalCompositeOperation = 'source-over';
+  dCtx.fillStyle = `rgba(${c.r},${c.g},${c.b},${brushOpacity})`;
+  const size = brushSize * 0.8 + Math.random() * brushSize * 0.6;
+  dCtx.font = `${size}px serif`;
+  dCtx.textAlign = 'center';
+  dCtx.textBaseline = 'middle';
+  dCtx.fillText(Math.random() > 0.5 ? '✦' : '·', x + (Math.random()-0.5)*8, y + (Math.random()-0.5)*8);
+}
+
+function hexToRgb(hex) {
+  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  return {r,g,b};
+}
+
+function setColor(el) {
+  document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('selected'));
+  el.classList.add('selected');
+  brushColor = el.dataset.color;
+  if (brushType === 'eraser') setBrushByType('pen');
+}
+function setBrush(el) {
+  document.querySelectorAll('.brush-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  brushType = el.dataset.brush;
+  setBrushByType(brushType);
+}
+function setBrushByType(type) {
+  brushType = type;
+  if (dCtx) applyBrushStyle();
+}
+function updateSize(input) {
+  brushSize = parseInt(input.value);
+  const px = Math.max(2, Math.min(brushSize, 36));
+  document.getElementById('size-circle').style.width = px + 'px';
+  document.getElementById('size-circle').style.height = px + 'px';
+}
+function updateOpacity(input) {
+  brushOpacity = parseInt(input.value) / 100;
+  document.getElementById('opacity-val').textContent = input.value + '%';
+}
+function clearCanvas() {
+  if (!dCtx) return;
+  dCtx.globalCompositeOperation = 'source-over';
+  dCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+  hasDrawn = false;
+}
+
+function releaseCanvas() {
+  if (!hasDrawn) { showToast('先在畫布上畫點什麼吧 ✦'); return; }
+  const wrap = document.getElementById('canvas-wrap');
+  const rect = wrap.getBoundingClientRect();
+  for (let i = 0; i < 12; i++) {
+    setTimeout(() => {
+      const star = document.createElement('div');
+      star.className = 'shooting-star';
+      star.style.left = (rect.left + Math.random() * rect.width) + 'px';
+      star.style.top = (rect.top + Math.random() * rect.height) + 'px';
+      star.style.background = [brushColor, '#e8dff8', '#f5e6c8', '#8dd4b8'][Math.floor(Math.random()*4)];
+      document.body.appendChild(star);
+      setTimeout(() => star.remove(), 1300);
+    }, i * 70);
+  }
+  setTimeout(() => {
+    dCtx.globalCompositeOperation = 'source-over';
+    dCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+    hasDrawn = false;
+    showToast('你的情緒已化作流星，飛向宇宙了 ✦');
+  }, 700);
+}
+
+// ─── Diary ───
+function loadDiary() {
+  try {
+    const saved = localStorage.getItem('starnight-diary');
+    return saved ? JSON.parse(saved) : [];
+  } catch { return []; }
+}
+function saveDiary() {
+  try { localStorage.setItem('starnight-diary', JSON.stringify(diaryEntries)); } catch {}
+}
+let diaryEntries = loadDiary();
+
+function renderDiary() {
+  const list = document.getElementById('diary-list');
+  list.innerHTML = '';
+  [...diaryEntries].reverse().forEach(e => {
+    const div = document.createElement('div');
+    div.className = 'diary-entry';
+    div.innerHTML = `
+      <div class="diary-entry-top">
+        <div class="entry-dot" style="background:${e.color}"></div>
+        <span class="entry-date">${e.date}</span>
+        <span class="entry-mood">${e.mood}</span>
+      </div>
+      <div class="entry-text">${e.text}</div>
+    `;
+    list.appendChild(div);
+  });
+  drawStarMap();
+}
+
+function drawStarMap() {
+  const c = document.getElementById('star-map-canvas');
+  const wrap = c.parentElement;
+  c.width = wrap.clientWidth;
+  c.height = wrap.clientHeight;
+  const ctx = c.getContext('2d');
+  const W = c.width, H = c.height;
+
+  const entries = diaryEntries;
+  if (!entries.length) return;
+
+  const points = entries.map((e, i) => ({
+    x: 40 + (i / Math.max(entries.length - 1, 1)) * (W - 80),
+    y: 30 + Math.random() * (H - 60),
+    color: e.color,
+    r: 5 + i * 1.5
+  }));
+  // Fix randomness for display
+  const fixed = [
+    {x: 50, y: 80, color: '#a78de0', r: 5},
+    {x: 140, y: 50, color: '#8dd4b8', r: 7},
+    {x: 240, y: 90, color: '#7b9cf5', r: 6},
+  ];
+  const pts = fixed.slice(0, entries.length);
+
+  // Lines
+  ctx.strokeStyle = 'rgba(42,58,110,0.6)';
+  ctx.lineWidth = 0.8;
+  ctx.beginPath();
+  pts.forEach((p, i) => { i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y); });
+  ctx.stroke();
+
+  // Stars
+  pts.forEach((p, i) => {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = entries[i].color;
+    ctx.fill();
+
+    // Glow
+    const grd = ctx.createRadialGradient(p.x, p.y, p.r, p.x, p.y, p.r * 3);
+    grd.addColorStop(0, entries[i].color + '55');
+    grd.addColorStop(1, 'transparent');
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r * 3, 0, Math.PI * 2);
+    ctx.fillStyle = grd;
+    ctx.fill();
+  });
+
+  // Today label
+  if (pts.length) {
+    const last = pts[pts.length - 1];
+    ctx.fillStyle = '#8090b8';
+    ctx.font = '10px Noto Sans TC';
+    ctx.textAlign = 'center';
+    ctx.fillText('今天', last.x, last.y + last.r + 14);
+  }
+
+  // Background stars
+  for (let i = 0; i < 30; i++) {
+    const x = Math.random() * W, y = Math.random() * H;
+    ctx.beginPath();
+    ctx.arc(x, y, Math.random() * 0.8 + 0.2, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(200,184,232,${Math.random() * 0.4 + 0.1})`;
+    ctx.fill();
+  }
+}
+
+function openDiaryModal() {
+  document.getElementById('diary-modal').style.display = 'flex';
+  document.getElementById('diary-input').value = '';
+  setTimeout(() => document.getElementById('diary-input').focus(), 100);
+}
+function closeDiaryModal(e) {
+  if (!e || e.target === document.getElementById('diary-modal')) {
+    document.getElementById('diary-modal').style.display = 'none';
+  }
+}
+function saveDiaryEntry() {
+  const text = document.getElementById('diary-input').value.trim();
+  if (!text) { showToast('寫幾個字吧，哪怕只有一句話 ✦'); return; }
+  const mood = selectedMood || { name: '平靜', color: '#7b9cf5' };
+  const now = new Date();
+  diaryEntries.push({
+    date: `${now.getMonth()+1}月${now.getDate()}日`,
+    mood: mood.name,
+    color: mood.color,
+    text
+  });
+  saveDiary();
+  closeDiaryModal();
+  renderDiary();
+  showToast('已化作一顆新的星星 ✦');
+}
+
+// ─── Toast ───
+function showToast(msg) {
+  const old = document.querySelector('.toast');
+  if (old) old.remove();
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2200);
+}
+  
+// ─── Press Ball Game ───
+let gameActive = false;
+let gameAnimFrame = null;
+let gameCanvas, gCtx;
+let gameScore = 0;
+let ball = null;
+let ripples = [];
+let particles = [];
+let pressScale = 1;
+let targetScale = 1;
+let glowIntensity = 0;
+
+function initBall() {
+  ball = {
+    x: gameCanvas.width / 2,
+    y: gameCanvas.height / 2,
+    r: Math.min(gameCanvas.width, gameCanvas.height) * 0.22,
+    color: { fill: 'rgba(167,141,224,0.85)', stroke: 'rgba(200,180,255,1)' },
+    wobble: 0,
+  };
+}
+
+function createRipple(x, y) {
+  ripples.push({ x, y, r: ball.r * 0.8, maxR: ball.r * 2.2, alpha: 0.6, color: '#c8a8f8' });
+}
+
+function createBurst(count) {
+  const cx = ball.x, cy = ball.y;
+  for (let i = 0; i < count; i++) {
+    const angle = (Math.PI * 2 * i) / count + Math.random() * 0.3;
+    const speed = 3 + Math.random() * 5;
+    particles.push({
+      x: cx, y: cy,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      r: 2 + Math.random() * 3,
+      alpha: 1, life: 1,
+      color: ['#c8a8f8','#aac4ff','#8dd4b8','#ffe066','#ffd6e0'][Math.floor(Math.random()*5)],
+    });
+  }
+  for (let i = 0; i < 6; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const speed = 4 + Math.random() * 6;
+    particles.push({
+      x: cx, y: cy,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed - 2,
+      r: 1, alpha: 1, life: 1, isStar: true, color: '#ffffff',
+    });
+  }
+}
+
+function pressBall() {
+  if (!gameActive) return;
+  gameScore++;
+  document.getElementById('game-score').textContent = gameScore;
+
+  pressScale = 0.82;
+  glowIntensity = 1;
+  createRipple(ball.x, ball.y);
+  createBurst(8);
+
+  // Feedback messages
+  const msgs = ['💨','✨','💥','🌟','⚡'];
+  if (gameScore % 10 === 0) showCombo('🎉 ' + gameScore + ' 下！');
+  else if (gameScore % 5 === 0) showCombo(msgs[Math.floor(Math.random()*msgs.length)]);
+
+  // Color shift every 20 hits
+  const colors = [
+    { fill: 'rgba(167,141,224,0.85)', stroke: 'rgba(200,180,255,1)' },
+    { fill: 'rgba(123,156,245,0.85)', stroke: 'rgba(170,196,255,1)' },
+    { fill: 'rgba(141,212,184,0.85)', stroke: 'rgba(184,240,216,1)' },
+    { fill: 'rgba(240,160,122,0.85)', stroke: 'rgba(245,200,160,1)' },
+    { fill: 'rgba(255,208,224,0.85)', stroke: 'rgba(255,230,240,1)' },
+  ];
+  ball.color = colors[Math.floor(gameScore / 20) % colors.length];
+}
+
+function drawPressBall() {
+  gCtx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
+
+  // Ripples
+  ripples = ripples.filter(rp => {
+    rp.r += 4;
+    rp.alpha -= 0.04;
+    if (rp.alpha <= 0) return false;
+    gCtx.save();
+    gCtx.globalAlpha = rp.alpha;
+    gCtx.beginPath();
+    gCtx.arc(rp.x, rp.y, rp.r, 0, Math.PI * 2);
+    gCtx.strokeStyle = rp.color;
+    gCtx.lineWidth = 2;
+    gCtx.stroke();
+    gCtx.restore();
+    return true;
+  });
+
+  // Particles
+  particles = particles.filter(p => {
+    p.x += p.vx; p.y += p.vy; p.vy += 0.15;
+    p.life -= 0.03; p.alpha = p.life;
+    if (p.life <= 0) return false;
+    gCtx.save();
+    gCtx.globalAlpha = p.alpha;
+    if (p.isStar) {
+      gCtx.fillStyle = p.color;
+      gCtx.font = '12px serif';
+      gCtx.textAlign = 'center';
+      gCtx.fillText('✦', p.x, p.y);
+    } else {
+      gCtx.beginPath();
+      gCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      gCtx.fillStyle = p.color;
+      gCtx.fill();
+    }
+    gCtx.restore();
+    return true;
+  });
+
+  // Spring animation
+  pressScale += (targetScale - pressScale) * 0.18;
+  targetScale = 1;
+  glowIntensity *= 0.88;
+  ball.wobble += 0.04;
+
+  const r = ball.r * pressScale;
+  const wobbleX = Math.sin(ball.wobble) * 3;
+
+  // Glow
+  if (glowIntensity > 0.05) {
+    gCtx.save();
+    gCtx.globalAlpha = glowIntensity * 0.4;
+    const grd = gCtx.createRadialGradient(ball.x, ball.y, r * 0.5, ball.x, ball.y, r * 1.8);
+    grd.addColorStop(0, ball.color.stroke);
+    grd.addColorStop(1, 'transparent');
+    gCtx.beginPath();
+    gCtx.arc(ball.x + wobbleX, ball.y, r * 1.8, 0, Math.PI * 2);
+    gCtx.fillStyle = grd;
+    gCtx.fill();
+    gCtx.restore();
+  }
+
+  // Ball shadow
+  gCtx.save();
+  gCtx.globalAlpha = 0.15;
+  gCtx.beginPath();
+  gCtx.ellipse(ball.x + wobbleX, ball.y + r + 12, r * 0.7, r * 0.12, 0, 0, Math.PI * 2);
+  gCtx.fillStyle = '#000';
+  gCtx.fill();
+  gCtx.restore();
+
+  // Ball body
+  gCtx.save();
+  gCtx.beginPath();
+  gCtx.arc(ball.x + wobbleX, ball.y, r, 0, Math.PI * 2);
+  gCtx.fillStyle = ball.color.fill;
+  gCtx.fill();
+
+  // Shine
+  gCtx.beginPath();
+  gCtx.arc(ball.x + wobbleX - r * 0.25, ball.y - r * 0.25, r * 0.2, 0, Math.PI * 2);
+  gCtx.fillStyle = 'rgba(255,255,255,0.4)';
+  gCtx.fill();
+
+  // Outline
+  gCtx.beginPath();
+  gCtx.arc(ball.x + wobbleX, ball.y, r, 0, Math.PI * 2);
+  gCtx.strokeStyle = ball.color.stroke;
+  gCtx.lineWidth = 2.5;
+  gCtx.stroke();
+  gCtx.restore();
+
+  // Hint text on ball
+  if (gameScore === 0) {
+    gCtx.save();
+    gCtx.fillStyle = 'rgba(255,255,255,0.6)';
+    gCtx.font = '14px Noto Sans TC';
+    gCtx.textAlign = 'center';
+    gCtx.textBaseline = 'middle';
+    gCtx.fillText('按我！', ball.x + wobbleX, ball.y);
+    gCtx.restore();
+  }
+
+  gameAnimFrame = requestAnimationFrame(drawPressBall);
+}
+
+function handleGameClick(e) {
+  if (!gameActive) return;
+  const rect = gameCanvas.getBoundingClientRect();
+  const cx = (e.clientX - rect.left) * (gameCanvas.width / rect.width);
+  const cy = (e.clientY - rect.top) * (gameCanvas.height / rect.height);
+  const dist = Math.hypot(cx - ball.x, cy - ball.y);
+  if (dist < ball.r * 1.1) pressBall();
+}
+
+function showCombo(msg) {
+  const el = document.getElementById('game-combo');
+  el.textContent = msg;
+  el.classList.remove('show');
+  void el.offsetWidth;
+  el.classList.add('show');
+}
+
+function startGame(btn) {
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  document.querySelectorAll('.screen').forEach(s => {
+    s.classList.remove('active');
+    s.style.display = 'none';
+  });
+
+  gameCanvas = document.getElementById('game-canvas');
+  gameCanvas.style.display = 'block';
+  gameCanvas.width = window.innerWidth;
+  gameCanvas.height = window.innerHeight;
+  gCtx = gameCanvas.getContext('2d');
+
+  document.getElementById('game-hud').style.display = 'flex';
+  gameScore = 0;
+  ripples = []; particles = [];
+  pressScale = 1; targetScale = 1; glowIntensity = 0;
+  document.getElementById('game-score').textContent = '0';
+  initBall();
+  gameActive = true;
+  drawPressBall();
+}
+
+function stopGame() {
+  gameActive = false;
+  cancelAnimationFrame(gameAnimFrame);
+  document.getElementById('game-canvas').style.display = 'none';
+  document.getElementById('game-hud').style.display = 'none';
+  ripples = []; particles = [];
+  goScreen('home', document.querySelectorAll('.nav-btn')[0]);
+}
+
+// ─── Service Worker ───
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    });
+  }
+</script>
+</body>
+</html>
