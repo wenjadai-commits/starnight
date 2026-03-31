@@ -1,10 +1,11 @@
-const CACHE = 'starnight-v14';
+const CACHE = 'starnight-v15';
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/icons/icon-192.png',
-  '/icons/icon-512.png'
+  '/starnight/',
+  '/starnight/index.html',
+  '/starnight/manifest.json',
+  '/starnight/moon.png',
+  '/starnight/icons/icon-192.png',
+  '/starnight/icons/icon-512.png'
 ];
 
 self.addEventListener('install', e => {

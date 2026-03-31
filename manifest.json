@@ -2,7 +2,7 @@
   "name": "星夜 — 你的情緒空間",
   "short_name": "星夜",
   "description": "在最深的夜裡，給情緒一個落腳的地方",
-  "start_url": "/",
+  "start_url": "/starnight/",
   "display": "standalone",
   "background_color": "#070f2b",
   "theme_color": "#070f2b",
