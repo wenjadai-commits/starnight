@@ -2251,7 +2251,7 @@ function goToChat() {
 
 // ─── Chat ───
 // 前端只呼叫自己的中介 API，不要直接暴露 n8n webhook
-const CHAT_API = '/api/chat';
+const CHAT_API = 'https://starnight-api.vercel.app/api/chat';
 
 const FALLBACK_RESPONSES = [
   '我聽到了，謝謝你願意告訴我。能說說更多嗎？',
