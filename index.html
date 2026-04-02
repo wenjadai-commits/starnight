@@ -2051,7 +2051,7 @@ function drawStarShape(ctx, x, y, r, alpha, color) {
 
 function animateBottle() {
   if (!bottleCtx) return;
-  bottleCtx.clearRect(0, 0, 260, 260);
+  bottleCtx.clearRect(0, 0, bottleCanvas.width, bottleCanvas.height);
 
   const t = Date.now() / 1000;
   const bx = BOTTLE_AREA.x, by = BOTTLE_AREA.y;
