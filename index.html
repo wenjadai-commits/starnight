@@ -146,14 +146,14 @@
   }
   .bottle-container {
     position: relative;
-    width: 160px;
-    height: 160px;
-    margin-bottom: 6px;
+    width: 260px;
+    height: 260px;
+    margin-bottom: 10px;
     cursor: pointer;
   }
   .bottle-img {
-    width: 160px;
-    height: 160px;
+    width: 260px;
+    height: 260px;
     object-fit: contain;
     position: absolute;
     top: 0; left: 0;
@@ -163,8 +163,8 @@
   #bottle-canvas {
     position: absolute;
     top: 0; left: 0;
-    width: 160px;
-    height: 160px;
+    width: 260px;
+    height: 260px;
     z-index: 2;
     pointer-events: none;
     mix-blend-mode: screen;
@@ -181,14 +181,14 @@
 
   .greeting {
     font-family: 'Noto Serif TC', serif;
-    font-size: 13px;
+    font-size: 12px;
     color: var(--text-muted);
     letter-spacing: 2px;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
   }
   .question {
     font-family: 'Noto Serif TC', serif;
-    font-size: 16px;
+    font-size: 15px;
     color: var(--star-white);
     letter-spacing: 1px;
     text-align: center;
@@ -253,7 +253,7 @@
     cursor: pointer;
     width: 100%;
     transition: all 0.2s;
-    margin-top: auto;
+    margin-top: 16px;
   }
   .enter-btn:hover { background: rgba(123,156,245,0.25); }
 
@@ -1115,6 +1115,20 @@
     transition: all 0.2s;
   }
   .retry-btn:hover { background: rgba(240,128,128,0.1); }
+
+  @keyframes flyToBottle {
+    0% { transform: translate(0, 0) scale(1); opacity: 1; }
+    100% { transform: translate(var(--tx), var(--ty)) scale(0.2); opacity: 0; }
+  }
+  .flying-star {
+    position: fixed;
+    width: 16px;
+    height: 16px;
+    pointer-events: none;
+    z-index: 500;
+    font-size: 16px;
+    animation: flyToBottle 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
 </style>
 
 <!-- Firebase SDK -->
@@ -1171,48 +1185,14 @@ onAuthStateChanged(auth, (user) => {
 <div class="app">
 
   <!-- HOME -->
-  <div class="screen active" id="screen-home" style="display:flex; justify-content:space-between;">
-    <div class="home-top">
-      <div class="bottle-container" id="bottle-btn" onclick="showToast('今天也辛苦你了 ✦')">
-        <canvas id="bottle-canvas" width="160" height="160"></canvas>
-        <img src="bottle.png" class="bottle-img" alt="星星瓶" draggable="false">
-      </div>
-      <p class="bottle-count" id="bottle-count">✦ 0 顆情緒星星</p>
-      <p class="greeting">今晚好嗎</p>
-      <p class="question">你的心情是<br>什麼顏色？</p>
+  <div class="screen active" id="screen-home" style="display:flex; flex-direction:column; align-items:center; justify-content:center;">
+    <div class="bottle-container" id="bottle-btn" onclick="showToast('今天也辛苦你了 ✦')">
+      <canvas id="bottle-canvas" width="260" height="260"></canvas>
+      <img src="bottle.png" class="bottle-img" alt="星星瓶" draggable="false">
     </div>
-
-    <p class="mood-label">選擇今天的狀態</p>
-    <div class="mood-grid">
-      <div class="mood-card" data-mood="平靜" data-color="#7b9cf5" onclick="selectMood(this)">
-        <div class="mood-dot" style="background:#7b9cf5"></div>
-        <div><div class="mood-name">平靜</div><div class="mood-sub">還算可以</div></div>
-      </div>
-      <div class="mood-card" data-mood="開心" data-color="#ffe066" onclick="selectMood(this)">
-        <div class="mood-dot" style="background:#ffe066"></div>
-        <div><div class="mood-name">開心</div><div class="mood-sub">今天很好</div></div>
-      </div>
-
-
-      <div class="mood-card" data-mood="疲憊" data-color="#aac4ff" onclick="selectMood(this)">
-        <div class="mood-dot" style="background:#aac4ff"></div>
-        <div><div class="mood-name">疲憊</div><div class="mood-sub">身體很累</div></div>
-      </div>
-      <div class="mood-card" data-mood="低落" data-color="#a78de0" onclick="selectMood(this)">
-        <div class="mood-dot" style="background:#a78de0"></div>
-        <div><div class="mood-name">低落</div><div class="mood-sub">心裡沉沉的</div></div>
-      </div>
-
-
-      <div class="mood-card" data-mood="委屈" data-color="#ffd6e0" onclick="selectMood(this)">
-        <div class="mood-dot" style="background:#ffd6e0"></div>
-        <div><div class="mood-name">委屈</div><div class="mood-sub">說不出口的難受</div></div>
-      </div>
-      <div class="mood-card" data-mood="孤單" data-color="#c8a8f8" onclick="selectMood(this)">
-        <div class="mood-dot" style="background:#c8a8f8"></div>
-        <div><div class="mood-name">孤單</div><div class="mood-sub">一個人的感覺</div></div>
-      </div>
-    </div>
+    <p class="bottle-count" id="bottle-count">✦ 0 顆情緒星星</p>
+    <p class="greeting">今晚好嗎</p>
+    <p class="question">你的心情是<br>什麼顏色？</p>
     <button class="enter-btn" onclick="goToChat()">進入星夜 →</button>
     <p class="disclaimer-bar">
       本 App 提供情緒抒發空間，不能取代專業心理諮商。<br>
@@ -1650,7 +1630,7 @@ let bottleCanvas, bottleCtx, bottleStars = [], bottleAnimFrame;
 const BOTTLE_COLORS = ['#a78de0','#7b9cf5','#8dd4b8','#f0a07a','#ffd6e0','#ffe066','#aac4ff','#f5e6c8'];
 
 // Bottle interior bounds (approximate area inside the glass)
-const BOTTLE_AREA = { x: 32, y: 42, w: 96, h: 100 };
+const BOTTLE_AREA = { x: 52, y: 68, w: 156, h: 162 };
 
 function makeStar() {
   return {
@@ -1719,7 +1699,7 @@ function drawStarShape(ctx, x, y, r, alpha, color) {
 
 function animateBottle() {
   if (!bottleCtx) return;
-  bottleCtx.clearRect(0, 0, 160, 160);
+  bottleCtx.clearRect(0, 0, 260, 260);
 
   const t = Date.now() / 1000;
   const bx = BOTTLE_AREA.x, by = BOTTLE_AREA.y;
@@ -1738,6 +1718,33 @@ function animateBottle() {
   bottleAnimFrame = requestAnimationFrame(animateBottle);
 }
 
+
+function flyStarToBottle(color) {
+  // Get bottle position
+  const bottle = document.getElementById('bottle-btn');
+  if (!bottle) return;
+  const bRect = bottle.getBoundingClientRect();
+  const targetX = bRect.left + bRect.width / 2;
+  const targetY = bRect.top + bRect.height / 2;
+
+  // Start from center bottom of screen
+  const startX = window.innerWidth / 2 - 8;
+  const startY = window.innerHeight * 0.7;
+
+  const star = document.createElement('div');
+  star.className = 'flying-star';
+  star.textContent = '✦';
+  star.style.color = color || '#f5e6c8';
+  star.style.left = startX + 'px';
+  star.style.top = startY + 'px';
+  star.style.setProperty('--tx', (targetX - startX) + 'px');
+  star.style.setProperty('--ty', (targetY - startY) + 'px');
+  document.body.appendChild(star);
+  setTimeout(() => {
+    star.remove();
+    addBottleStar(color);
+  }, 800);
+}
 // ─── First Open & Legal ───
 function checkFirstOpen() {
   const agreed = localStorage.getItem('starnight-agreed');
@@ -1874,7 +1881,6 @@ function selectMood(el) {
 }
 
 function goToChat() {
-  if (!selectedMood) { showToast('先選一個今天的心情吧 ✦'); return; }
   goScreen('chat', document.querySelectorAll('.nav-btn')[1]);
   const greeting = {
     '平靜': '還不錯的一天呢。有什麼想跟我說的嗎？我都在這裡。',
@@ -2356,7 +2362,7 @@ function saveDiaryEntry() {
   saveDiary();
   closeDiaryModal();
   renderDiary();
-  addBottleStar(mood.color);
+  flyStarToBottle(mood.color);
   showToast('已化作一顆新的星星 ✦');
 }
 
