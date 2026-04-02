@@ -1432,16 +1432,13 @@
     </div>
   </div>
 
-  <!-- GAME -->
-  <div class="screen" id="screen-game" style="display:none; padding:0; overflow:hidden;">
-    <canvas id="game-canvas" style="display:block; touch-action:none;"></canvas>
-  </div>
-  <!-- Game overlay (outside screen so always on top) -->
-  <div id="game-overlay" style="display:none; position:fixed; inset:0; pointer-events:none; z-index:60;">
-    <div style="position:absolute; top:calc(env(safe-area-inset-top)+12px); right:16px; pointer-events:all;">
+  <!-- GAME: fully fixed, outside screen system -->
+  <div id="game-overlay" style="display:none; position:fixed; inset:0; z-index:80; background:#070f2b;">
+    <canvas id="game-canvas" style="display:block; position:absolute; top:0; left:0;" onclick="handleGameClick(event)"></canvas>
+    <div style="position:absolute; top:calc(env(safe-area-inset-top)+12px); right:16px; z-index:81;">
       <button class="game-close-btn" onclick="stopGame()">✕</button>
     </div>
-    <div class="game-combo" id="game-combo"></div>
+    <div class="game-combo" id="game-combo" style="pointer-events:none;"></div>
   </div>
     </div>
     <button class="game-close-btn" onclick="stopGame()">✕</button>
@@ -1606,6 +1603,11 @@ document.getElementById('moon-btn').addEventListener('click', () => {
 // ─── Navigation ───
 let currentScreen = 'home';
 function goScreen(name, btn) {
+  // Hide game overlay if switching away
+  const overlay = document.getElementById('game-overlay');
+  if (overlay) overlay.style.display = 'none';
+  if (gameActive) { gameActive = false; cancelAnimationFrame(gameAnimFrame); }
+
   document.querySelectorAll('.screen').forEach(s => {
     s.classList.remove('active');
     s.style.display = 'none';
@@ -2102,10 +2104,7 @@ function pressBall() {
   createRipple(ball.x, ball.y);
   createBurst(8);
 
-  // Feedback messages
-  const msgs = ['💨','✨','💥','🌟','⚡'];
-  if (gameScore % 10 === 0) showCombo('🎉 ' + gameScore + ' 下！');
-  else if (gameScore % 5 === 0) showCombo(msgs[Math.floor(Math.random()*msgs.length)]);
+
 
   // Color shift every 20 hits
   const colors = [
@@ -2228,8 +2227,8 @@ function drawPressBall() {
 
 function handleGameClick(e) {
   if (!gameActive) return;
-  const cx = e.clientX;
-  const cy = e.clientY;
+  const cx = e.clientX !== undefined ? e.clientX : e.pageX;
+  const cy = e.clientY !== undefined ? e.clientY : e.pageY;
   const dist = Math.hypot(cx - ball.x, cy - ball.y);
   if (dist < ball.r * 1.5) pressBall();
 }
@@ -2243,10 +2242,14 @@ function showCombo(msg) {
 }
 
 function startGame(btn) {
-  goScreen('game', btn);
-  document.getElementById('game-overlay').style.display = 'block';
+  // Mark nav
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
 
-  // Use window dimensions - most reliable
+  // Show game overlay (fixed, covers everything)
+  const overlay = document.getElementById('game-overlay');
+  overlay.style.display = 'block';
+
   const W = window.innerWidth;
   const H = window.innerHeight;
 
@@ -2257,12 +2260,10 @@ function startGame(btn) {
   gameCanvas.style.height = H + 'px';
   gCtx = gameCanvas.getContext('2d');
 
-  // Bind events directly
-  gameCanvas.onclick = handleGameClick;
+  // Touch support
   gameCanvas.ontouchend = (e) => {
     e.preventDefault();
-    const t = e.changedTouches[0];
-    handleGameClick(t);
+    handleGameClick(e.changedTouches[0]);
   };
 
   gameScore = 0;
@@ -2278,7 +2279,12 @@ function stopGame() {
   cancelAnimationFrame(gameAnimFrame);
   ripples = []; particles = [];
   document.getElementById('game-overlay').style.display = 'none';
-  goScreen('home', document.querySelectorAll('.nav-btn')[0]);
+  const homeBtn = document.querySelectorAll('.nav-btn')[0];
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  if (homeBtn) homeBtn.classList.add('active');
+  document.querySelectorAll('.screen').forEach(s => { s.classList.remove('active'); s.style.display = 'none'; });
+  const home = document.getElementById('screen-home');
+  if (home) { home.style.display = 'flex'; home.classList.add('active'); }
 }
 
 // ─── Service Worker ───
