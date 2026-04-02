@@ -132,8 +132,34 @@
   }
   .nav-btn.active { opacity: 1; }
   .nav-btn svg { width: 22px; height: 22px; }
+  .nav-btn img { width: 22px; height: 22px; display: block; }
   .nav-btn span { font-size: 10px; color: var(--text-muted); font-family: 'Noto Sans TC'; }
   .nav-btn.active span { color: var(--blue); }
+
+  .nav { overflow: visible; }
+  .nav-btn-center {
+    position: relative;
+    margin-top: -30px;
+    opacity: 1;
+    padding: 0 14px;
+  }
+  .nav-btn-center .icon-shell {
+    width: 66px;
+    height: 66px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 38%, rgba(255,248,223,0.95) 0%, rgba(255,216,111,0.78) 38%, rgba(255,182,84,0.32) 68%, rgba(255,182,84,0.08) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.18);
+    transition: transform 0.18s cubic-bezier(.34,1.56,.64,1), box-shadow 0.18s ease;
+  }
+  .nav-btn-center img { width: 50px; height: 50px; }
+  .nav-btn-center:active .icon-shell {
+    transform: scaleX(1.08) scaleY(0.9);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.14);
+  }
+  .nav-btn-center span { margin-top: 4px; }
 
   /* ===== HOME ===== */
   .home-top {
@@ -146,14 +172,14 @@
   }
   .bottle-container {
     position: relative;
-    width: 260px;
-    height: 260px;
+    width: 340px;
+    height: 340px;
     margin-bottom: 10px;
     cursor: pointer;
   }
   .bottle-img {
-    width: 260px;
-    height: 260px;
+    width: 340px;
+    height: 340px;
     object-fit: contain;
     position: absolute;
     top: 0; left: 0;
@@ -163,8 +189,8 @@
   #bottle-canvas {
     position: absolute;
     top: 0; left: 0;
-    width: 260px;
-    height: 260px;
+    width: 340px;
+    height: 340px;
     z-index: 2;
     pointer-events: none;
     mix-blend-mode: screen;
@@ -260,7 +286,7 @@
   /* ===== CHAT ===== */
   .chat-header {
     text-align: center;
-    margin-bottom: 24px;
+    margin-bottom: 8px;
   }
   .chat-title {
     font-family: 'Noto Serif TC', serif;
@@ -589,6 +615,62 @@
   }
   .entry-delete:hover { color: #f08080; background: rgba(240,128,128,0.1); }
 
+  /* ===== CANVAS GALLERY ===== */
+  .canvas-gallery-bar {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 10px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+  }
+  .canvas-gallery-bar::-webkit-scrollbar { display: none; }
+  .gallery-thumb {
+    width: 52px; height: 52px;
+    border-radius: 10px;
+    border: 1.5px solid var(--border);
+    background: #05091a;
+    cursor: pointer;
+    flex-shrink: 0;
+    object-fit: cover;
+    transition: border-color 0.2s;
+  }
+  .gallery-thumb.active { border-color: var(--purple); }
+  .gallery-thumb:hover { border-color: var(--blue); }
+  .gallery-new-btn {
+    width: 52px; height: 52px;
+    border-radius: 10px;
+    border: 1.5px dashed var(--border);
+    background: transparent;
+    cursor: pointer;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-dim);
+    font-size: 20px;
+    transition: all 0.2s;
+  }
+  .gallery-new-btn:hover { border-color: var(--teal); color: var(--teal); }
+  .gallery-actions {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+  .gallery-action-btn {
+    padding: 5px 12px;
+    border-radius: 10px;
+    border: 0.5px solid var(--border);
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 11px;
+    font-family: 'Noto Sans TC', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .gallery-action-btn:hover { background: rgba(123,156,245,0.1); color: var(--blue); }
+  .gallery-action-btn.danger:hover { background: rgba(240,128,128,0.1); color: #f08080; }
+
   .new-entry-btn {
     background: rgba(141,212,184,0.1);
     border: 0.5px solid var(--teal);
@@ -864,6 +946,24 @@
     color: #8090b8;
     font-size: 16px;
   }
+  .game-switch-btn {
+    pointer-events: all;
+    background: rgba(22,32,80,0.7);
+    border: 0.5px solid rgba(42,58,110,0.8);
+    border-radius: 18px;
+    height: 36px;
+    padding: 0 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #8090b8;
+    font-size: 11px;
+    font-family: 'Noto Sans TC', sans-serif;
+    gap: 4px;
+    transition: all 0.2s;
+  }
+  .game-switch-btn:active { background: rgba(42,58,110,0.8); }
 
   .game-combo {
     position: fixed;
@@ -908,8 +1008,8 @@
     color: var(--text-dim);
     text-align: center;
     letter-spacing: 0.3px;
-    padding: 6px 12px;
-    margin-bottom: 8px;
+    padding: 4px 12px;
+    margin-bottom: 4px;
     border-top: 0.5px solid var(--border);
     line-height: 1.6;
   }
@@ -1326,7 +1426,7 @@ onAuthStateChanged(auth, (user) => {
   <!-- HOME -->
   <div class="screen active" id="screen-home" style="display:flex; flex-direction:column; align-items:center; justify-content:center;">
     <div class="bottle-container" id="bottle-btn" onclick="showToast('今天也辛苦你了 ✦')">
-      <canvas id="bottle-canvas" width="260" height="260"></canvas>
+      <canvas id="bottle-canvas" width="340" height="340"></canvas>
       <img src="bottle.png" class="bottle-img" alt="星星瓶" draggable="false">
     </div>
     <p class="bottle-count" id="bottle-count">✦ 0 顆情緒星星</p>
@@ -1454,6 +1554,13 @@ onAuthStateChanged(auth, (user) => {
       </div>
     </div>
 
+    <div class="canvas-gallery-bar" id="canvas-gallery"></div>
+    <div class="gallery-actions">
+      <button class="gallery-action-btn" onclick="newCanvasDrawing()">＋ 新畫布</button>
+      <button class="gallery-action-btn" onclick="saveCurrentDrawing()">💾 儲存</button>
+      <button class="gallery-action-btn danger" onclick="deleteCurrentDrawing()">🗑 刪除</button>
+    </div>
+
     <div class="canvas-actions-row">
       <button class="clear-btn" onclick="undoCanvas()">↩ 上一步</button>
       <button class="clear-btn" onclick="clearCanvas()">清除</button>
@@ -1518,36 +1625,25 @@ onAuthStateChanged(auth, (user) => {
 <!-- Nav -->
 <nav class="nav">
   <button class="nav-btn active" onclick="goScreen('home', this)">
-    <svg viewBox="0 0 24 24" fill="none" stroke="#f5e6c8" stroke-width="1.5" stroke-linecap="round">
-      <circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
-    </svg>
+    <img src="assets/icons/nav-star.svg" alt="星夜 icon">
     <span>星夜</span>
   </button>
   <button class="nav-btn" onclick="goScreen('chat', this)">
-    <svg viewBox="0 0 24 24" fill="none" stroke="#7b9cf5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-    </svg>
+    <img src="assets/icons/nav-chat.svg" alt="傾訴 icon">
     <span>傾訴</span>
   </button>
-  <button class="nav-btn" onclick="goScreen('canvas', this); setTimeout(initCanvas, 150)">
-    <svg viewBox="0 0 24 24" fill="none" stroke="#a78de0" stroke-width="1.5" stroke-linecap="round">
-      <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
-    </svg>
-    <span>畫布</span>
-  </button>
-  <button class="nav-btn" onclick="goScreen('diary', this); renderDiary()">
-    <svg viewBox="0 0 24 24" fill="none" stroke="#8dd4b8" stroke-width="1.5" stroke-linecap="round">
-      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-    </svg>
+  <button class="nav-btn nav-btn-center" onclick="goScreen('diary', this); renderDiary()">
+    <div class="icon-shell">
+      <img src="assets/icons/nav-bottle.svg" alt="星圖 icon">
+    </div>
     <span>星圖</span>
   </button>
+  <button class="nav-btn" onclick="goScreen('canvas', this); setTimeout(initCanvas, 150)">
+    <img src="assets/icons/nav-brush.svg" alt="畫布 icon">
+    <span>畫布</span>
+  </button>
   <button class="nav-btn" onclick="startGame(this)">
-    <svg viewBox="0 0 24 24" fill="none" stroke="#f0a07a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="12" cy="12" r="10"/>
-      <circle cx="8" cy="10" r="1.5" fill="#f0a07a"/>
-      <circle cx="16" cy="10" r="1.5" fill="#f0a07a"/>
-      <path d="M8 15 Q12 18 16 15"/>
-    </svg>
+    <img src="assets/icons/nav-mood.svg" alt="解壓 icon">
     <span>解壓</span>
   </button>
 </nav>
@@ -1731,16 +1827,26 @@ onAuthStateChanged(auth, (user) => {
     </div>
   </div>
 
-  <!-- GAME: fully fixed, outside screen system -->
+  <!-- GAME: Press Ball -->
   <div id="game-overlay" style="display:none; position:fixed; inset:0; z-index:80; background:#070f2b;">
     <canvas id="game-canvas" style="display:block; position:absolute; top:0; left:0;" onclick="handleGameClick(event)"></canvas>
-    <div style="position:absolute; top:calc(env(safe-area-inset-top)+12px); right:16px; z-index:81;">
+    <div style="position:absolute; top:calc(env(safe-area-inset-top)+12px); left:16px; right:16px; z-index:81; display:flex; justify-content:space-between; align-items:center;">
+      <button class="game-switch-btn" onclick="switchToGame('bubble')">◯ 揉捏泡泡</button>
       <button class="game-close-btn" onclick="stopGame()">✕</button>
     </div>
     <div class="game-combo" id="game-combo" style="pointer-events:none;"></div>
   </div>
+
+  <!-- GAME: Squishy Bubble -->
+  <div id="bubble-overlay" style="display:none; position:fixed; inset:0; z-index:80; background:#070f2b;">
+    <canvas id="bubble-canvas" style="display:block; position:absolute; top:0; left:0; touch-action:none;"></canvas>
+    <div style="position:absolute; top:calc(env(safe-area-inset-top)+12px); left:16px; right:16px; z-index:81; display:flex; justify-content:space-between; align-items:center;">
+      <button class="game-switch-btn" onclick="switchToGame('press')">✦ 星星點點</button>
+      <button class="game-close-btn" onclick="stopBubbleGame()">✕</button>
     </div>
-    <button class="game-close-btn" onclick="stopGame()">✕</button>
+    <div style="position:absolute; bottom:calc(env(safe-area-inset-bottom)+24px); left:0; right:0; text-align:center; pointer-events:none;">
+      <span style="font-size:11px; color:#4a5a8a; font-family:'Noto Sans TC',sans-serif;">按壓、拖拽泡泡來放鬆 ◯</span>
+    </div>
   </div>
 
 <!-- Diary Modal -->
@@ -1798,7 +1904,7 @@ let bottleCanvas, bottleCtx, bottleStars = [], bottleAnimFrame;
 const BOTTLE_COLORS = ['#a78de0','#7b9cf5','#8dd4b8','#f0a07a','#ffd6e0','#ffe066','#aac4ff','#f5e6c8'];
 
 // Bottle interior bounds (approximate area inside the glass)
-const BOTTLE_AREA = { x: 52, y: 68, w: 156, h: 162 };
+const BOTTLE_AREA = { x: 68, y: 89, w: 204, h: 212 };
 
 function makeStar() {
   return {
@@ -2025,10 +2131,13 @@ window.addEventListener('resize', resizeStarBg);
 // ─── Navigation ───
 let currentScreen = 'home';
 function goScreen(name, btn) {
-  // Hide game overlay if switching away
+  // Hide all game overlays if switching away
   const overlay = document.getElementById('game-overlay');
   if (overlay) overlay.style.display = 'none';
   if (gameActive) { gameActive = false; cancelAnimationFrame(gameAnimFrame); }
+  const bubbleOv = document.getElementById('bubble-overlay');
+  if (bubbleOv) bubbleOv.style.display = 'none';
+  if (bubbleActive) { bubbleActive = false; cancelAnimationFrame(bubbleAnimFrame); }
 
   document.querySelectorAll('.screen').forEach(s => {
     s.classList.remove('active');
@@ -2805,6 +2914,479 @@ function renderTrailStreak() {
   document.getElementById('trail-streak-num').textContent = streak;
 }
   
+// ─── Canvas Gallery ───
+let canvasDrawings = loadCanvasGallery();
+let currentDrawingIdx = 0;
+
+function loadCanvasGallery() {
+  try {
+    const saved = localStorage.getItem('starnight-gallery');
+    return saved ? JSON.parse(saved) : [];
+  } catch { return []; }
+}
+function saveCanvasGallery() {
+  try { localStorage.setItem('starnight-gallery', JSON.stringify(canvasDrawings)); } catch {}
+}
+
+function renderGalleryBar() {
+  const bar = document.getElementById('canvas-gallery');
+  if (!bar) return;
+  bar.innerHTML = '';
+  canvasDrawings.forEach((d, i) => {
+    const img = document.createElement('img');
+    img.className = 'gallery-thumb' + (i === currentDrawingIdx ? ' active' : '');
+    img.src = d.thumb;
+    img.onclick = () => loadDrawing(i);
+    bar.appendChild(img);
+  });
+  const addBtn = document.createElement('button');
+  addBtn.className = 'gallery-new-btn';
+  addBtn.textContent = '+';
+  addBtn.onclick = () => newCanvasDrawing();
+  bar.appendChild(addBtn);
+}
+
+function saveCurrentDrawing() {
+  if (!drawCanvas || !dCtx) { showToast('先畫點東西吧 ✦'); return; }
+  const dataUrl = drawCanvas.toDataURL('image/png');
+  // Create small thumbnail
+  const thumbCanvas = document.createElement('canvas');
+  thumbCanvas.width = 104; thumbCanvas.height = 104;
+  const tCtx = thumbCanvas.getContext('2d');
+  tCtx.fillStyle = '#05091a';
+  tCtx.fillRect(0, 0, 104, 104);
+  tCtx.drawImage(drawCanvas, 0, 0, 104, 104);
+  const thumb = thumbCanvas.toDataURL('image/png', 0.6);
+
+  if (canvasDrawings[currentDrawingIdx]) {
+    canvasDrawings[currentDrawingIdx].data = dataUrl;
+    canvasDrawings[currentDrawingIdx].thumb = thumb;
+    canvasDrawings[currentDrawingIdx].updatedAt = new Date().toISOString();
+  } else {
+    canvasDrawings.push({
+      id: Date.now().toString(),
+      data: dataUrl,
+      thumb: thumb,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+    currentDrawingIdx = canvasDrawings.length - 1;
+  }
+  saveCanvasGallery();
+  renderGalleryBar();
+  showToast('已儲存畫作 ✦');
+}
+
+function newCanvasDrawing() {
+  if (!drawCanvas || !dCtx) return;
+  // Auto-save current if has content
+  if (hasDrawn && canvasDrawings[currentDrawingIdx]) {
+    const dataUrl = drawCanvas.toDataURL('image/png');
+    const thumbCanvas = document.createElement('canvas');
+    thumbCanvas.width = 104; thumbCanvas.height = 104;
+    const tCtx = thumbCanvas.getContext('2d');
+    tCtx.fillStyle = '#05091a';
+    tCtx.fillRect(0, 0, 104, 104);
+    tCtx.drawImage(drawCanvas, 0, 0, 104, 104);
+    canvasDrawings[currentDrawingIdx].data = dataUrl;
+    canvasDrawings[currentDrawingIdx].thumb = thumbCanvas.toDataURL('image/png', 0.6);
+    saveCanvasGallery();
+  }
+  // New blank
+  dCtx.globalCompositeOperation = 'source-over';
+  dCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+  hasDrawn = false;
+  undoStack = [];
+  currentDrawingIdx = canvasDrawings.length; // points to new unsaved slot
+  renderGalleryBar();
+  showToast('新畫布 ✦');
+}
+
+function loadDrawing(idx) {
+  if (!drawCanvas || !dCtx) return;
+  // Auto-save current first
+  if (hasDrawn && canvasDrawings[currentDrawingIdx]) {
+    const dataUrl = drawCanvas.toDataURL('image/png');
+    const thumbCanvas = document.createElement('canvas');
+    thumbCanvas.width = 104; thumbCanvas.height = 104;
+    const tCtx = thumbCanvas.getContext('2d');
+    tCtx.fillStyle = '#05091a';
+    tCtx.fillRect(0, 0, 104, 104);
+    tCtx.drawImage(drawCanvas, 0, 0, 104, 104);
+    canvasDrawings[currentDrawingIdx].data = dataUrl;
+    canvasDrawings[currentDrawingIdx].thumb = thumbCanvas.toDataURL('image/png', 0.6);
+    saveCanvasGallery();
+  }
+  currentDrawingIdx = idx;
+  const d = canvasDrawings[idx];
+  if (!d) return;
+  const img = new Image();
+  img.onload = () => {
+    dCtx.globalCompositeOperation = 'source-over';
+    dCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+    dCtx.drawImage(img, 0, 0, drawCanvas.width, drawCanvas.height);
+    hasDrawn = true;
+    undoStack = [];
+  };
+  img.src = d.data;
+  renderGalleryBar();
+}
+
+function deleteCurrentDrawing() {
+  if (!canvasDrawings[currentDrawingIdx]) {
+    showToast('這是空白畫布，不需要刪除');
+    return;
+  }
+  if (!confirm('確定要刪除這幅畫嗎？')) return;
+  canvasDrawings.splice(currentDrawingIdx, 1);
+  saveCanvasGallery();
+  if (currentDrawingIdx >= canvasDrawings.length) {
+    currentDrawingIdx = Math.max(0, canvasDrawings.length - 1);
+  }
+  if (canvasDrawings[currentDrawingIdx]) {
+    loadDrawing(currentDrawingIdx);
+  } else {
+    dCtx.globalCompositeOperation = 'source-over';
+    dCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+    hasDrawn = false;
+    undoStack = [];
+  }
+  renderGalleryBar();
+  showToast('已刪除 ✦');
+}
+
+// Initialize gallery on canvas open
+const _origInitCanvas = initCanvas;
+initCanvas = function() {
+  _origInitCanvas();
+  renderGalleryBar();
+};
+
+// ─── Squishy Bubble Game (Single Large Blob) ───
+let bubbleCanvas, bCtx, bubbleActive = false, bubbleAnimFrame;
+let blob = null;
+let touchPoints = []; // active touch/press points on the blob
+
+function initBlob() {
+  const W = bubbleCanvas.width, H = bubbleCanvas.height;
+  const baseR = Math.min(W, H) * 0.28;
+  const numPts = 24; // more points = smoother shape
+  const points = [];
+  for (let i = 0; i < numPts; i++) {
+    points.push({
+      angle: (Math.PI * 2 / numPts) * i,
+      offset: 0,
+      vel: 0,
+    });
+  }
+  blob = {
+    x: W / 2,
+    y: H / 2 - 20,
+    baseR: baseR,
+    r: baseR,
+    color: {
+      core: '#FFFDF2',
+      mid: '#FFE9A8',
+      edge: '#FFD36B',
+      rim: 'rgba(255,247,214,0.65)',
+      glow: 'rgba(255,224,138,0.42)',
+      shadow: 'rgba(255,183,77,0.18)'
+    },
+    phase: 0,
+    points: points,
+    pressed: false,
+    pressX: 0, pressY: 0,
+    pressForce: 0,
+    squashX: 1,
+    squashY: 1,
+    dragOffX: 0, dragOffY: 0,
+    vx: 0, vy: 0,
+  };
+}
+
+function handleBubbleDown(e) {
+  e.preventDefault();
+  if (!blob) return;
+  const t = e.touches ? e.touches[0] : e;
+  const x = t.clientX, y = t.clientY;
+  const dist = Math.hypot(x - blob.x, y - blob.y);
+  if (dist < blob.baseR * 1.6) {
+    blob.pressed = true;
+    blob.pressX = x;
+    blob.pressY = y;
+    blob.pressForce = 1;
+    blob.dragOffX = x - blob.x;
+    blob.dragOffY = y - blob.y;
+    // Immediate deformation toward press point
+    deformToward(x, y, 0.4);
+  }
+}
+
+function handleBubbleMove(e) {
+  e.preventDefault();
+  if (!blob || !blob.pressed) return;
+  const t = e.touches ? e.touches[0] : e;
+  const x = t.clientX, y = t.clientY;
+  const dx = x - blob.pressX, dy = y - blob.pressY;
+  const speed = Math.hypot(dx, dy);
+
+  // Move blob (drag)
+  blob.x = x - blob.dragOffX;
+  blob.y = y - blob.dragOffY;
+
+  // Continuous deformation toward finger
+  deformToward(x, y, Math.min(speed * 0.015, 0.8));
+
+  blob.pressForce = Math.min(1, 0.45 + speed * 0.02);
+  blob.pressX = x;
+  blob.pressY = y;
+}
+
+function handleBubbleUp(e) {
+  if (!blob) return;
+  blob.pressed = false;
+  blob.pressForce = 0;
+  // Bounce back with wobble
+  blob.points.forEach(p => {
+    p.vel += (Math.random() - 0.5) * 4;
+  });
+}
+
+function deformToward(tx, ty, strength) {
+  if (!blob) return;
+  blob.points.forEach(p => {
+    // Point position on blob surface
+    const px = blob.x + Math.cos(p.angle) * (blob.baseR + p.offset);
+    const py = blob.y + Math.sin(p.angle) * (blob.baseR + p.offset);
+    const dist = Math.hypot(tx - px, ty - py);
+    const influence = Math.max(0, 1 - dist / (blob.baseR * 1.8));
+    // Push inward (toward center) near the press point
+    const pushDir = Math.atan2(ty - blob.y, tx - blob.x);
+    const angleDiff = Math.abs(((p.angle - pushDir + Math.PI) % (Math.PI * 2)) - Math.PI);
+    const nearness = Math.max(0, 1 - angleDiff / (Math.PI * 0.8));
+    p.vel -= nearness * strength * blob.baseR * 0.15;
+    // Also push outward on opposite side (conservation of volume feel)
+    const oppNearness = Math.max(0, 1 - (Math.PI - angleDiff) / (Math.PI * 0.6));
+    p.vel += oppNearness * strength * blob.baseR * 0.05;
+  });
+}
+
+function drawBubble() {
+  if (!bubbleActive) return;
+  const W = bubbleCanvas.width, H = bubbleCanvas.height;
+  bCtx.clearRect(0, 0, W, H);
+
+  // Background subtle stars
+  bCtx.fillStyle = 'rgba(200,184,232,0.12)';
+  const t = performance.now();
+  for (let i = 0; i < 50; i++) {
+    const sx = (Math.sin(i * 73.7 + t * 0.00008) * 0.5 + 0.5) * W;
+    const sy = (Math.cos(i * 47.3 + t * 0.00006) * 0.5 + 0.5) * H;
+    const twinkle = 0.3 + Math.sin(t * 0.003 + i * 2.1) * 0.3;
+    bCtx.globalAlpha = twinkle;
+    bCtx.beginPath();
+    bCtx.arc(sx, sy, 0.6, 0, Math.PI * 2);
+    bCtx.fill();
+  }
+  bCtx.globalAlpha = 1;
+
+  if (!blob) { bubbleAnimFrame = requestAnimationFrame(drawBubble); return; }
+
+  // Keep blob on screen
+  blob.x = Math.max(blob.baseR + 10, Math.min(W - blob.baseR - 10, blob.x));
+  blob.y = Math.max(blob.baseR + 60, Math.min(H - blob.baseR - 60, blob.y));
+
+  // Spring physics for deformation points
+  blob.points.forEach(p => {
+    p.vel += -p.offset * 0.06; // spring constant
+    p.vel *= 0.9; // damping
+    p.offset += p.vel;
+    // Clamp deformation
+    p.offset = Math.max(-blob.baseR * 0.4, Math.min(blob.baseR * 0.3, p.offset));
+  });
+
+  // Breathing
+  blob.phase += 0.012;
+  const breathe = 1 + Math.sin(blob.phase) * 0.025;
+
+  // Squash / release animation
+  const targetSquashX = blob.pressed ? 1.12 + blob.pressForce * 0.06 : 1;
+  const targetSquashY = blob.pressed ? 0.88 - blob.pressForce * 0.06 : 1;
+  blob.squashX += (targetSquashX - blob.squashX) * 0.16;
+  blob.squashY += (targetSquashY - blob.squashY) * 0.16;
+  blob.pressForce *= blob.pressed ? 0.97 : 0.84;
+
+  // Idle wobble (subtle)
+  if (!blob.pressed) {
+    blob.points.forEach((p, i) => {
+      p.offset += Math.sin(blob.phase * 1.5 + i * 0.8) * 0.15;
+    });
+  }
+
+  // Build smooth path from control points
+  const pts = blob.points.map(p => {
+    const r = (blob.baseR + p.offset) * breathe;
+    const cx = Math.cos(p.angle);
+    const sy = Math.sin(p.angle);
+    return {
+      x: blob.x + cx * r * blob.squashX,
+      y: blob.y + sy * r * blob.squashY
+    };
+  });
+
+  // Blob body - catmull-rom-ish smooth curve
+  bCtx.beginPath();
+  for (let i = 0; i < pts.length; i++) {
+    const curr = pts[i];
+    const next = pts[(i + 1) % pts.length];
+    if (i === 0) {
+      const prev = pts[pts.length - 1];
+      const mx = (prev.x + curr.x) / 2, my = (prev.y + curr.y) / 2;
+      bCtx.moveTo(mx, my);
+    }
+    const mx = (curr.x + next.x) / 2, my = (curr.y + next.y) / 2;
+    bCtx.quadraticCurveTo(curr.x, curr.y, mx, my);
+  }
+  bCtx.closePath();
+
+  // Gradient fill
+  const bodyGrd = bCtx.createRadialGradient(
+    blob.x - blob.baseR * 0.28, blob.y - blob.baseR * 0.32, 0,
+    blob.x, blob.y, blob.baseR * 1.18
+  );
+  bodyGrd.addColorStop(0, blob.color.core);
+  bodyGrd.addColorStop(0.32, 'rgba(255,244,197,0.95)');
+  bodyGrd.addColorStop(0.68, blob.color.mid);
+  bodyGrd.addColorStop(1, blob.color.edge);
+  bCtx.fillStyle = bodyGrd;
+  bCtx.fill();
+
+  // Edge line
+  bCtx.strokeStyle = blob.color.rim;
+  bCtx.lineWidth = 1.5;
+  bCtx.stroke();
+
+  // Highlight (top-left)
+  bCtx.save();
+  bCtx.beginPath();
+  bCtx.ellipse(blob.x - blob.baseR * 0.24, blob.y - blob.baseR * 0.34, blob.baseR * 0.34 * blob.squashX, blob.baseR * 0.16 * blob.squashY, -0.35, 0, Math.PI * 2);
+  bCtx.fillStyle = 'rgba(255,255,255,0.26)';
+  bCtx.fill();
+  bCtx.restore();
+
+  // Small inner highlight
+  bCtx.save();
+  bCtx.beginPath();
+  bCtx.ellipse(blob.x - blob.baseR * 0.3, blob.y - blob.baseR * 0.38, blob.baseR * 0.085 * blob.squashX, blob.baseR * 0.05 * blob.squashY, -0.3, 0, Math.PI * 2);
+  bCtx.fillStyle = 'rgba(255,255,255,0.5)';
+  bCtx.fill();
+  bCtx.restore();
+
+  // Press indicator - show where finger is pressing
+  if (blob.pressed) {
+    const px = blob.pressX, py = blob.pressY;
+    bCtx.save();
+    bCtx.globalAlpha = 0.15;
+    const pressGrd = bCtx.createRadialGradient(px, py, 0, px, py, 40);
+    pressGrd.addColorStop(0, '#ffffff');
+    pressGrd.addColorStop(1, 'transparent');
+    bCtx.beginPath();
+    bCtx.arc(px, py, 40, 0, Math.PI * 2);
+    bCtx.fillStyle = pressGrd;
+    bCtx.fill();
+    bCtx.restore();
+  }
+
+  bubbleAnimFrame = requestAnimationFrame(drawBubble);
+}
+
+// ─── Game Control ───
+let currentGameType = 'press';
+
+function startGame(btn) {
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  // Default to last played game, or press
+  if (currentGameType === 'bubble') {
+    startBubbleGame();
+  } else {
+    startPressBallGame();
+  }
+}
+
+function switchToGame(type) {
+  // Stop current game
+  if (currentGameType === 'press') {
+    gameActive = false;
+    cancelAnimationFrame(gameAnimFrame);
+    ripples = []; particles = [];
+    document.getElementById('game-overlay').style.display = 'none';
+  } else if (currentGameType === 'bubble') {
+    bubbleActive = false;
+    if (bubbleAnimFrame) cancelAnimationFrame(bubbleAnimFrame);
+    document.getElementById('bubble-overlay').style.display = 'none';
+  }
+  currentGameType = type;
+  if (type === 'press') {
+    startPressBallGame();
+  } else {
+    startBubbleGame();
+  }
+}
+
+function startPressBallGame() {
+  currentGameType = 'press';
+  const overlay = document.getElementById('game-overlay');
+  overlay.style.display = 'block';
+  const W = window.innerWidth, H = window.innerHeight;
+  gameCanvas = document.getElementById('game-canvas');
+  gameCanvas.width = W; gameCanvas.height = H;
+  gameCanvas.style.width = W + 'px'; gameCanvas.style.height = H + 'px';
+  gCtx = gameCanvas.getContext('2d');
+  gameCanvas.ontouchend = (e) => { e.preventDefault(); handleGameClick(e.changedTouches[0]); };
+  gameScore = 0; ripples = []; particles = [];
+  pressScale = 1; targetScale = 1; glowIntensity = 0;
+  initBall(); gameActive = true; drawPressBall();
+}
+
+function startBubbleGame() {
+  currentGameType = 'bubble';
+  const overlay = document.getElementById('bubble-overlay');
+  overlay.style.display = 'block';
+  const W = window.innerWidth, H = window.innerHeight;
+  bubbleCanvas = document.getElementById('bubble-canvas');
+  bubbleCanvas.width = W; bubbleCanvas.height = H;
+  bubbleCanvas.style.width = W + 'px'; bubbleCanvas.style.height = H + 'px';
+  bCtx = bubbleCanvas.getContext('2d');
+  bubbleCanvas.onpointerdown = handleBubbleDown;
+  bubbleCanvas.onpointermove = handleBubbleMove;
+  bubbleCanvas.onpointerup = handleBubbleUp;
+  bubbleCanvas.onpointerleave = handleBubbleUp;
+  bubbleCanvas.ontouchstart = handleBubbleDown;
+  bubbleCanvas.ontouchmove = handleBubbleMove;
+  bubbleCanvas.ontouchend = handleBubbleUp;
+  initBlob();
+  bubbleActive = true;
+  drawBubble();
+}
+
+function stopBubbleGame() {
+  bubbleActive = false;
+  if (bubbleAnimFrame) cancelAnimationFrame(bubbleAnimFrame);
+  blob = null;
+  document.getElementById('bubble-overlay').style.display = 'none';
+  returnToHome();
+}
+
+function returnToHome() {
+  const homeBtn = document.querySelectorAll('.nav-btn')[0];
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  if (homeBtn) homeBtn.classList.add('active');
+  document.querySelectorAll('.screen').forEach(s => { s.classList.remove('active'); s.style.display = 'none'; });
+  const home = document.getElementById('screen-home');
+  if (home) { home.style.display = 'flex'; home.classList.add('active'); }
+}
+
 // ─── Press Ball Game ───
 const starImg = new Image();
 starImg.src = 'star.png';
@@ -2994,50 +3576,14 @@ function showCombo(msg) {
   el.classList.add('show');
 }
 
-function startGame(btn) {
-  // Mark nav
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  if (btn) btn.classList.add('active');
-
-  // Show game overlay (fixed, covers everything)
-  const overlay = document.getElementById('game-overlay');
-  overlay.style.display = 'block';
-
-  const W = window.innerWidth;
-  const H = window.innerHeight;
-
-  gameCanvas = document.getElementById('game-canvas');
-  gameCanvas.width = W;
-  gameCanvas.height = H;
-  gameCanvas.style.width = W + 'px';
-  gameCanvas.style.height = H + 'px';
-  gCtx = gameCanvas.getContext('2d');
-
-  // Touch support
-  gameCanvas.ontouchend = (e) => {
-    e.preventDefault();
-    handleGameClick(e.changedTouches[0]);
-  };
-
-  gameScore = 0;
-  ripples = []; particles = [];
-  pressScale = 1; targetScale = 1; glowIntensity = 0;
-  initBall();
-  gameActive = true;
-  drawPressBall();
-}
+// Original startGame replaced by game selector above
 
 function stopGame() {
   gameActive = false;
   cancelAnimationFrame(gameAnimFrame);
   ripples = []; particles = [];
   document.getElementById('game-overlay').style.display = 'none';
-  const homeBtn = document.querySelectorAll('.nav-btn')[0];
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  if (homeBtn) homeBtn.classList.add('active');
-  document.querySelectorAll('.screen').forEach(s => { s.classList.remove('active'); s.style.display = 'none'; });
-  const home = document.getElementById('screen-home');
-  if (home) { home.style.display = 'flex'; home.classList.add('active'); }
+  returnToHome();
 }
 
 
