@@ -965,6 +965,62 @@
   }
   .game-switch-btn:active { background: rgba(42,58,110,0.8); }
 
+  /* ===== GAME SELECT SCREEN ===== */
+  .games-header {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  .games-title {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 16px;
+    color: var(--star-white);
+    letter-spacing: 2px;
+    margin-bottom: 4px;
+  }
+  .games-sub { font-size: 11px; color: var(--text-dim); letter-spacing: 1px; }
+  .game-card {
+    background: var(--mid);
+    border: 0.5px solid var(--border);
+    border-radius: 20px;
+    padding: 24px 20px;
+    margin-bottom: 14px;
+    cursor: pointer;
+    transition: all 0.25s;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .game-card:active { transform: scale(0.97); }
+  .game-card:hover { border-color: rgba(123,156,245,0.3); }
+  .game-card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+  .game-card-info { flex: 1; }
+  .game-card-name {
+    font-size: 14px;
+    color: var(--star-white);
+    font-family: 'Noto Sans TC', sans-serif;
+    margin-bottom: 4px;
+  }
+  .game-card-desc {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: 'Noto Sans TC', sans-serif;
+    line-height: 1.5;
+  }
+  .game-card-arrow {
+    color: var(--text-dim);
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
   .game-combo {
     position: fixed;
     top: 50%;
@@ -1620,6 +1676,30 @@ onAuthStateChanged(auth, (user) => {
     </button>
   </div>
 
+  <!-- GAME SELECT -->
+  <div class="screen" id="screen-games">
+    <div class="games-header">
+      <div class="games-title">解壓小遊戲</div>
+      <div class="games-sub">選一個放鬆方式吧</div>
+    </div>
+    <div class="game-card" onclick="launchGame('press')">
+      <div class="game-card-icon" style="background:rgba(167,141,224,0.12);">✦</div>
+      <div class="game-card-info">
+        <div class="game-card-name">星星點點</div>
+        <div class="game-card-desc">點擊星星，看它彈跳閃爍，釋放你的壓力</div>
+      </div>
+      <div class="game-card-arrow">›</div>
+    </div>
+    <div class="game-card" onclick="launchGame('bubble')">
+      <div class="game-card-icon" style="background:rgba(123,156,245,0.12);">◯</div>
+      <div class="game-card-info">
+        <div class="game-card-name">揉捏泡泡</div>
+        <div class="game-card-desc">按壓、拖拽一顆柔軟的泡泡，感受它的彈性</div>
+      </div>
+      <div class="game-card-arrow">›</div>
+    </div>
+  </div>
+
 </div>
 
 <!-- Nav -->
@@ -1642,7 +1722,7 @@ onAuthStateChanged(auth, (user) => {
     <img src="assets/icons/nav-brush.svg" alt="畫布 icon">
     <span>畫布</span>
   </button>
-  <button class="nav-btn" onclick="startGame(this)">
+  <button class="nav-btn" onclick="goScreen('games', this)">
     <img src="assets/icons/nav-mood.svg" alt="解壓 icon">
     <span>解壓</span>
   </button>
@@ -1833,9 +1913,6 @@ onAuthStateChanged(auth, (user) => {
     <div style="position:absolute; top:calc(env(safe-area-inset-top)+12px); right:16px; z-index:81;">
       <button class="game-close-btn" onclick="stopGame()">✕</button>
     </div>
-    <div style="position:absolute; bottom:calc(env(safe-area-inset-bottom)+24px); left:0; right:0; z-index:81; display:flex; justify-content:center;">
-      <button class="game-switch-btn" onclick="switchToGame('bubble')">◯ 切換揉捏泡泡</button>
-    </div>
     <div class="game-combo" id="game-combo" style="pointer-events:none;"></div>
   </div>
 
@@ -1844,9 +1921,6 @@ onAuthStateChanged(auth, (user) => {
     <canvas id="bubble-canvas" style="display:block; position:absolute; top:0; left:0; touch-action:none;"></canvas>
     <div style="position:absolute; top:calc(env(safe-area-inset-top)+12px); right:16px; z-index:81;">
       <button class="game-close-btn" onclick="stopBubbleGame()">✕</button>
-    </div>
-    <div style="position:absolute; bottom:calc(env(safe-area-inset-bottom)+24px); left:0; right:0; z-index:81; display:flex; justify-content:center;">
-      <button class="game-switch-btn" onclick="switchToGame('press')">✦ 切換星星點點</button>
     </div>
   </div>
 
@@ -3304,33 +3378,11 @@ function drawBubble() {
 // ─── Game Control ───
 let currentGameType = 'press';
 
-function startGame(btn) {
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  if (btn) btn.classList.add('active');
-  // Default to last played game, or press
-  if (currentGameType === 'bubble') {
-    startBubbleGame();
-  } else {
-    startPressBallGame();
-  }
-}
-
-function switchToGame(type) {
-  // Stop current game
-  if (currentGameType === 'press') {
-    gameActive = false;
-    cancelAnimationFrame(gameAnimFrame);
-    ripples = []; particles = [];
-    document.getElementById('game-overlay').style.display = 'none';
-  } else if (currentGameType === 'bubble') {
-    bubbleActive = false;
-    if (bubbleAnimFrame) cancelAnimationFrame(bubbleAnimFrame);
-    document.getElementById('bubble-overlay').style.display = 'none';
-  }
+function launchGame(type) {
   currentGameType = type;
   if (type === 'press') {
     startPressBallGame();
-  } else {
+  } else if (type === 'bubble') {
     startBubbleGame();
   }
 }
@@ -3371,21 +3423,30 @@ function startBubbleGame() {
   drawBubble();
 }
 
+function stopGame() {
+  gameActive = false;
+  cancelAnimationFrame(gameAnimFrame);
+  ripples = []; particles = [];
+  document.getElementById('game-overlay').style.display = 'none';
+  goToGamesScreen();
+}
+
 function stopBubbleGame() {
   bubbleActive = false;
   if (bubbleAnimFrame) cancelAnimationFrame(bubbleAnimFrame);
   blob = null;
   document.getElementById('bubble-overlay').style.display = 'none';
-  returnToHome();
+  goToGamesScreen();
 }
 
-function returnToHome() {
-  const homeBtn = document.querySelectorAll('.nav-btn')[0];
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  if (homeBtn) homeBtn.classList.add('active');
+function goToGamesScreen() {
+  // Show games select screen, keep nav active on 解壓
+  const navBtns = document.querySelectorAll('.nav-btn');
+  navBtns.forEach(b => b.classList.remove('active'));
+  navBtns[navBtns.length - 1].classList.add('active'); // last btn = 解壓
   document.querySelectorAll('.screen').forEach(s => { s.classList.remove('active'); s.style.display = 'none'; });
-  const home = document.getElementById('screen-home');
-  if (home) { home.style.display = 'flex'; home.classList.add('active'); }
+  const games = document.getElementById('screen-games');
+  if (games) { games.style.display = 'flex'; games.classList.add('active'); }
 }
 
 // ─── Press Ball Game ───
@@ -3575,16 +3636,6 @@ function showCombo(msg) {
   el.classList.remove('show');
   void el.offsetWidth;
   el.classList.add('show');
-}
-
-// Original startGame replaced by game selector above
-
-function stopGame() {
-  gameActive = false;
-  cancelAnimationFrame(gameAnimFrame);
-  ripples = []; particles = [];
-  document.getElementById('game-overlay').style.display = 'none';
-  returnToHome();
 }
 
 
