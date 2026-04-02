@@ -157,7 +157,7 @@
     object-fit: contain;
     position: absolute;
     top: 0; left: 0;
-    z-index: 2;
+    z-index: 1;
     pointer-events: none;
   }
   #bottle-canvas {
@@ -165,7 +165,9 @@
     top: 0; left: 0;
     width: 160px;
     height: 160px;
-    z-index: 1;
+    z-index: 2;
+    pointer-events: none;
+    mix-blend-mode: screen;
   }
   .bottle-count {
     font-family: 'Noto Serif TC', serif;
@@ -207,8 +209,6 @@
     grid-template-columns: 1fr 1fr;
     gap: 6px;
     margin-bottom: 8px;
-    flex: 1;
-    align-content: start;
   }
 
   .mood-card {
@@ -253,6 +253,7 @@
     cursor: pointer;
     width: 100%;
     transition: all 0.2s;
+    margin-top: auto;
   }
   .enter-btn:hover { background: rgba(123,156,245,0.25); }
 
@@ -1170,7 +1171,7 @@ onAuthStateChanged(auth, (user) => {
 <div class="app">
 
   <!-- HOME -->
-  <div class="screen active" id="screen-home" style="display:flex;">
+  <div class="screen active" id="screen-home" style="display:flex; justify-content:space-between;">
     <div class="home-top">
       <div class="bottle-container" id="bottle-btn" onclick="showToast('今天也辛苦你了 ✦')">
         <canvas id="bottle-canvas" width="160" height="160"></canvas>
