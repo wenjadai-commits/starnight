@@ -1830,9 +1830,11 @@ onAuthStateChanged(auth, (user) => {
   <!-- GAME: Press Ball -->
   <div id="game-overlay" style="display:none; position:fixed; inset:0; z-index:80; background:#070f2b;">
     <canvas id="game-canvas" style="display:block; position:absolute; top:0; left:0;" onclick="handleGameClick(event)"></canvas>
-    <div style="position:absolute; top:calc(env(safe-area-inset-top)+12px); left:16px; right:16px; z-index:81; display:flex; justify-content:space-between; align-items:center;">
-      <button class="game-switch-btn" onclick="switchToGame('bubble')">◯ 揉捏泡泡</button>
+    <div style="position:absolute; top:calc(env(safe-area-inset-top)+12px); right:16px; z-index:81;">
       <button class="game-close-btn" onclick="stopGame()">✕</button>
+    </div>
+    <div style="position:absolute; bottom:calc(env(safe-area-inset-bottom)+24px); left:0; right:0; z-index:81; display:flex; justify-content:center;">
+      <button class="game-switch-btn" onclick="switchToGame('bubble')">◯ 切換揉捏泡泡</button>
     </div>
     <div class="game-combo" id="game-combo" style="pointer-events:none;"></div>
   </div>
@@ -1840,12 +1842,11 @@ onAuthStateChanged(auth, (user) => {
   <!-- GAME: Squishy Bubble -->
   <div id="bubble-overlay" style="display:none; position:fixed; inset:0; z-index:80; background:#070f2b;">
     <canvas id="bubble-canvas" style="display:block; position:absolute; top:0; left:0; touch-action:none;"></canvas>
-    <div style="position:absolute; top:calc(env(safe-area-inset-top)+12px); left:16px; right:16px; z-index:81; display:flex; justify-content:space-between; align-items:center;">
-      <button class="game-switch-btn" onclick="switchToGame('press')">✦ 星星點點</button>
+    <div style="position:absolute; top:calc(env(safe-area-inset-top)+12px); right:16px; z-index:81;">
       <button class="game-close-btn" onclick="stopBubbleGame()">✕</button>
     </div>
-    <div style="position:absolute; bottom:calc(env(safe-area-inset-bottom)+24px); left:0; right:0; text-align:center; pointer-events:none;">
-      <span style="font-size:11px; color:#4a5a8a; font-family:'Noto Sans TC',sans-serif;">按壓、拖拽泡泡來放鬆 ◯</span>
+    <div style="position:absolute; bottom:calc(env(safe-area-inset-bottom)+24px); left:0; right:0; z-index:81; display:flex; justify-content:center;">
+      <button class="game-switch-btn" onclick="switchToGame('press')">✦ 切換星星點點</button>
     </div>
   </div>
 
