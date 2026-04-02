@@ -76,15 +76,18 @@
     flex-direction: column;
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
-    padding: 32px 20px 90px;
-    overflow-y: auto;
-    overflow-x: hidden;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
+    padding: 28px 20px 88px;
+    overflow: hidden;
     animation: fadeIn 0.5s ease;
   }
   .screen.active { display: flex; }
-  .screen::-webkit-scrollbar { display: none; }
+  /* 允許少數頁面捲動 */
+  .screen.scrollable {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .screen.scrollable::-webkit-scrollbar { display: none; }
 
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(12px); }
@@ -130,8 +133,8 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-bottom: 16px;
-    margin-top: 4px;
+    margin-bottom: 10px;
+    margin-top: 0px;
   }
 
   .moon-wrap {
@@ -196,15 +199,17 @@
   .mood-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    margin-bottom: 12px;
+    gap: 6px;
+    margin-bottom: 8px;
+    flex: 1;
+    align-content: start;
   }
 
   .mood-card {
     background: var(--mid);
     border: 0.5px solid var(--border);
     border-radius: 14px;
-    padding: 12px;
+    padding: 10px;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -507,11 +512,11 @@
     padding: 10px 0;
     color: var(--purple);
     font-family: 'Noto Sans TC', sans-serif;
-    font-size: 13px;
-    letter-spacing: 2px;
+    font-size: 12px;
+    letter-spacing: 1px;
     cursor: pointer;
     transition: all 0.2s;
-    flex: 1;
+    flex: 2;
   }
   .release-btn:hover { background: rgba(167,141,224,0.25); }
 
@@ -694,108 +699,15 @@
   @keyframes toastIn { from { opacity:0; transform: translateX(-50%) translateY(10px); } to { opacity:1; transform: translateX(-50%) translateY(0); } }
   @keyframes toastOut { to { opacity:0; } }
 
-  /* ===== BIBLE VERSE ===== */
-  .verse-card {
-    background: rgba(245, 230, 200, 0.06);
-    border: 0.5px solid rgba(245, 230, 200, 0.2);
-    border-radius: 16px;
-    padding: 12px 14px;
-    margin-bottom: 10px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-  }
-  .verse-card:hover { background: rgba(245, 230, 200, 0.09); }
-  .verse-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    justify-content: space-between;
-  }
-  .verse-label {
-    font-size: 10px;
-    color: rgba(245, 230, 200, 0.5);
-    letter-spacing: 1.5px;
-  }
-  .verse-ref {
-    font-size: 11px;
-    color: rgba(245, 230, 200, 0.6);
-    font-family: 'Noto Serif TC', serif;
-  }
-  .verse-chevron {
-    font-size: 10px;
-    color: rgba(245, 230, 200, 0.4);
-    transition: transform 0.3s ease;
-  }
-  .verse-card.open .verse-chevron { transform: rotate(180deg); }
-  .verse-body {
-    overflow: hidden;
-    max-height: 0;
-    transition: max-height 0.4s ease, opacity 0.3s ease, margin-top 0.3s ease;
-    opacity: 0;
-    margin-top: 0;
-  }
-  .verse-card.open .verse-body {
-    max-height: 200px;
-    opacity: 1;
-    margin-top: 10px;
-  }
-  .verse-text {
-    font-family: 'Noto Serif TC', serif;
-    font-size: 13px;
-    color: rgba(245, 230, 200, 0.85);
-    line-height: 1.9;
-    letter-spacing: 0.5px;
-  }
+.game-screen.active { display: flex; }
 
-  /* ===== GAME ===== */
-  .game-screen {
-    position: fixed;
-    inset: 0;
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    z-index: 50;
-    padding-top: env(safe-area-inset-top);
-    padding-bottom: env(safe-area-inset-bottom);
-  }
-  .game-screen.active { display: flex; }
 
-  #game-canvas {
-    position: fixed;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 51;
-    cursor: pointer;
-    touch-action: none;
-  }
 
   .game-hud {
-    position: fixed;
-    top: calc(env(safe-area-inset-top) + 16px);
-    left: 0; right: 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 20px;
+    position: absolute;
+    top: calc(env(safe-area-inset-top) + 12px);
+    right: 16px;
     z-index: 52;
-    pointer-events: none;
-  }
-  .game-score-wrap {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .game-score-label {
-    font-size: 10px;
-    color: rgba(200,184,232,0.5);
-    letter-spacing: 2px;
-  }
-  .game-score {
-    font-family: 'Noto Serif TC', serif;
-    font-size: 28px;
-    color: #e8dff8;
   }
   .game-close-btn {
     pointer-events: all;
@@ -1153,19 +1065,6 @@
         <div><div class="mood-name">孤單</div><div class="mood-sub">一個人的感覺</div></div>
       </div>
     </div>
-
-
-    <div class="verse-card open" id="verse-card" onclick="toggleVerse()">
-      <div class="verse-header">
-        <span class="verse-label">✦ 今日經文</span>
-        <span class="verse-ref" id="verse-ref"></span>
-        <span class="verse-chevron" id="verse-chevron">▼</span>
-      </div>
-      <div class="verse-body" id="verse-body">
-        <p class="verse-text" id="verse-text"></p>
-      </div>
-    </div>
-
     <button class="enter-btn" onclick="goToChat()">進入星夜 →</button>
     <p class="disclaimer-bar">
       本 App 提供情緒抒發空間，不能取代專業心理諮商。<br>
@@ -1291,8 +1190,9 @@
     </div>
 
     <div class="canvas-actions-row">
+      <button class="clear-btn" onclick="undoCanvas()">↩ 上一步</button>
       <button class="clear-btn" onclick="clearCanvas()">清除</button>
-      <button class="release-btn" onclick="releaseCanvas()">✦ 放飛成流星</button>
+      <button class="release-btn" onclick="releaseCanvas()">✦ 放飛</button>
     </div>
   </div>
 
@@ -1355,7 +1255,7 @@
 
 
   <!-- RESOURCES -->
-  <div class="screen screen-resources" id="screen-resources" style="display:none;">
+  <div class="screen scrollable" id="screen-resources" style="display:none;" class="screen scrollable">
     <button class="privacy-back" onclick="goScreen('home', document.querySelectorAll('.nav-btn')[0])">
       ← 返回
     </button>
@@ -1483,7 +1383,7 @@
   </div>
 
   <!-- PRIVACY -->
-  <div class="screen screen-privacy" id="screen-privacy" style="display:none;">
+  <div class="screen scrollable" id="screen-privacy" style="display:none;" class="screen scrollable">
     <button class="privacy-back" onclick="goScreen('home', document.querySelectorAll('.nav-btn')[0])">
       ← 返回
     </button>
@@ -1531,17 +1431,17 @@
   </div>
 
   <!-- GAME -->
-  <div class="game-screen" id="screen-game">
+  <!-- GAME -->
+  <div class="screen" id="screen-game" style="display:none; padding:0; overflow:hidden;">
+    <canvas id="game-canvas" style="display:block; width:100%; height:100%; touch-action:none;"></canvas>
+    <div class="game-hud" id="game-hud">
+      <button class="game-close-btn" onclick="stopGame()">✕</button>
+    </div>
+    <div class="game-combo" id="game-combo"></div>
   </div>
-  <canvas id="game-canvas" style="display:none;" onclick="handleGameClick(event)"></canvas>
-  <div class="game-hud" id="game-hud" style="display:none;">
-    <div class="game-score-wrap">
-      <div class="game-score-label">已消除</div>
-      <div class="game-score" id="game-score">0</div>
     </div>
     <button class="game-close-btn" onclick="stopGame()">✕</button>
   </div>
-  <div class="game-combo" id="game-combo"></div>
 
 <!-- Diary Modal -->
 <div class="modal-overlay" id="diary-modal" style="display:none" onclick="closeDiaryModal(event)">
@@ -1836,6 +1736,8 @@ let brushColor = '#a78de0', brushSize = 4, brushOpacity = 1.0, brushType = 'pen'
 let hasDrawn = false;
 let lastX = 0, lastY = 0;
 let starQueue = [];
+let undoStack = [];
+const MAX_UNDO = 10;
 
 function initCanvas() {
   drawCanvas = document.getElementById('draw-canvas');
@@ -1854,6 +1756,10 @@ function initCanvas() {
 
   drawCanvas.onpointerdown = (e) => {
     drawing = true; hasDrawn = true;
+    // Save state for undo
+    const snapshot = dCtx.getImageData(0, 0, drawCanvas.width, drawCanvas.height);
+    undoStack.push(snapshot);
+    if (undoStack.length > MAX_UNDO) undoStack.shift();
     const p = getPos(e);
     lastX = p.x; lastY = p.y;
     if (brushType === 'star') { drawStar(p.x, p.y); return; }
@@ -1957,8 +1863,18 @@ function updateOpacity(input) {
   brushOpacity = parseInt(input.value) / 100;
   document.getElementById('opacity-val').textContent = input.value + '%';
 }
+function undoCanvas() {
+  if (!dCtx || undoStack.length === 0) { showToast('沒有可以復原的步驟'); return; }
+  const snapshot = undoStack.pop();
+  dCtx.globalCompositeOperation = 'source-over';
+  dCtx.putImageData(snapshot, 0, 0);
+  if (undoStack.length === 0) hasDrawn = false;
+}
 function clearCanvas() {
   if (!dCtx) return;
+  const snapshot = dCtx.getImageData(0, 0, drawCanvas.width, drawCanvas.height);
+  undoStack.push(snapshot);
+  if (undoStack.length > MAX_UNDO) undoStack.shift();
   dCtx.globalCompositeOperation = 'source-over';
   dCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
   hasDrawn = false;
@@ -2137,10 +2053,12 @@ let targetScale = 1;
 let glowIntensity = 0;
 
 function initBall() {
+  const W = gameCanvas.width || window.innerWidth;
+  const H = gameCanvas.height || window.innerHeight;
   ball = {
-    x: gameCanvas.width / 2,
-    y: gameCanvas.height / 2,
-    r: Math.min(gameCanvas.width, gameCanvas.height) * 0.22,
+    x: W / 2,
+    y: H / 2 - 40,
+    r: Math.min(W, H) * 0.24,
     color: { fill: 'rgba(167,141,224,0.85)', stroke: 'rgba(200,180,255,1)' },
     wobble: 0,
   };
@@ -2179,7 +2097,6 @@ function createBurst(count) {
 function pressBall() {
   if (!gameActive) return;
   gameScore++;
-  document.getElementById('game-score').textContent = gameScore;
 
   pressScale = 0.82;
   glowIntensity = 1;
@@ -2316,7 +2233,7 @@ function handleGameClick(e) {
   const cx = (e.clientX - rect.left) * (gameCanvas.width / rect.width);
   const cy = (e.clientY - rect.top) * (gameCanvas.height / rect.height);
   const dist = Math.hypot(cx - ball.x, cy - ball.y);
-  if (dist < ball.r * 1.1) pressBall();
+  if (dist < ball.r * 1.3) pressBall();
 }
 
 function showCombo(msg) {
@@ -2328,24 +2245,19 @@ function showCombo(msg) {
 }
 
 function startGame(btn) {
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  if (btn) btn.classList.add('active');
-  document.querySelectorAll('.screen').forEach(s => {
-    s.classList.remove('active');
-    s.style.display = 'none';
-  });
-
+  goScreen('game', btn);
+  const screen = document.getElementById('screen-game');
   gameCanvas = document.getElementById('game-canvas');
-  gameCanvas.style.display = 'block';
-  gameCanvas.width = window.innerWidth;
-  gameCanvas.height = window.innerHeight;
+  const gameScreen = document.getElementById('screen-game');
+  gameCanvas.width = gameScreen.clientWidth || window.innerWidth;
+  gameCanvas.height = gameScreen.clientHeight || window.innerHeight;
   gCtx = gameCanvas.getContext('2d');
+  gameCanvas.onclick = handleGameClick;
+  gameCanvas.ontouchstart = (e) => { e.preventDefault(); handleGameClick(e.touches[0]); };
 
-  document.getElementById('game-hud').style.display = 'flex';
   gameScore = 0;
   ripples = []; particles = [];
   pressScale = 1; targetScale = 1; glowIntensity = 0;
-  document.getElementById('game-score').textContent = '0';
   initBall();
   gameActive = true;
   drawPressBall();
@@ -2354,8 +2266,6 @@ function startGame(btn) {
 function stopGame() {
   gameActive = false;
   cancelAnimationFrame(gameAnimFrame);
-  document.getElementById('game-canvas').style.display = 'none';
-  document.getElementById('game-hud').style.display = 'none';
   ripples = []; particles = [];
   goScreen('home', document.querySelectorAll('.nav-btn')[0]);
 }
