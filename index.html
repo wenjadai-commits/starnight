@@ -90,6 +90,11 @@
   #screen-canvas {
     padding: 20px 16px 88px;
   }
+  #screen-canvas .canvas-wrap {
+    height: 0;
+    flex: 1;
+    min-height: 0;
+  }
 
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(12px); }
@@ -1230,7 +1235,7 @@
     </svg>
     <span>傾訴</span>
   </button>
-  <button class="nav-btn" onclick="goScreen('canvas', this); setTimeout(initCanvas, 50)">
+  <button class="nav-btn" onclick="goScreen('canvas', this); setTimeout(initCanvas, 150)">
     <svg viewBox="0 0 24 24" fill="none" stroke="#a78de0" stroke-width="1.5" stroke-linecap="round">
       <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
     </svg>
@@ -1736,13 +1741,11 @@ const MAX_UNDO = 10;
 function initCanvas() {
   drawCanvas = document.getElementById('draw-canvas');
   const wrap = document.getElementById('canvas-wrap');
-  const W = wrap.clientWidth || window.innerWidth;
-  const H = wrap.clientHeight || 300;
-  // Only resize if dimensions changed
-  if (drawCanvas.width !== W || drawCanvas.height !== H) {
-    drawCanvas.width = W;
-    drawCanvas.height = H;
-  }
+  const rect = wrap.getBoundingClientRect();
+  const W = Math.floor(rect.width) || window.innerWidth;
+  const H = Math.floor(rect.height) || 300;
+  drawCanvas.width = W;
+  drawCanvas.height = H;
   dCtx = drawCanvas.getContext('2d');
   if (drawCanvas._inited) return;
   drawCanvas._inited = true;
@@ -2249,8 +2252,9 @@ function startGame(btn) {
   setTimeout(() => {
   gameCanvas = document.getElementById('game-canvas');
   const gameScreen = document.getElementById('screen-game');
-  gameCanvas.width = gameScreen.clientWidth || window.innerWidth;
-  gameCanvas.height = gameScreen.clientHeight || window.innerHeight;
+  const gr = gameScreen.getBoundingClientRect();
+  gameCanvas.width = Math.floor(gr.width) || window.innerWidth;
+  gameCanvas.height = Math.floor(gr.height) || window.innerHeight;
   gCtx = gameCanvas.getContext('2d');
   gameCanvas.onclick = handleGameClick;
   gameCanvas.ontouchstart = (e) => { e.preventDefault(); handleGameClick(e.touches[0]); };
@@ -2261,7 +2265,7 @@ function startGame(btn) {
   initBall();
   gameActive = true;
   drawPressBall();
-  }, 60);
+  }, 150);
 }
 
 function stopGame() {
