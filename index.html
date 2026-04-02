@@ -1433,13 +1433,15 @@
   </div>
 
   <!-- GAME -->
-  <!-- GAME -->
-  <div class="screen" id="screen-game" style="display:none; padding:0; overflow:hidden; position:relative;">
-    <canvas id="game-canvas" style="position:absolute; top:0; left:0; width:100%; height:100%; touch-action:none; cursor:pointer;" onclick="handleGameClick(event)"></canvas>
-    <div class="game-hud" id="game-hud" style="position:absolute; top:calc(env(safe-area-inset-top) + 12px); right:16px; pointer-events:none; z-index:10;">
-      <button class="game-close-btn" onclick="stopGame()" style="pointer-events:all;">✕</button>
+  <div class="screen" id="screen-game" style="display:none; padding:0; overflow:hidden;">
+    <canvas id="game-canvas" style="display:block; touch-action:none;"></canvas>
+  </div>
+  <!-- Game overlay (outside screen so always on top) -->
+  <div id="game-overlay" style="display:none; position:fixed; inset:0; pointer-events:none; z-index:60;">
+    <div style="position:absolute; top:calc(env(safe-area-inset-top)+12px); right:16px; pointer-events:all;">
+      <button class="game-close-btn" onclick="stopGame()">✕</button>
     </div>
-    <div class="game-combo" id="game-combo" style="pointer-events:none;"></div>
+    <div class="game-combo" id="game-combo"></div>
   </div>
     </div>
     <button class="game-close-btn" onclick="stopGame()">✕</button>
@@ -2226,11 +2228,10 @@ function drawPressBall() {
 
 function handleGameClick(e) {
   if (!gameActive) return;
-  const rect = gameCanvas.getBoundingClientRect();
-  const cx = (e.clientX - rect.left) * (gameCanvas.width / rect.width);
-  const cy = (e.clientY - rect.top) * (gameCanvas.height / rect.height);
+  const cx = e.clientX;
+  const cy = e.clientY;
   const dist = Math.hypot(cx - ball.x, cy - ball.y);
-  if (dist < ball.r * 1.3) pressBall();
+  if (dist < ball.r * 1.5) pressBall();
 }
 
 function showCombo(msg) {
@@ -2243,15 +2244,26 @@ function showCombo(msg) {
 
 function startGame(btn) {
   goScreen('game', btn);
-  const screen = document.getElementById('screen-game');
-  setTimeout(() => {
+  document.getElementById('game-overlay').style.display = 'block';
+
+  // Use window dimensions - most reliable
+  const W = window.innerWidth;
+  const H = window.innerHeight;
+
   gameCanvas = document.getElementById('game-canvas');
-  const gameScreen = document.getElementById('screen-game');
-  const gr = gameScreen.getBoundingClientRect();
-  gameCanvas.width = Math.floor(gr.width) || window.innerWidth;
-  gameCanvas.height = Math.floor(gr.height) || window.innerHeight;
+  gameCanvas.width = W;
+  gameCanvas.height = H;
+  gameCanvas.style.width = W + 'px';
+  gameCanvas.style.height = H + 'px';
   gCtx = gameCanvas.getContext('2d');
-  gameCanvas.ontouchstart = (e) => { e.preventDefault(); handleGameClick(e.touches[0]); };
+
+  // Bind events directly
+  gameCanvas.onclick = handleGameClick;
+  gameCanvas.ontouchend = (e) => {
+    e.preventDefault();
+    const t = e.changedTouches[0];
+    handleGameClick(t);
+  };
 
   gameScore = 0;
   ripples = []; particles = [];
@@ -2259,13 +2271,13 @@ function startGame(btn) {
   initBall();
   gameActive = true;
   drawPressBall();
-  }, 150);
 }
 
 function stopGame() {
   gameActive = false;
   cancelAnimationFrame(gameAnimFrame);
   ripples = []; particles = [];
+  document.getElementById('game-overlay').style.display = 'none';
   goScreen('home', document.querySelectorAll('.nav-btn')[0]);
 }
 
