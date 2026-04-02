@@ -1,4 +1,4 @@
-const CACHE = 'starnight-v16';
+const CACHE = 'starnight-v18';
 const ASSETS = [
   '/starnight/',
   '/starnight/index.html',

@@ -574,6 +574,20 @@
   .entry-date { font-size: 11px; color: var(--text-muted); }
   .entry-mood { font-size: 11px; color: var(--text-dim); margin-left: auto; }
   .entry-text { font-size: 13px; color: var(--text-main); line-height: 1.7; }
+  .entry-delete {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-size: 11px;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 8px;
+    transition: all 0.2s;
+    font-family: 'Noto Sans TC', sans-serif;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+  .entry-delete:hover { color: #f08080; background: rgba(240,128,128,0.1); }
 
   .new-entry-btn {
     background: rgba(141,212,184,0.1);
@@ -593,6 +607,131 @@
     font-family: 'Noto Sans TC', sans-serif;
   }
   .new-entry-btn:hover { background: rgba(141,212,184,0.2); }
+
+  /* ===== STAR TRAIL (Mood Stats) ===== */
+  .diary-tab-bar {
+    display: flex;
+    background: var(--mid);
+    border: 0.5px solid var(--border);
+    border-radius: 12px;
+    padding: 3px;
+    margin-bottom: 16px;
+    gap: 3px;
+  }
+  .diary-tab {
+    flex: 1;
+    padding: 7px 0;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-family: 'Noto Sans TC', sans-serif;
+    cursor: pointer;
+    transition: all 0.25s;
+    letter-spacing: 1px;
+  }
+  .diary-tab.active {
+    background: rgba(123,156,245,0.15);
+    color: var(--blue);
+  }
+  #star-trail-view { display: none; }
+  #star-trail-view.active { display: block; }
+  #star-map-view.hidden { display: none; }
+
+  .trail-card {
+    background: var(--mid);
+    border: 0.5px solid var(--border);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .trail-card-title {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    letter-spacing: 1px;
+  }
+  .trail-chart {
+    position: relative;
+    height: 180px;
+    overflow: hidden;
+    border-radius: 12px;
+  }
+  #trail-canvas { display: block; width: 100%; height: 100%; }
+
+  .trail-mood-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 4px;
+  }
+  .trail-mood-pill {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(255,255,255,0.04);
+    border: 0.5px solid var(--border);
+    border-radius: 20px;
+    padding: 5px 10px;
+    font-size: 11px;
+    color: var(--text-main);
+  }
+  .trail-mood-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .trail-mood-count {
+    color: var(--text-muted);
+    font-size: 10px;
+  }
+  .trail-streak {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 2px;
+  }
+  .trail-streak-num {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 28px;
+    color: var(--moon);
+    line-height: 1;
+  }
+  .trail-streak-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.4;
+  }
+  .trail-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-dim);
+    font-size: 13px;
+    line-height: 1.8;
+  }
+  .trail-period-bar {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .trail-period-btn {
+    padding: 4px 12px;
+    border: 0.5px solid var(--border);
+    border-radius: 16px;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 11px;
+    font-family: 'Noto Sans TC', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .trail-period-btn.active {
+    background: rgba(123,156,245,0.12);
+    border-color: rgba(123,156,245,0.3);
+    color: var(--blue);
+  }
 
   /* Modal */
   .modal-overlay {
@@ -1328,14 +1467,45 @@ onAuthStateChanged(auth, (user) => {
       <div class="diary-title">情緒星圖</div>
       <div class="diary-sub">每一天都是一顆星</div>
     </div>
-    <div class="star-map">
-      <canvas id="star-map-canvas"></canvas>
+    <div class="diary-tab-bar">
+      <button class="diary-tab active" onclick="switchDiaryTab('map', this)">✦ 星圖</button>
+      <button class="diary-tab" onclick="switchDiaryTab('trail', this)">☽ 星軌</button>
     </div>
-    <div id="diary-list"></div>
-    <div style="display:flex; gap:8px; margin-bottom:8px;">
-      <button onclick="if(!window._currentUser){showAuthModal();}else{showToast('已登入，日記自動同步 ✦');}" style="flex:1;background:rgba(141,212,184,0.08);border:0.5px solid rgba(141,212,184,0.2);border-radius:12px;padding:8px;color:var(--text-dim);font-size:11px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;" id="sync-btn">
-        ☁ 同步帳號
-      </button>
+    <div id="star-map-view">
+      <div class="star-map">
+        <canvas id="star-map-canvas"></canvas>
+      </div>
+      <div id="diary-list"></div>
+      <div style="display:flex; gap:8px; margin-bottom:8px;">
+        <button onclick="if(!window._currentUser){showAuthModal();}else{showToast('已登入，日記自動同步 ✦');}" style="flex:1;background:rgba(141,212,184,0.08);border:0.5px solid rgba(141,212,184,0.2);border-radius:12px;padding:8px;color:var(--text-dim);font-size:11px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;" id="sync-btn">
+          ☁ 同步帳號
+        </button>
+      </div>
+    </div>
+    <div id="star-trail-view">
+      <div class="trail-period-bar">
+        <button class="trail-period-btn active" onclick="setTrailPeriod(7, this)">7天</button>
+        <button class="trail-period-btn" onclick="setTrailPeriod(14, this)">14天</button>
+        <button class="trail-period-btn" onclick="setTrailPeriod(30, this)">30天</button>
+        <button class="trail-period-btn" onclick="setTrailPeriod(0, this)">全部</button>
+      </div>
+      <div class="trail-card">
+        <div class="trail-card-title">情緒曲線</div>
+        <div class="trail-chart">
+          <canvas id="trail-canvas"></canvas>
+        </div>
+      </div>
+      <div class="trail-card" id="trail-stats-card">
+        <div class="trail-card-title">情緒分佈</div>
+        <div class="trail-mood-summary" id="trail-mood-summary"></div>
+      </div>
+      <div class="trail-card" id="trail-streak-card">
+        <div class="trail-card-title">記錄連續</div>
+        <div class="trail-streak">
+          <div class="trail-streak-num" id="trail-streak-num">0</div>
+          <div class="trail-streak-label">天<br>持續記錄中</div>
+        </div>
+      </div>
     </div>
     <button class="new-entry-btn" onclick="openDiaryModal()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8dd4b8" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -2259,12 +2429,30 @@ function renderDiary() {
         <div class="entry-dot" style="background:${e.color}"></div>
         <span class="entry-date">${e.date}</span>
         <span class="entry-mood">${e.mood}</span>
+        <button class="entry-delete" onclick="deleteDiaryEntry('${e.id}')">刪除</button>
       </div>
       <div class="entry-text">${e.text}</div>
     `;
     list.appendChild(div);
   });
   drawStarMap();
+}
+
+async function deleteDiaryEntry(id) {
+  if (!confirm('確定要刪除這則記錄嗎？')) return;
+  diaryEntries = diaryEntries.filter(e => e.id !== id);
+  saveDiary();
+  renderDiary();
+  initBottleAnimation();
+  // Delete from Firestore
+  if (window._fb && window._currentUser) {
+    try {
+      const { db, doc, deleteDoc } = window._fb;
+      const uid = window._currentUser.uid;
+      await deleteDoc(doc(db, 'users', uid, 'diary', id));
+    } catch(e) { console.error('delete diary cloud:', e); }
+  }
+  showToast('已刪除 ✦');
 }
 
 function drawStarMap() {
@@ -2375,6 +2563,246 @@ function showToast(msg) {
   t.textContent = msg;
   document.body.appendChild(t);
   setTimeout(() => t.remove(), 2200);
+}
+  
+// ─── Star Trail (Mood Stats) ───
+let trailPeriod = 7;
+
+function switchDiaryTab(tab, btn) {
+  document.querySelectorAll('.diary-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  const mapView = document.getElementById('star-map-view');
+  const trailView = document.getElementById('star-trail-view');
+  if (tab === 'trail') {
+    mapView.classList.add('hidden');
+    trailView.classList.add('active');
+    renderStarTrail();
+  } else {
+    mapView.classList.remove('hidden');
+    trailView.classList.remove('active');
+  }
+}
+
+function setTrailPeriod(days, btn) {
+  trailPeriod = days;
+  document.querySelectorAll('.trail-period-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderStarTrail();
+}
+
+// Map mood names to a numeric "energy" score for the curve
+const MOOD_SCORES = {
+  '開心': 5, '興奮': 5, '感恩': 4.5, '期待': 4.5,
+  '平靜': 3.5, '放鬆': 3.5, '還好': 3,
+  '疲憊': 2, '無感': 2, '迷茫': 2,
+  '難過': 1.5, '焦慮': 1.5, '煩躁': 1.5,
+  '憤怒': 1, '崩潰': 0.5, '低落': 1,
+};
+function getMoodScore(name) {
+  return MOOD_SCORES[name] || 3; // default middle
+}
+
+function getFilteredEntries() {
+  if (!diaryEntries.length) return [];
+  let entries = [...diaryEntries];
+  if (trailPeriod > 0) {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - trailPeriod);
+    entries = entries.filter(e => {
+      const d = e.createdAt ? new Date(e.createdAt) : null;
+      return d && d >= cutoff;
+    });
+  }
+  return entries;
+}
+
+function renderStarTrail() {
+  const entries = getFilteredEntries();
+  renderTrailChart(entries);
+  renderTrailMoodSummary(entries);
+  renderTrailStreak();
+}
+
+function renderTrailChart(entries) {
+  const c = document.getElementById('trail-canvas');
+  const wrap = c.parentElement;
+  c.width = wrap.clientWidth * 2;
+  c.height = wrap.clientHeight * 2;
+  c.style.width = wrap.clientWidth + 'px';
+  c.style.height = wrap.clientHeight + 'px';
+  const ctx = c.getContext('2d');
+  ctx.scale(2, 2);
+  const W = wrap.clientWidth, H = wrap.clientHeight;
+
+  ctx.clearRect(0, 0, W, H);
+
+  if (!entries.length) {
+    ctx.fillStyle = '#4a5a8a';
+    ctx.font = '13px Noto Sans TC';
+    ctx.textAlign = 'center';
+    ctx.fillText('還沒有足夠的記錄', W / 2, H / 2 - 8);
+    ctx.fillText('去寫下今天的心情吧 ✦', W / 2, H / 2 + 14);
+    return;
+  }
+
+  const padL = 8, padR = 8, padT = 24, padB = 28;
+  const chartW = W - padL - padR;
+  const chartH = H - padT - padB;
+
+  // Grid lines
+  for (let i = 0; i <= 4; i++) {
+    const y = padT + (chartH / 4) * i;
+    ctx.beginPath();
+    ctx.moveTo(padL, y);
+    ctx.lineTo(W - padR, y);
+    ctx.strokeStyle = 'rgba(42,58,110,0.5)';
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+  }
+
+  // Side labels
+  const labels = ['開心', '', '平靜', '', '低落'];
+  ctx.font = '9px Noto Sans TC';
+  ctx.textAlign = 'left';
+  for (let i = 0; i < labels.length; i++) {
+    if (!labels[i]) continue;
+    const y = padT + (chartH / 4) * i;
+    ctx.fillStyle = '#4a5a8a';
+    ctx.fillText(labels[i], padL + 2, y - 4);
+  }
+
+  // Data points
+  const pts = entries.map((e, i) => {
+    const score = getMoodScore(e.mood);
+    const x = entries.length === 1 ? padL + chartW / 2 : padL + (chartW / (entries.length - 1)) * i;
+    const y = padT + chartH - (score / 5) * chartH;
+    return { x, y, color: e.color || '#7b9cf5', mood: e.mood, date: e.date };
+  });
+
+  // Gradient fill under curve
+  if (pts.length > 1) {
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    // Smooth curve
+    for (let i = 1; i < pts.length; i++) {
+      const prev = pts[i - 1], curr = pts[i];
+      const cpx = (prev.x + curr.x) / 2;
+      ctx.quadraticCurveTo(prev.x + (cpx - prev.x) * 0.8, prev.y, cpx, (prev.y + curr.y) / 2);
+      ctx.quadraticCurveTo(curr.x - (curr.x - cpx) * 0.8, curr.y, curr.x, curr.y);
+    }
+    ctx.lineTo(pts[pts.length - 1].x, padT + chartH);
+    ctx.lineTo(pts[0].x, padT + chartH);
+    ctx.closePath();
+    const grd = ctx.createLinearGradient(0, padT, 0, padT + chartH);
+    grd.addColorStop(0, 'rgba(123,156,245,0.18)');
+    grd.addColorStop(1, 'rgba(123,156,245,0)');
+    ctx.fillStyle = grd;
+    ctx.fill();
+
+    // Line
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    for (let i = 1; i < pts.length; i++) {
+      const prev = pts[i - 1], curr = pts[i];
+      const cpx = (prev.x + curr.x) / 2;
+      ctx.quadraticCurveTo(prev.x + (cpx - prev.x) * 0.8, prev.y, cpx, (prev.y + curr.y) / 2);
+      ctx.quadraticCurveTo(curr.x - (curr.x - cpx) * 0.8, curr.y, curr.x, curr.y);
+    }
+    ctx.strokeStyle = 'rgba(123,156,245,0.6)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  }
+
+  // Dots + glow
+  pts.forEach((p, i) => {
+    // Glow
+    const grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, 12);
+    grd.addColorStop(0, p.color + '44');
+    grd.addColorStop(1, 'transparent');
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 12, 0, Math.PI * 2);
+    ctx.fillStyle = grd;
+    ctx.fill();
+    // Dot
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 3.5, 0, Math.PI * 2);
+    ctx.fillStyle = p.color;
+    ctx.fill();
+  });
+
+  // Date labels on x-axis (show first, last, and middle if many)
+  ctx.font = '9px Noto Sans TC';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#4a5a8a';
+  if (pts.length <= 7) {
+    pts.forEach(p => ctx.fillText(p.date, p.x, padT + chartH + 16));
+  } else {
+    const show = [0, Math.floor(pts.length / 2), pts.length - 1];
+    show.forEach(i => ctx.fillText(pts[i].date, pts[i].x, padT + chartH + 16));
+  }
+
+  // Latest mood label
+  if (pts.length) {
+    const last = pts[pts.length - 1];
+    ctx.fillStyle = last.color;
+    ctx.font = '10px Noto Sans TC';
+    ctx.textAlign = 'center';
+    ctx.fillText(last.mood, last.x, last.y - 10);
+  }
+}
+
+function renderTrailMoodSummary(entries) {
+  const container = document.getElementById('trail-mood-summary');
+  if (!entries.length) {
+    container.innerHTML = '<div style="color:var(--text-dim);font-size:12px;">尚無記錄</div>';
+    return;
+  }
+  // Count moods
+  const counts = {};
+  entries.forEach(e => {
+    const key = e.mood || '未知';
+    if (!counts[key]) counts[key] = { count: 0, color: e.color || '#7b9cf5' };
+    counts[key].count++;
+  });
+  // Sort by count desc
+  const sorted = Object.entries(counts).sort((a, b) => b[1].count - a[1].count);
+  container.innerHTML = sorted.map(([mood, { count, color }]) =>
+    `<div class="trail-mood-pill">
+      <div class="trail-mood-dot" style="background:${color}"></div>
+      ${mood}
+      <span class="trail-mood-count">${count}次</span>
+    </div>`
+  ).join('');
+}
+
+function renderTrailStreak() {
+  if (!diaryEntries.length) {
+    document.getElementById('trail-streak-num').textContent = '0';
+    return;
+  }
+  // Calculate consecutive days streak ending today
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  let streak = 0;
+  const dayMs = 86400000;
+
+  // Get unique dates (as date strings)
+  const dates = new Set();
+  diaryEntries.forEach(e => {
+    if (e.createdAt) {
+      const d = new Date(e.createdAt);
+      d.setHours(0, 0, 0, 0);
+      dates.add(d.getTime());
+    }
+  });
+
+  let checkDay = today.getTime();
+  while (dates.has(checkDay)) {
+    streak++;
+    checkDay -= dayMs;
+  }
+
+  document.getElementById('trail-streak-num').textContent = streak;
 }
   
 // ─── Press Ball Game ───
