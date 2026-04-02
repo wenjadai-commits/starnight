@@ -1,9 +1,10 @@
-const CACHE = 'starnight-v15';
+const CACHE = 'starnight-v16';
 const ASSETS = [
   '/starnight/',
   '/starnight/index.html',
   '/starnight/manifest.json',
   '/starnight/moon.png',
+  '/starnight/star.png',
   '/starnight/icons/icon-192.png',
   '/starnight/icons/icon-512.png'
 ];
