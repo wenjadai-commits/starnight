@@ -1017,7 +1017,129 @@
     padding: 12px;
     border-top: 0.5px solid var(--border);
   }
+
+  /* ===== AUTH ===== */
+  .auth-overlay {
+    position: fixed; inset: 0;
+    background: rgba(7,15,43,0.96);
+    z-index: 600;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  .auth-box {
+    background: var(--deep);
+    border: 0.5px solid var(--border);
+    border-radius: 24px;
+    padding: 28px 24px 24px;
+    width: 100%; max-width: 360px;
+  }
+  .auth-moon { text-align:center; font-size:32px; margin-bottom:10px; }
+  .auth-title {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 17px; color: var(--star-white);
+    text-align: center; margin-bottom: 6px; letter-spacing:1px;
+  }
+  .auth-sub { font-size:11px; color:var(--text-dim); text-align:center; margin-bottom:20px; }
+  .auth-tabs { display:flex; gap:8px; margin-bottom:16px; }
+  .auth-tab {
+    flex:1; padding:8px; background:var(--mid);
+    border:0.5px solid var(--border); border-radius:12px;
+    color:var(--text-muted); font-size:12px; cursor:pointer;
+    font-family:'Noto Sans TC',sans-serif; transition:all 0.2s;
+  }
+  .auth-tab.active { border-color:var(--blue); color:var(--blue); background:rgba(123,156,245,0.1); }
+  .auth-input {
+    width:100%; background:var(--mid); border:0.5px solid var(--border);
+    border-radius:12px; padding:12px 14px; color:var(--text-main);
+    font-family:'Noto Sans TC',sans-serif; font-size:14px;
+    outline:none; margin-bottom:10px; box-sizing:border-box;
+  }
+  .auth-input:focus { border-color:rgba(123,156,245,0.5); }
+  .auth-input::placeholder { color:var(--text-dim); }
+  .auth-btn {
+    width:100%; padding:13px; background:rgba(123,156,245,0.15);
+    border:0.5px solid var(--blue); border-radius:20px;
+    color:var(--blue); font-family:'Noto Sans TC',sans-serif;
+    font-size:14px; letter-spacing:1px; cursor:pointer;
+    margin-bottom:10px; transition:all 0.2s;
+  }
+  .auth-btn:hover { background:rgba(123,156,245,0.25); }
+  .auth-google {
+    width:100%; padding:12px; background:none;
+    border:0.5px solid var(--border); border-radius:20px;
+    color:var(--text-muted); font-family:'Noto Sans TC',sans-serif;
+    font-size:13px; cursor:pointer; transition:all 0.2s;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+  .auth-google:hover { border-color:var(--text-muted); color:var(--text-main); }
+  .auth-skip {
+    width:100%; padding:10px; background:none; border:none;
+    color:var(--text-dim); font-family:'Noto Sans TC',sans-serif;
+    font-size:12px; cursor:pointer; margin-top:4px;
+  }
+  .auth-error { font-size:11px; color:#f08080; text-align:center; margin-bottom:8px; min-height:16px; }
+
+  /* User bar */
+  .user-bar {
+    position: fixed; top: calc(env(safe-area-inset-top)+8px); right: 12px;
+    background: var(--mid); border: 0.5px solid var(--border);
+    border-radius: 20px; padding: 6px 12px;
+    display: none; align-items: center; gap: 8px;
+    z-index: 90; font-size: 11px; color: var(--text-muted);
+  }
+  .user-bar button {
+    background:none; border:none; color:var(--text-dim);
+    font-size:11px; cursor:pointer; font-family:'Noto Sans TC',sans-serif;
+    padding:0;
+  }
 </style>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getFirestore, collection, doc, setDoc, getDocs, deleteDoc, query, orderBy, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyC28sWLPbADQcw5rVlbHoX906uVcKDKGuE",
+  authDomain: "starnight-818af.firebaseapp.com",
+  projectId: "starnight-818af",
+  storageBucket: "starnight-818af.firebasestorage.app",
+  messagingSenderId: "392939176368",
+  appId: "1:392939176368:web:c4ea7cac8d523d05fd5675"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const googleProvider = new GoogleAuthProvider();
+
+// Expose to global scope
+window._fb = { auth, db, googleProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, collection, doc, setDoc, getDocs, deleteDoc, query, orderBy, serverTimestamp };
+
+// Auth state listener
+onAuthStateChanged(auth, (user) => {
+  window._currentUser = user;
+  if (user) {
+    // Show user info, hide auth modal
+    const authModal = document.getElementById('auth-modal');
+    if (authModal) authModal.style.display = 'none';
+    const userBar = document.getElementById('user-bar');
+    if (userBar) {
+      userBar.style.display = 'flex';
+      document.getElementById('user-email').textContent = user.email || user.displayName || '已登入';
+    }
+    const syncBtn = document.getElementById('sync-btn');
+    if (syncBtn) syncBtn.textContent = '☁ 已同步';
+    // Load diary from Firestore
+    window.loadDiaryFromCloud();
+  } else {
+    window._currentUser = null;
+    const userBar = document.getElementById('user-bar');
+    if (userBar) userBar.style.display = 'none';
+  }
+});
+</script>
 </head>
 <body>
 
@@ -1208,6 +1330,11 @@
       <canvas id="star-map-canvas"></canvas>
     </div>
     <div id="diary-list"></div>
+    <div style="display:flex; gap:8px; margin-bottom:8px;">
+      <button onclick="if(!window._currentUser){showAuthModal();}else{showToast('已登入，日記自動同步 ✦');}" style="flex:1;background:rgba(141,212,184,0.08);border:0.5px solid rgba(141,212,184,0.2);border-radius:12px;padding:8px;color:var(--text-dim);font-size:11px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;" id="sync-btn">
+        ☁ 同步帳號
+      </button>
+    </div>
     <button class="new-entry-btn" onclick="openDiaryModal()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8dd4b8" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       記錄今天的心情
@@ -1508,6 +1635,7 @@ function agreeAndClose() {
   setTimeout(() => overlay.style.display = 'none', 400);
 }
 checkFirstOpen();
+checkAuthOnStart();
 
 // ─── Bible Verse ───
 const VERSES = [
@@ -1913,8 +2041,39 @@ function loadDiary() {
 }
 function saveDiary() {
   try { localStorage.setItem('starnight-diary', JSON.stringify(diaryEntries)); } catch {}
+  // Also sync to cloud if logged in
+  if (window._currentUser) syncDiaryToCloud();
 }
 let diaryEntries = loadDiary();
+
+// ─── Cloud Sync ───
+window.loadDiaryFromCloud = async function() {
+  if (!window._fb || !window._currentUser) return;
+  try {
+    const { db, collection, getDocs, query, orderBy } = window._fb;
+    const uid = window._currentUser.uid;
+    const q = query(collection(db, 'users', uid, 'diary'), orderBy('createdAt', 'asc'));
+    const snap = await getDocs(q);
+    if (!snap.empty) {
+      diaryEntries = snap.docs.map(d => d.data());
+      renderDiary();
+      showToast('日記已從雲端同步 ✦');
+    }
+  } catch(e) { console.error('load diary:', e); }
+};
+
+async function syncDiaryToCloud() {
+  if (!window._fb || !window._currentUser) return;
+  try {
+    const { db, collection, doc, setDoc, serverTimestamp } = window._fb;
+    const uid = window._currentUser.uid;
+    for (const entry of diaryEntries) {
+      const id = entry.id || (entry.date + '_' + entry.mood).replace(/\s/g,'_');
+      entry.id = id;
+      await setDoc(doc(db, 'users', uid, 'diary', id), { ...entry, createdAt: entry.createdAt || serverTimestamp() });
+    }
+  } catch(e) { console.error('sync diary:', e); }
+}
 
 function renderDiary() {
   const list = document.getElementById('diary-list');
@@ -2018,12 +2177,15 @@ function saveDiaryEntry() {
   if (!text) { showToast('寫幾個字吧，哪怕只有一句話 ✦'); return; }
   const mood = selectedMood || { name: '平靜', color: '#7b9cf5' };
   const now = new Date();
-  diaryEntries.push({
+  const entry = {
+    id: Date.now().toString(),
     date: `${now.getMonth()+1}月${now.getDate()}日`,
     mood: mood.name,
     color: mood.color,
-    text
-  });
+    text,
+    createdAt: now.toISOString()
+  };
+  diaryEntries.push(entry);
   saveDiary();
   closeDiaryModal();
   renderDiary();
@@ -2287,6 +2449,81 @@ function stopGame() {
   if (home) { home.style.display = 'flex'; home.classList.add('active'); }
 }
 
+
+// ─── Auth ───
+let _authTab = 'login';
+
+function switchAuthTab(tab) {
+  _authTab = tab;
+  document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('auth-error').textContent = '';
+  document.getElementById('auth-password').value = '';
+}
+
+function showAuthModal() {
+  document.getElementById('auth-modal').style.display = 'flex';
+}
+
+function skipAuth() {
+  document.getElementById('auth-modal').style.display = 'none';
+  showToast('已跳過登入，日記僅儲存在本機 ✦');
+}
+
+async function handleEmailAuth() {
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  const errEl = document.getElementById('auth-error');
+  if (!email || !password) { errEl.textContent = '請填寫 Email 和密碼'; return; }
+
+  try {
+    const { auth, signInWithEmailAndPassword, createUserWithEmailAndPassword } = window._fb;
+    if (_authTab === 'login') {
+      await signInWithEmailAndPassword(auth, email, password);
+    } else {
+      await createUserWithEmailAndPassword(auth, email, password);
+    }
+    errEl.textContent = '';
+  } catch(e) {
+    const msgs = {
+      'auth/invalid-email': 'Email 格式不正確',
+      'auth/user-not-found': '找不到這個帳號',
+      'auth/wrong-password': '密碼錯誤',
+      'auth/email-already-in-use': '這個 Email 已經註冊過了',
+      'auth/weak-password': '密碼至少需要 6 個字元',
+      'auth/invalid-credential': '帳號或密碼錯誤',
+    };
+    errEl.textContent = msgs[e.code] || '登入失敗，請再試一次';
+  }
+}
+
+async function handleGoogleAuth() {
+  try {
+    const { auth, signInWithPopup, googleProvider } = window._fb;
+    await signInWithPopup(auth, googleProvider);
+  } catch(e) {
+    document.getElementById('auth-error').textContent = 'Google 登入失敗，請再試一次';
+  }
+}
+
+async function handleSignOut() {
+  try {
+    const { auth, signOut } = window._fb;
+    await signOut(auth);
+    window._currentUser = null;
+    showToast('已登出 ✦');
+  } catch(e) { console.error(e); }
+}
+
+// Show auth modal on first open if not logged in (after welcome)
+function checkAuthOnStart() {
+  setTimeout(() => {
+    if (!window._currentUser) {
+      showAuthModal();
+    }
+  }, 2000);
+}
+
 // ─── Service Worker ───
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
@@ -2294,5 +2531,33 @@ function stopGame() {
     });
   }
 </script>
+
+<!-- Auth Modal -->
+<div class="auth-overlay" id="auth-modal" style="display:none;">
+  <div class="auth-box">
+    <div class="auth-moon">🌙</div>
+    <div class="auth-title">歡迎回到星夜</div>
+    <div class="auth-sub">登入以同步你的情緒日記</div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchAuthTab('login')">登入</button>
+      <button class="auth-tab" onclick="switchAuthTab('register')">註冊</button>
+    </div>
+    <div id="auth-error" class="auth-error"></div>
+    <input class="auth-input" id="auth-email" type="email" placeholder="電子郵件">
+    <input class="auth-input" id="auth-password" type="password" placeholder="密碼">
+    <button class="auth-btn" onclick="handleEmailAuth()">✦ 繼續</button>
+    <button class="auth-google" onclick="handleGoogleAuth()">
+      <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      使用 Google 登入
+    </button>
+    <button class="auth-skip" onclick="skipAuth()">暫時跳過，不同步</button>
+  </div>
+</div>
+
+<!-- User Bar -->
+<div class="user-bar" id="user-bar">
+  <span id="user-email"></span>
+  <button onclick="handleSignOut()">登出</button>
+</div>
 </body>
 </html>
