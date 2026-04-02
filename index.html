@@ -140,43 +140,42 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     margin-top: 0px;
-  }
-
-  .moon-wrap {
     position: relative;
-    width: 90px;
-    height: 90px;
-    margin-bottom: 12px;
+  }
+  .bottle-container {
+    position: relative;
+    width: 160px;
+    height: 160px;
+    margin-bottom: 6px;
     cursor: pointer;
   }
-  .moon-img {
-    width: 90px;
-    height: 90px;
+  .bottle-img {
+    width: 160px;
+    height: 160px;
     object-fit: contain;
-    border-radius: 50%;
-    transition: transform 0.3s ease;
-    position: relative;
-    z-index: 1;
-  }
-  .moon-wrap:hover .moon-img { transform: scale(1.06); }
-  .moon {
-    width: 70px;
-    height: 70px;
-    background: var(--moon);
-    border-radius: 50%;
-    position: relative;
-    transition: transform 0.3s ease;
-  }
-
-  .moon-glow {
     position: absolute;
-    inset: -15px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(245,230,200,0.12) 0%, transparent 70%);
+    top: 0; left: 0;
+    z-index: 2;
     pointer-events: none;
   }
+  #bottle-canvas {
+    position: absolute;
+    top: 0; left: 0;
+    width: 160px;
+    height: 160px;
+    z-index: 1;
+  }
+  .bottle-count {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 11px;
+    color: rgba(200,184,232,0.5);
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+
+
 
   .greeting {
     font-family: 'Noto Serif TC', serif;
@@ -1173,10 +1172,11 @@ onAuthStateChanged(auth, (user) => {
   <!-- HOME -->
   <div class="screen active" id="screen-home" style="display:flex;">
     <div class="home-top">
-      <div class="moon-wrap" id="moon-btn" title="摸摸月亮">
-        <div class="moon-glow"></div>
-        <img src="moon.png" class="moon-img" alt="moon" draggable="false">
+      <div class="bottle-container" id="bottle-btn" onclick="showToast('今天也辛苦你了 ✦')">
+        <canvas id="bottle-canvas" width="160" height="160"></canvas>
+        <img src="bottle.png" class="bottle-img" alt="星星瓶" draggable="false">
       </div>
+      <p class="bottle-count" id="bottle-count">✦ 0 顆情緒星星</p>
       <p class="greeting">今晚好嗎</p>
       <p class="question">你的心情是<br>什麼顏色？</p>
     </div>
@@ -1643,6 +1643,100 @@ onAuthStateChanged(auth, (user) => {
 <script>
 
 
+
+// ─── Bottle Star Animation ───
+let bottleCanvas, bottleCtx, bottleStars = [], bottleAnimFrame;
+const BOTTLE_COLORS = ['#a78de0','#7b9cf5','#8dd4b8','#f0a07a','#ffd6e0','#ffe066','#aac4ff','#f5e6c8'];
+
+// Bottle interior bounds (approximate area inside the glass)
+const BOTTLE_AREA = { x: 32, y: 42, w: 96, h: 100 };
+
+function makeStar() {
+  return {
+    x: BOTTLE_AREA.x + 10 + Math.random() * (BOTTLE_AREA.w - 20),
+    y: BOTTLE_AREA.y + 10 + Math.random() * (BOTTLE_AREA.h - 20),
+    r: 2.5 + Math.random() * 3.5,
+    color: BOTTLE_COLORS[Math.floor(Math.random() * BOTTLE_COLORS.length)],
+    vx: (Math.random() - 0.5) * 0.35,
+    vy: (Math.random() - 0.5) * 0.35,
+    phase: Math.random() * Math.PI * 2,
+    twinkleSpeed: 0.04 + Math.random() * 0.03,
+  };
+}
+
+function initBottleAnimation() {
+  bottleCanvas = document.getElementById('bottle-canvas');
+  if (!bottleCanvas) return;
+  bottleCtx = bottleCanvas.getContext('2d');
+
+  // Stars = diary count, minimum 1
+  const count = Math.max(1, diaryEntries.length);
+  bottleStars = Array.from({ length: count }, makeStar);
+  updateBottleCount();
+  animateBottle();
+}
+
+function updateBottleCount() {
+  const el = document.getElementById('bottle-count');
+  if (el) el.textContent = '✦ ' + diaryEntries.length + ' 顆情緒星星';
+}
+
+function addBottleStar(color) {
+  const star = makeStar();
+  if (color) star.color = color;
+  bottleStars.push(star);
+  updateBottleCount();
+}
+
+function drawStarShape(ctx, x, y, r, alpha, color) {
+  // Glow
+  ctx.save();
+  ctx.globalAlpha = alpha * 0.25;
+  ctx.beginPath();
+  ctx.arc(x, y, r * 2.5, 0, Math.PI * 2);
+  ctx.fillStyle = color;
+  ctx.fill();
+  ctx.restore();
+
+  // Star
+  ctx.save();
+  ctx.globalAlpha = 0.6 + alpha * 0.4;
+  ctx.translate(x, y);
+  ctx.beginPath();
+  for (let j = 0; j < 5; j++) {
+    const angle = (j * Math.PI * 2) / 5 - Math.PI / 2;
+    const inner = angle + Math.PI / 5;
+    if (j === 0) ctx.moveTo(Math.cos(angle) * r, Math.sin(angle) * r);
+    else ctx.lineTo(Math.cos(angle) * r, Math.sin(angle) * r);
+    ctx.lineTo(Math.cos(inner) * r * 0.42, Math.sin(inner) * r * 0.42);
+  }
+  ctx.closePath();
+  ctx.fillStyle = color;
+  ctx.fill();
+  ctx.restore();
+}
+
+function animateBottle() {
+  if (!bottleCtx) return;
+  bottleCtx.clearRect(0, 0, 160, 160);
+
+  const t = Date.now() / 1000;
+  const bx = BOTTLE_AREA.x, by = BOTTLE_AREA.y;
+  const bw = BOTTLE_AREA.w, bh = BOTTLE_AREA.h;
+
+  bottleStars.forEach(s => {
+    s.x += s.vx;
+    s.y += s.vy;
+    if (s.x < bx + 6 || s.x > bx + bw - 6) s.vx *= -1;
+    if (s.y < by + 6 || s.y > by + bh - 6) s.vy *= -1;
+
+    const alpha = 0.5 + 0.5 * Math.sin(t * s.twinkleSpeed * 60 + s.phase);
+    drawStarShape(bottleCtx, s.x, s.y, s.r, alpha, s.color);
+  });
+
+  bottleAnimFrame = requestAnimationFrame(animateBottle);
+}
+
 // ─── First Open & Legal ───
 function checkFirstOpen() {
   const agreed = localStorage.getItem('starnight-agreed');
@@ -1659,6 +1753,7 @@ function agreeAndClose() {
 }
 checkFirstOpen();
 checkAuthOnStart();
+setTimeout(initBottleAnimation, 300);
 
 // ─── Bible Verse ───
 const VERSES = [
@@ -1747,9 +1842,6 @@ requestAnimationFrame(drawStars);
 window.addEventListener('resize', resizeStarBg);
 
 // Moon touch
-document.getElementById('moon-btn').addEventListener('click', () => {
-  showToast('月亮說：今晚也辛苦你了 🌙');
-});
 
 // ─── Navigation ───
 let currentScreen = 'home';
@@ -2263,6 +2355,7 @@ function saveDiaryEntry() {
   saveDiary();
   closeDiaryModal();
   renderDiary();
+  addBottleStar(mood.color);
   showToast('已化作一顆新的星星 ✦');
 }
 
