@@ -3756,13 +3756,11 @@ function checkAuthOnStart() {
   }, 2000);
 }
 
-// ─── Service Worker ───
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/starnight/sw.js').catch(() => {});
-    });
-  }
-</script>
+// if ('serviceWorker' in navigator) {
+//   window.addEventListener('load', () => {
+//     navigator.serviceWorker.register('/starnight/sw.js').catch(() => {});
+//   });
+// }
 
 <!-- Auth Modal -->
 <div class="auth-overlay" id="auth-modal" style="display:none;">
