@@ -1092,6 +1092,29 @@
     font-size:11px; cursor:pointer; font-family:'Noto Sans TC',sans-serif;
     padding:0;
   }
+
+  .msg.error {
+    background: rgba(240,128,128,0.1);
+    border: 0.5px solid rgba(240,128,128,0.25);
+    border-bottom-left-radius: 4px;
+    color: #f08080;
+    align-self: flex-start;
+    font-size: 13px;
+  }
+  .retry-btn {
+    background: none;
+    border: 0.5px solid rgba(240,128,128,0.4);
+    border-radius: 12px;
+    padding: 4px 12px;
+    color: #f08080;
+    font-size: 11px;
+    cursor: pointer;
+    margin-top: 6px;
+    font-family: 'Noto Sans TC', sans-serif;
+    display: block;
+    transition: all 0.2s;
+  }
+  .retry-btn:hover { background: rgba(240,128,128,0.1); }
 </style>
 
 <!-- Firebase SDK -->
@@ -1799,27 +1822,45 @@ function addMsg(type, text) {
   msgs.scrollTop = msgs.scrollHeight;
 }
 
+let _lastUserMsg = '';
+
 async function sendMsg() {
   const input = document.getElementById('chat-input');
   const text = input.value.trim();
   if (!text) return;
+  _lastUserMsg = text;
   addMsg('user', text);
   input.value = '';
   input.style.height = '';
   chatHistory.push({ role: 'user', content: text });
+  await callAI(text);
+}
+
+async function callAI(text, isRetry = false) {
+  const msgs = document.getElementById('chat-messages');
+
+  // Remove previous error if retrying
+  if (isRetry) {
+    const errMsg = msgs.querySelector('.msg.error');
+    if (errMsg) errMsg.remove();
+  }
 
   const typing = document.createElement('div');
   typing.className = 'msg typing';
   typing.textContent = '···';
   typing.id = 'typing';
-  document.getElementById('chat-messages').appendChild(typing);
-  document.getElementById('chat-messages').scrollTop = 99999;
+  msgs.appendChild(typing);
+  msgs.scrollTop = 99999;
 
   if (N8N_WEBHOOK) {
     try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 15000); // 15s timeout
+
       const res = await fetch(N8N_WEBHOOK, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
         body: JSON.stringify({
           message: text,
           mood: selectedMood ? selectedMood.name : '未知',
@@ -1827,25 +1868,58 @@ async function sendMsg() {
           token: '@Gkc5124451'
         })
       });
+      clearTimeout(timeout);
+
+      if (!res.ok) throw new Error('server_error_' + res.status);
+
       const data = await res.json();
-      const reply = data.reply || data.text || data.output || data.message || '我在這裡陪著你。';
+      const reply = data.reply || data.text || data.output || data.message;
+
+      if (!reply) throw new Error('empty_response');
+
       const t = document.getElementById('typing');
       if (t) t.remove();
       addMsg('ai', reply);
       chatHistory.push({ role: 'assistant', content: reply });
       return;
+
     } catch (err) {
-      console.warn('n8n error, using fallback', err);
+      const t = document.getElementById('typing');
+      if (t) t.remove();
+
+      // Determine error type
+      let errText = '';
+      if (err.name === 'AbortError') {
+        errText = '回應超時，可能是網路較慢，要再試一次嗎？';
+      } else if (!navigator.onLine) {
+        errText = '目前沒有網路，請確認連線後再試。';
+      } else if (err.message.includes('server_error')) {
+        errText = 'AI 服務暫時無法使用，請稍後再試。';
+      } else {
+        errText = '連線出現問題，要再試一次嗎？';
+      }
+
+      // Show error message with retry button
+      const errDiv = document.createElement('div');
+      errDiv.className = 'msg error';
+      errDiv.innerHTML = errText + '<button class="retry-btn" onclick="retryAI()">↩ 重新傳送</button>';
+      msgs.appendChild(errDiv);
+      msgs.scrollTop = 99999;
+      return;
     }
   }
 
-  // Fallback if no webhook or error
+  // No webhook - use fallback
   setTimeout(() => {
     const t = document.getElementById('typing');
     if (t) t.remove();
     addMsg('ai', FALLBACK_RESPONSES[responseIdx % FALLBACK_RESPONSES.length]);
     responseIdx++;
-  }, 1200 + Math.random() * 600);
+  }, 1000 + Math.random() * 500);
+}
+
+async function retryAI() {
+  if (_lastUserMsg) await callAI(_lastUserMsg, true);
 }
 
 function handleKey(e) {
