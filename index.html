@@ -2250,8 +2250,8 @@ function goToChat() {
 }
 
 // ─── Chat ───
-// ✦ 把下面這行換成你的 n8n webhook URL
-const N8N_WEBHOOK = 'https://n8n-k7xm2397.zeabur.app/webhook/773c08bf-bb59-4965-bd06-87936481947b';
+// 前端只呼叫自己的中介 API，不要直接暴露 n8n webhook
+const CHAT_API = '/api/chat';
 
 const FALLBACK_RESPONSES = [
   '我聽到了，謝謝你願意告訴我。能說說更多嗎？',
@@ -2304,20 +2304,19 @@ async function callAI(text, isRetry = false) {
   msgs.appendChild(typing);
   msgs.scrollTop = 99999;
 
-  if (N8N_WEBHOOK) {
+  if (CHAT_API) {
     try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 15000); // 15s timeout
 
-      const res = await fetch(N8N_WEBHOOK, {
+      const res = await fetch(CHAT_API, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         signal: controller.signal,
         body: JSON.stringify({
           message: text,
           mood: selectedMood ? selectedMood.name : '未知',
-          history: chatHistory.slice(-6),
-          token: '@Gkc5124451'
+          history: chatHistory.slice(-6)
         })
       });
       clearTimeout(timeout);
