@@ -1648,8 +1648,11 @@ function initBottleAnimation() {
   if (!bottleCanvas) return;
   bottleCtx = bottleCanvas.getContext('2d');
 
-  // Stars = diary count, minimum 1
-  const count = Math.max(1, diaryEntries.length);
+  // Cancel previous animation
+  if (bottleAnimFrame) cancelAnimationFrame(bottleAnimFrame);
+
+  // Stars = diary count, minimum 0
+  const count = diaryEntries.length;
   bottleStars = Array.from({ length: count }, makeStar);
   updateBottleCount();
   animateBottle();
@@ -1880,18 +1883,16 @@ function selectMood(el) {
 
 function goToChat() {
   goScreen('chat', document.querySelectorAll('.nav-btn')[1]);
-  const greeting = {
-    '平靜': '還不錯的一天呢。有什麼想跟我說的嗎？我都在這裡。',
-    '開心': '聽到你今天開心，我也跟著輕鬆了起來 🌟 是什麼讓你這麼好心情呢？',
-    '疲憊': '身體累了，要好好休息。你今天撐了很久吧，辛苦了。',
-    '低落': '低落的感覺很沉重，我知道。你願意說說是什麼讓你心裡沉沉的嗎？',
-    '委屈': '委屈是一種很難說出口的感覺。我在這裡，你可以慢慢說。',
-    '孤單': '一個人的感覺有時很深很重。今晚我陪著你，有什麼想說的都可以。'
-  };
   chatHistory = [];
   const msgs = document.getElementById('chat-messages');
   msgs.innerHTML = '';
-  addMsg('ai', greeting[selectedMood.name] || '今晚的星空很美。有什麼想說的嗎？我在這裡陪你。🌙');
+  const greetings = [
+    '今晚的星空很美。有什麼想說的嗎？我在這裡陪你。🌙',
+    '嗨，你來了。今天過得怎麼樣呢？',
+    '我在這裡，有什麼心裡的話都可以說。',
+    '今晚願意來這裡，就是很棒的事。說說你的心情吧。',
+  ];
+  addMsg('ai', greetings[Math.floor(Math.random() * greetings.length)]);
 }
 
 // ─── Chat ───
@@ -2228,6 +2229,7 @@ window.loadDiaryFromCloud = async function() {
     if (!snap.empty) {
       diaryEntries = snap.docs.map(d => d.data());
       renderDiary();
+      initBottleAnimation();
       showToast('日記已從雲端同步 ✦');
     }
   } catch(e) { console.error('load diary:', e); }
