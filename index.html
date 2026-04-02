@@ -2354,7 +2354,18 @@ async function callAI(text, isRetry = false) {
       // Show error message with retry button
       const errDiv = document.createElement('div');
       errDiv.className = 'msg error';
-      errDiv.innerHTML = errText + '<button class="retry-btn" onclick="retryAI()">↩ 重新傳送</button>';
+
+      const errTextNode = document.createElement('div');
+      errTextNode.textContent = errText;
+      errDiv.appendChild(errTextNode);
+
+      const retryBtn = document.createElement('button');
+      retryBtn.className = 'retry-btn';
+      retryBtn.type = 'button';
+      retryBtn.textContent = '↩ 重新傳送';
+      retryBtn.addEventListener('click', retryAI);
+      errDiv.appendChild(retryBtn);
+
       msgs.appendChild(errDiv);
       msgs.scrollTop = 99999;
       return;
@@ -2602,23 +2613,56 @@ async function syncDiaryToCloud() {
   } catch(e) { console.error('sync diary:', e); }
 }
 
+function getSafeDiaryColor(color) {
+  if (typeof color !== 'string') return '#a78de0';
+  const value = color.trim();
+  if (/^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/.test(value)) return value;
+  return '#a78de0';
+}
+
 function renderDiary() {
   const list = document.getElementById('diary-list');
   list.innerHTML = '';
+
   [...diaryEntries].reverse().forEach(e => {
-    const div = document.createElement('div');
-    div.className = 'diary-entry';
-    div.innerHTML = `
-      <div class="diary-entry-top">
-        <div class="entry-dot" style="background:${e.color}"></div>
-        <span class="entry-date">${e.date}</span>
-        <span class="entry-mood">${e.mood}</span>
-        <button class="entry-delete" onclick="deleteDiaryEntry('${e.id}')">刪除</button>
-      </div>
-      <div class="entry-text">${e.text}</div>
-    `;
-    list.appendChild(div);
+    const entry = document.createElement('div');
+    entry.className = 'diary-entry';
+
+    const top = document.createElement('div');
+    top.className = 'diary-entry-top';
+
+    const dot = document.createElement('div');
+    dot.className = 'entry-dot';
+    dot.style.background = getSafeDiaryColor(e.color);
+
+    const date = document.createElement('span');
+    date.className = 'entry-date';
+    date.textContent = e.date || '';
+
+    const mood = document.createElement('span');
+    mood.className = 'entry-mood';
+    mood.textContent = e.mood || '';
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'entry-delete';
+    deleteBtn.type = 'button';
+    deleteBtn.textContent = '刪除';
+    deleteBtn.addEventListener('click', () => deleteDiaryEntry(e.id));
+
+    top.appendChild(dot);
+    top.appendChild(date);
+    top.appendChild(mood);
+    top.appendChild(deleteBtn);
+
+    const text = document.createElement('div');
+    text.className = 'entry-text';
+    text.textContent = e.text || '';
+
+    entry.appendChild(top);
+    entry.appendChild(text);
+    list.appendChild(entry);
   });
+
   drawStarMap();
 }
 
