@@ -1534,6 +1534,8 @@ onAuthStateChanged(auth, (user) => {
     if (syncBtn) syncBtn.textContent = '☁ 已同步';
     // Load diary from Firestore
     window.loadDiaryFromCloud();
+    // Load chat from Firestore
+    if (window.loadChatFromCloud) window.loadChatFromCloud();
   } else {
     window._currentUser = null;
     const userBar = document.getElementById('user-bar');
@@ -1567,8 +1569,11 @@ onAuthStateChanged(auth, (user) => {
 
   <!-- CHAT -->
   <div class="screen" id="screen-chat">
-    <div class="chat-notice">
-      ✦ 對話內容將透過 AI 處理，請勿輸入個人敏感資料。
+    <div style="display:flex; justify-content:space-between; align-items:center; padding-bottom:4px;">
+      <div class="chat-notice" style="flex:1; border:none; margin:0; padding:4px 0;">
+        ✦ 對話內容將透過 AI 處理，請勿輸入個人敏感資料。
+      </div>
+      <button onclick="clearChatHistory()" style="background:none; border:none; color:var(--text-dim); font-size:10px; cursor:pointer; font-family:'Noto Sans TC',sans-serif; white-space:nowrap; padding:4px 8px;">清除對話</button>
     </div>
     <div class="chat-messages" id="chat-messages">
       <div class="msg ai">嗨，今晚的星空很美。有什麼想說的嗎？我在這裡陪你。🌙</div>
@@ -1777,7 +1782,7 @@ onAuthStateChanged(auth, (user) => {
     <img src="assets/icons/nav-star.svg" alt="Starfold icon">
     <span>Starfold</span>
   </button>
-  <button class="nav-btn" onclick="goScreen('chat', this)">
+  <button class="nav-btn" onclick="goScreen('chat', this); loadChatHistory()">
     <img src="assets/icons/nav-chat.svg" alt="傾訴 icon">
     <span>傾訴</span>
   </button>
@@ -2306,20 +2311,11 @@ function selectMood(el) {
 
 function goToChat() {
   goScreen('chat', document.querySelectorAll('.nav-btn')[1]);
-  chatHistory = [];
-  const msgs = document.getElementById('chat-messages');
-  msgs.innerHTML = '';
-  const greetings = [
-    '今晚的星空很美。有什麼想說的嗎？我在這裡陪你。🌙',
-    '嗨，你來了。今天過得怎麼樣呢？',
-    '我在這裡，有什麼心裡的話都可以說。',
-    '今晚願意來這裡，就是很棒的事。說說你的心情吧。',
-  ];
-  addMsg('ai', greetings[Math.floor(Math.random() * greetings.length)]);
+  // Don't reset — load saved history instead
+  loadChatHistory();
 }
 
 // ─── Chat ───
-// 前端只呼叫自己的中介 API，不要直接暴露 n8n webhook
 const CHAT_API = 'https://starnight-api.vercel.app/api/chat';
 
 const FALLBACK_RESPONSES = [
@@ -2333,6 +2329,94 @@ const FALLBACK_RESPONSES = [
 ];
 let responseIdx = 0;
 let chatHistory = [];
+let _chatLoaded = false;
+
+// Load chat from localStorage
+function loadChatLocal() {
+  try {
+    const saved = localStorage.getItem('starfold-chat');
+    return saved ? JSON.parse(saved) : [];
+  } catch { return []; }
+}
+function saveChatLocal() {
+  try { localStorage.setItem('starfold-chat', JSON.stringify(chatHistory)); } catch {}
+  if (window._currentUser) syncChatToCloud();
+}
+
+// Firestore sync
+async function syncChatToCloud() {
+  if (!window._fb || !window._currentUser) return;
+  try {
+    const { db, doc, setDoc } = window._fb;
+    const uid = window._currentUser.uid;
+    await setDoc(doc(db, 'users', uid, 'chat', 'history'), {
+      messages: chatHistory.slice(-50), // keep last 50 messages in cloud
+      updatedAt: new Date().toISOString()
+    });
+  } catch(e) { console.error('sync chat:', e); }
+}
+
+window.loadChatFromCloud = async function() {
+  if (!window._fb || !window._currentUser) return;
+  try {
+    const { db, doc, getDocs, collection } = window._fb;
+    const uid = window._currentUser.uid;
+    // Use getDoc for single document
+    const docRef = doc(db, 'users', uid, 'chat', 'history');
+    const { getDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    const snap = await getDoc(docRef);
+    if (snap.exists()) {
+      const data = snap.data();
+      if (data.messages && data.messages.length > chatHistory.length) {
+        chatHistory = data.messages;
+        saveChatLocalOnly();
+        renderChatMessages();
+      }
+    }
+  } catch(e) { console.error('load chat cloud:', e); }
+};
+
+function saveChatLocalOnly() {
+  try { localStorage.setItem('starfold-chat', JSON.stringify(chatHistory)); } catch {}
+}
+
+function loadChatHistory() {
+  if (_chatLoaded) return; // only load once
+  _chatLoaded = true;
+  chatHistory = loadChatLocal();
+  renderChatMessages();
+  // Also try cloud
+  if (window._currentUser) window.loadChatFromCloud();
+}
+
+function renderChatMessages() {
+  const msgs = document.getElementById('chat-messages');
+  msgs.innerHTML = '';
+  if (chatHistory.length === 0) {
+    const greetings = [
+      '今晚的星空很美。有什麼想說的嗎？我在這裡陪你。🌙',
+      '嗨，你來了。今天過得怎麼樣呢？',
+      '我在這裡，有什麼心裡的話都可以說。',
+      '今晚願意來這裡，就是很棒的事。說說你的心情吧。',
+    ];
+    addMsg('ai', greetings[Math.floor(Math.random() * greetings.length)]);
+    return;
+  }
+  chatHistory.forEach(h => {
+    if (h.role === 'user') addMsg('user', h.content);
+    else if (h.role === 'assistant') addMsg('ai', h.content);
+  });
+}
+
+function clearChatHistory() {
+  if (!confirm('確定要清除所有對話紀錄嗎？')) return;
+  chatHistory = [];
+  _chatLoaded = false;
+  saveChatLocal();
+  loadChatHistory();
+  _chatLoaded = true;
+  showToast('對話紀錄已清除 ✦');
+}
 
 function addMsg(type, text) {
   const msgs = document.getElementById('chat-messages');
@@ -2354,6 +2438,7 @@ async function sendMsg() {
   input.value = '';
   input.style.height = '';
   chatHistory.push({ role: 'user', content: text });
+  saveChatLocal();
   await callAI(text);
 }
 
@@ -2401,6 +2486,7 @@ async function callAI(text, isRetry = false) {
       if (t) t.remove();
       addMsg('ai', reply);
       chatHistory.push({ role: 'assistant', content: reply });
+      saveChatLocal();
       return;
 
     } catch (err) {
