@@ -2493,28 +2493,21 @@ async function callAI(text, isRetry = false) {
       });
       clearTimeout(timeout);
 
-      // Read raw response for debugging
+      // Read raw text first for debug
       const raw = await res.text();
       console.log('[Starfold] API status:', res.status);
-      console.log('[Starfold] API response:', raw);
+      console.log('[Starfold] API raw:', raw);
 
-      let data;
+      let data = {};
       try {
-        data = JSON.parse(raw);
+        data = raw ? JSON.parse(raw) : {};
       } catch (e) {
-        throw new Error(`invalid_json_${res.status}`);
+        throw new Error('invalid_json_' + res.status);
       }
 
+      // Throw with backend's actual error code
       if (!res.ok) {
-        const errCode = data?.error || 'unknown';
-        // Map backend errors to user-friendly messages
-        if (errCode === 'ai_service_error' || res.status === 502) {
-          throw new Error('ai_busy');
-        } else if (res.status === 429) {
-          throw new Error('rate_limit');
-        } else {
-          throw new Error(`server_error_${res.status}_${errCode}`);
-        }
+        throw new Error(data.error || 'server_error_' + res.status);
       }
 
       const reply = data.reply;
@@ -2537,10 +2530,16 @@ async function callAI(text, isRetry = false) {
         errText = '回應時間較長，可能是網路較慢 🌙 要再試一次嗎？';
       } else if (!navigator.onLine) {
         errText = '目前沒有網路連線，請確認後再試。';
-      } else if (err.message.includes('ai_busy')) {
+      } else if (err.message.includes('missing_api_key')) {
+        errText = 'AI 設定尚未完成，請稍後再試。';
+      } else if (err.message.includes('invalid_api_key')) {
+        errText = 'AI 服務驗證失敗，請稍後再試。';
+      } else if (err.message.includes('quota_exceeded')) {
+        errText = 'AI 服務額度已滿，請稍後再試 🌙';
+      } else if (err.message.includes('model_not_found')) {
+        errText = 'AI 模型設定有誤，請稍後再試。';
+      } else if (err.message.includes('ai_service_error')) {
         errText = 'AI 正在忙碌中，請稍後再試 ✦';
-      } else if (err.message.includes('rate_limit')) {
-        errText = '訊息發送太頻繁了，休息一下再試 🌙';
       } else if (err.message.includes('empty_response')) {
         errText = 'AI 沒有回應，要再試一次嗎？';
       } else if (err.message.includes('invalid_json')) {
