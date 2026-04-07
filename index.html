@@ -671,6 +671,75 @@
   .gallery-action-btn:hover { background: rgba(123,156,245,0.1); color: var(--blue); }
   .gallery-action-btn.danger:hover { background: rgba(240,128,128,0.1); color: #f08080; }
 
+  .saved-gallery-title {
+    font-size: 12px;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+    margin: 12px 0 8px;
+  }
+  .saved-gallery-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .saved-gallery-item {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 0.5px solid var(--border);
+    cursor: pointer;
+    aspect-ratio: 1;
+    background: #05091a;
+    transition: border-color 0.2s;
+  }
+  .saved-gallery-item:hover { border-color: var(--purple); }
+  .saved-gallery-item.active { border-color: var(--blue); }
+  .saved-gallery-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .saved-gallery-item-del {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: rgba(7,15,43,0.7);
+    border: none;
+    color: #f08080;
+    font-size: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .saved-gallery-item:hover .saved-gallery-item-del { opacity: 1; }
+
+  /* Game back button */
+  .game-back-btn {
+    pointer-events: all;
+    background: rgba(22,32,80,0.7);
+    border: 0.5px solid rgba(42,58,110,0.8);
+    border-radius: 18px;
+    height: 36px;
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #8090b8;
+    font-size: 12px;
+    font-family: 'Noto Sans TC', sans-serif;
+    transition: all 0.2s;
+  }
+  .game-back-btn:active { background: rgba(42,58,110,0.8); }
+
   .new-entry-btn {
     background: rgba(141,212,184,0.1);
     border: 0.5px solid var(--teal);
@@ -1498,12 +1567,8 @@ onAuthStateChanged(auth, (user) => {
 
   <!-- CHAT -->
   <div class="screen" id="screen-chat">
-    <div class="chat-header">
-      <div class="chat-title">傾訴</div>
-      <div class="chat-sub">說說你今天的心情</div>
-    </div>
     <div class="chat-notice">
-      ✦ 對話內容將透過 AI 處理，請勿輸入個人敏感資料。本服務不儲存對話記錄。
+      ✦ 對話內容將透過 AI 處理，請勿輸入個人敏感資料。
     </div>
     <div class="chat-messages" id="chat-messages">
       <div class="msg ai">嗨，今晚的星空很美。有什麼想說的嗎？我在這裡陪你。🌙</div>
@@ -1523,7 +1588,7 @@ onAuthStateChanged(auth, (user) => {
   <div class="screen" id="screen-canvas">
     <div class="canvas-header">
       <div class="canvas-title">星空畫布</div>
-      <div class="canvas-sub">自由揮灑，畫完就放飛</div>
+      <div class="canvas-sub">自由揮灑你的情緒</div>
     </div>
     <div class="canvas-wrap" id="canvas-wrap">
       <canvas id="draw-canvas"></canvas>
@@ -1613,15 +1678,19 @@ onAuthStateChanged(auth, (user) => {
     <div class="canvas-gallery-bar" id="canvas-gallery"></div>
     <div class="gallery-actions">
       <button class="gallery-action-btn" onclick="newCanvasDrawing()">＋ 新畫布</button>
-      <button class="gallery-action-btn" onclick="saveCurrentDrawing()">💾 儲存</button>
+      <button class="gallery-action-btn" onclick="importPhoto()">📷 匯入照片</button>
       <button class="gallery-action-btn danger" onclick="deleteCurrentDrawing()">🗑 刪除</button>
     </div>
+    <input type="file" id="photo-input" accept="image/*" style="display:none" onchange="handlePhotoImport(event)">
 
     <div class="canvas-actions-row">
       <button class="clear-btn" onclick="undoCanvas()">↩ 上一步</button>
       <button class="clear-btn" onclick="clearCanvas()">清除</button>
-      <button class="release-btn" onclick="releaseCanvas()">✦ 放飛</button>
+      <button class="release-btn" onclick="releaseCanvas()">✦ 儲存</button>
     </div>
+
+    <div class="saved-gallery-title" id="saved-gallery-title" style="display:none;">已儲存的畫作</div>
+    <div class="saved-gallery-list" id="saved-gallery-list"></div>
   </div>
 
   <!-- DIARY -->
@@ -1910,8 +1979,8 @@ onAuthStateChanged(auth, (user) => {
   <!-- GAME: Press Ball -->
   <div id="game-overlay" style="display:none; position:fixed; inset:0; z-index:80; background:#070f2b;">
     <canvas id="game-canvas" style="display:block; position:absolute; top:0; left:0;" onclick="handleGameClick(event)"></canvas>
-    <div style="position:absolute; top:calc(env(safe-area-inset-top)+12px); right:16px; z-index:81;">
-      <button class="game-close-btn" onclick="stopGame()">✕</button>
+    <div style="position:absolute; bottom:calc(env(safe-area-inset-bottom)+24px); left:0; right:0; z-index:81; display:flex; justify-content:center;">
+      <button class="game-back-btn" onclick="stopGame()">← 返回</button>
     </div>
     <div class="game-combo" id="game-combo" style="pointer-events:none;"></div>
   </div>
@@ -1919,8 +1988,8 @@ onAuthStateChanged(auth, (user) => {
   <!-- GAME: Squishy Bubble -->
   <div id="bubble-overlay" style="display:none; position:fixed; inset:0; z-index:80; background:#070f2b;">
     <canvas id="bubble-canvas" style="display:block; position:absolute; top:0; left:0; touch-action:none;"></canvas>
-    <div style="position:absolute; top:calc(env(safe-area-inset-top)+12px); right:16px; z-index:81;">
-      <button class="game-close-btn" onclick="stopBubbleGame()">✕</button>
+    <div style="position:absolute; bottom:calc(env(safe-area-inset-bottom)+24px); left:0; right:0; z-index:81; display:flex; justify-content:center;">
+      <button class="game-back-btn" onclick="stopBubbleGame()">← 返回</button>
     </div>
   </div>
 
@@ -2547,9 +2616,10 @@ function clearCanvas() {
 
 function releaseCanvas() {
   if (!hasDrawn) { showToast('先在畫布上畫點什麼吧 ✦'); return; }
+  // Save with star animation
   const wrap = document.getElementById('canvas-wrap');
   const rect = wrap.getBoundingClientRect();
-  for (let i = 0; i < 12; i++) {
+  for (let i = 0; i < 8; i++) {
     setTimeout(() => {
       const star = document.createElement('div');
       star.className = 'shooting-star';
@@ -2558,14 +2628,81 @@ function releaseCanvas() {
       star.style.background = [brushColor, '#e8dff8', '#f5e6c8', '#8dd4b8'][Math.floor(Math.random()*4)];
       document.body.appendChild(star);
       setTimeout(() => star.remove(), 1300);
-    }, i * 70);
+    }, i * 50);
   }
-  setTimeout(() => {
-    dCtx.globalCompositeOperation = 'source-over';
-    dCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+  saveCurrentDrawing();
+}
+
+function importPhoto() {
+  document.getElementById('photo-input').click();
+}
+
+function handlePhotoImport(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    const img = new Image();
+    img.onload = function() {
+      if (!drawCanvas || !dCtx) return;
+      // Save undo state
+      const snapshot = dCtx.getImageData(0, 0, drawCanvas.width, drawCanvas.height);
+      undoStack.push(snapshot);
+      if (undoStack.length > MAX_UNDO) undoStack.shift();
+      // Draw image fitting canvas
+      const cw = drawCanvas.width, ch = drawCanvas.height;
+      const scale = Math.min(cw / img.width, ch / img.height);
+      const w = img.width * scale, h = img.height * scale;
+      const x = (cw - w) / 2, y = (ch - h) / 2;
+      dCtx.globalCompositeOperation = 'source-over';
+      dCtx.drawImage(img, x, y, w, h);
+      hasDrawn = true;
+      showToast('照片已匯入，可以在上面畫畫 ✦');
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+  e.target.value = ''; // reset input
+}
+
+function renderSavedGallery() {
+  const list = document.getElementById('saved-gallery-list');
+  const title = document.getElementById('saved-gallery-title');
+  if (!list) return;
+  if (!canvasDrawings.length) {
+    list.innerHTML = '';
+    if (title) title.style.display = 'none';
+    return;
+  }
+  if (title) title.style.display = 'block';
+  list.innerHTML = canvasDrawings.map((d, i) =>
+    `<div class="saved-gallery-item ${i === currentDrawingIdx ? 'active' : ''}" onclick="loadDrawing(${i})">
+      <img src="${d.thumb}" alt="畫作 ${i+1}">
+      <button class="saved-gallery-item-del" onclick="event.stopPropagation(); deleteDrawingAt(${i})">✕</button>
+    </div>`
+  ).join('');
+}
+
+function deleteDrawingAt(idx) {
+  if (!confirm('確定要刪除這幅畫嗎？')) return;
+  canvasDrawings.splice(idx, 1);
+  saveCanvasGallery();
+  if (currentDrawingIdx >= canvasDrawings.length) {
+    currentDrawingIdx = Math.max(0, canvasDrawings.length - 1);
+  }
+  if (canvasDrawings[currentDrawingIdx]) {
+    loadDrawing(currentDrawingIdx);
+  } else {
+    if (dCtx) {
+      dCtx.globalCompositeOperation = 'source-over';
+      dCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+    }
     hasDrawn = false;
-    showToast('你的情緒已化作流星，飛向宇宙了 ✦');
-  }, 700);
+    undoStack = [];
+  }
+  renderGalleryBar();
+  renderSavedGallery();
+  showToast('已刪除 ✦');
 }
 
 // ─── Diary ───
@@ -3092,6 +3229,7 @@ function saveCurrentDrawing() {
   }
   saveCanvasGallery();
   renderGalleryBar();
+  renderSavedGallery();
   showToast('已儲存畫作 ✦');
 }
 
@@ -3117,6 +3255,7 @@ function newCanvasDrawing() {
   undoStack = [];
   currentDrawingIdx = canvasDrawings.length; // points to new unsaved slot
   renderGalleryBar();
+  renderSavedGallery();
   showToast('新畫布 ✦');
 }
 
@@ -3148,6 +3287,7 @@ function loadDrawing(idx) {
   };
   img.src = d.data;
   renderGalleryBar();
+  renderSavedGallery();
 }
 
 function deleteCurrentDrawing() {
@@ -3170,14 +3310,14 @@ function deleteCurrentDrawing() {
     undoStack = [];
   }
   renderGalleryBar();
+  renderSavedGallery();
   showToast('已刪除 ✦');
 }
-
-// Initialize gallery on canvas open
 const _origInitCanvas = initCanvas;
 initCanvas = function() {
   _origInitCanvas();
   renderGalleryBar();
+  renderSavedGallery();
 };
 
 // ─── Squishy Bubble Game (Single Large Blob) ───
