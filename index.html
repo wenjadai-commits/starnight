@@ -1844,7 +1844,9 @@ onAuthStateChanged(auth, (user) => {
       <div class="games-sub">選一個放鬆方式吧</div>
     </div>
     <div class="game-card" onclick="launchGame('press')">
-      <div class="game-card-icon" style="background:rgba(167,141,224,0.12);">✦</div>
+      <div class="game-card-icon" style="background:rgba(167,141,224,0.12);">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a78de0" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      </div>
       <div class="game-card-info">
         <div class="game-card-name">星星點點</div>
         <div class="game-card-desc">點擊星星，看它彈跳閃爍，釋放你的壓力</div>
@@ -1852,7 +1854,9 @@ onAuthStateChanged(auth, (user) => {
       <div class="game-card-arrow">›</div>
     </div>
     <div class="game-card" onclick="launchGame('bubble')">
-      <div class="game-card-icon" style="background:rgba(123,156,245,0.12);">◯</div>
+      <div class="game-card-icon" style="background:rgba(123,156,245,0.12);">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7b9cf5" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><circle cx="9" cy="10" r="2" opacity="0.4"/></svg>
+      </div>
       <div class="game-card-info">
         <div class="game-card-name">揉捏泡泡</div>
         <div class="game-card-desc">按壓、拖拽一顆柔軟的泡泡，感受它的彈性</div>
@@ -1860,7 +1864,9 @@ onAuthStateChanged(auth, (user) => {
       <div class="game-card-arrow">›</div>
     </div>
     <div class="game-card" onclick="launchGame('sand')">
-      <div class="game-card-icon" style="background:rgba(245,230,200,0.12);">⏳</div>
+      <div class="game-card-icon" style="background:rgba(245,230,200,0.12);">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f5e6c8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l-1.5 7h-9L6 3z"/><path d="M7.5 10l-1 11h11l-1-11"/><circle cx="10" cy="16" r="1" fill="#f5e6c8" stroke="none"/><circle cx="14" cy="17" r="0.8" fill="#f5e6c8" stroke="none"/><circle cx="12" cy="15" r="0.8" fill="#f5e6c8" stroke="none"/></svg>
+      </div>
       <div class="game-card-info">
         <div class="game-card-name">星砂瓶</div>
         <div class="game-card-desc">傾斜手機，看星星像流沙一樣緩緩流動</div>
@@ -3909,10 +3915,13 @@ function initSandGrains() {
   const W = sandCanvas.width, H = sandCanvas.height;
   sandGrains = [];
   const SAND_COLORS = ['#f5e6c8','#ffe066','#c8a8f8','#aac4ff','#8dd4b8','#f0a07a','#ffd6e0','#e8dff8','#a78de0','#80d4f0'];
+  const bx = W * 0.1, bw = W * 0.8;
+  const by = H * 0.08, bh = H * 0.78;
+  // Start grains piled at the bottom of the bottle
   for (let i = 0; i < 120; i++) {
     sandGrains.push({
-      x: 40 + Math.random() * (W - 80),
-      y: H * 0.5 + Math.random() * (H * 0.4),
+      x: bx + 10 + Math.random() * (bw - 20),
+      y: by + bh - 10 - Math.random() * (bh * 0.25),
       vx: 0, vy: 0,
       r: 2 + Math.random() * 3,
       color: SAND_COLORS[Math.floor(Math.random() * SAND_COLORS.length)],
@@ -4023,16 +4032,28 @@ function drawSand() {
   sCtx.lineWidth = 1.5;
   sCtx.stroke();
 
-  // Physics update
-  const gravity = 0.3;
-  const friction = 0.985;
-  const bounce = 0.4;
+  // Physics update — sand settles, shifts with tilt
+  const gravity = 0.35;
+  const friction = 0.92; // heavy friction so grains settle fast
+  const bounce = 0.15;   // low bounce = sand-like
+  const restThreshold = 0.08; // velocity below this = at rest
 
   sandGrains.forEach(g => {
+    // Apply gravity based on tilt
     g.vx += gravX * gravity;
     g.vy += gravY * gravity;
+
+    // Strong friction to make grains settle quickly
     g.vx *= friction;
     g.vy *= friction;
+
+    // Stop micro-jitter when nearly at rest
+    if (Math.abs(g.vx) < restThreshold && Math.abs(g.vy) < restThreshold
+        && Math.abs(gravX) < 0.15 && Math.abs(gravY - 1) < 0.3) {
+      g.vx = 0;
+      g.vy = 0;
+    }
+
     g.x += g.vx;
     g.y += g.vy;
 
@@ -4042,25 +4063,25 @@ function drawSand() {
     if (g.y - g.r < by + 4) { g.y = by + 4 + g.r; g.vy *= -bounce; }
     if (g.y + g.r > by + bh - 4) { g.y = by + bh - 4 - g.r; g.vy *= -bounce; }
 
-    g.twinkle += 0.03;
+    g.twinkle += 0.02;
   });
 
-  // Grain-grain collision (simple)
+  // Grain-grain collision — push apart and stack
   for (let i = 0; i < sandGrains.length; i++) {
     for (let j = i + 1; j < sandGrains.length; j++) {
-      const a = sandGrains[i], b = sandGrains[j];
-      const dx = b.x - a.x, dy = b.y - a.y;
+      const a = sandGrains[i], b2 = sandGrains[j];
+      const dx = b2.x - a.x, dy = b2.y - a.y;
       const dist = Math.hypot(dx, dy);
-      const minD = a.r + b.r;
+      const minD = a.r + b2.r + 0.5; // small gap for stacking
       if (dist < minD && dist > 0) {
         const nx = dx / dist, ny = dy / dist;
         const overlap = (minD - dist) * 0.5;
         a.x -= nx * overlap; a.y -= ny * overlap;
-        b.x += nx * overlap; b.y += ny * overlap;
-        // Exchange velocity
-        const dvx = a.vx - b.vx, dvy = a.vy - b.vy;
-        a.vx -= nx * dvx * 0.3; a.vy -= ny * dvy * 0.3;
-        b.vx += nx * dvx * 0.3; b.vy += ny * dvy * 0.3;
+        b2.x += nx * overlap; b2.y += ny * overlap;
+        // Damped velocity exchange
+        const dvx = a.vx - b2.vx, dvy = a.vy - b2.vy;
+        a.vx -= nx * dvx * 0.2; a.vy -= ny * dvy * 0.2;
+        b2.vx += nx * dvx * 0.2; b2.vy += ny * dvy * 0.2;
       }
     }
   }
