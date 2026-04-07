@@ -64,7 +64,7 @@
     max-width: 420px;
     margin: 0 auto;
     min-height: 100vh;
-    min-height: 100dvh;
+    min-height: 80dvh;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -738,7 +738,7 @@
     border: 0.5px solid rgba(42,58,110,0.8);
     border-radius: 18px;
     height: 36px;
-    padding: 0 16px;
+    padding: 0px 16px 0px 16px; 
     display: flex;
     align-items: center;
     justify-content: center;
@@ -747,6 +747,7 @@
     font-size: 12px;
     font-family: 'Noto Sans TC', sans-serif;
     transition: all 0.2s;
+    margin:40px auto 0px auto;
   }
   .game-back-btn:active { background: rgba(42,58,110,0.8); }
 
@@ -1567,7 +1568,7 @@ onAuthStateChanged(auth, (user) => {
       <img src="bottle.png" class="bottle-img" alt="星星瓶" draggable="false">
     </div>
     <p class="bottle-count" id="bottle-count">✦ 0 顆情緒星星</p>
-    <button class="enter-btn" onclick="goToChat()">進入 Starfold →</button>
+    <button class="enter-btn" onclick="goScreen('diary', this); renderDiary(); bounceShell();">進入 Starfold →</button>
     <p class="disclaimer-bar">
       本 App 提供情緒抒發空間，不能取代專業心理諮商。<br>
       如有緊急心理危機，請撥打 1925 安心專線。<br>
