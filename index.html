@@ -153,11 +153,21 @@
     justify-content: center;
     box-shadow: 0 10px 20px rgba(0,0,0,0.18);
     transition: transform 0.18s cubic-bezier(.34,1.56,.64,1), box-shadow 0.18s ease;
+    -webkit-tap-highlight-color: transparent;
   }
   .nav-btn-center img { width: 50px; height: 50px; }
   .nav-btn-center:active .icon-shell {
     transform: scaleX(1.08) scaleY(0.9);
     box-shadow: 0 6px 12px rgba(0,0,0,0.14);
+  }
+  .nav-btn-center .icon-shell.bounce {
+    animation: shellBounce 0.4s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes shellBounce {
+    0% { transform: scale(1); }
+    30% { transform: scaleX(1.12) scaleY(0.85); }
+    60% { transform: scaleX(0.95) scaleY(1.08); }
+    100% { transform: scale(1); }
   }
   .nav-btn-center span { margin-top: 4px; }
 
@@ -1786,8 +1796,8 @@ onAuthStateChanged(auth, (user) => {
     <img src="assets/icons/nav-chat.svg" alt="傾訴 icon">
     <span>傾訴</span>
   </button>
-  <button class="nav-btn nav-btn-center" onclick="goScreen('diary', this); renderDiary()">
-    <div class="icon-shell">
+  <button class="nav-btn nav-btn-center" onclick="goScreen('diary', this); renderDiary(); bounceShell();">
+    <div class="icon-shell" id="center-shell">
       <img src="assets/icons/nav-bottle.svg" alt="藏星 icon">
     </div>
     <span>藏星</span>
@@ -2300,6 +2310,15 @@ function goScreen(name, btn) {
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
   currentScreen = name;
+}
+
+function bounceShell() {
+  const shell = document.getElementById('center-shell');
+  if (!shell) return;
+  shell.classList.remove('bounce');
+  void shell.offsetWidth; // force reflow
+  shell.classList.add('bounce');
+  shell.addEventListener('animationend', () => shell.classList.remove('bounce'), { once: true });
 }
 
 let selectedMood = null;
