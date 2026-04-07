@@ -1,4 +1,4 @@
-const CACHE = 'starfold-v5';
+const CACHE = 'starfold-v6';
 
 const ASSETS = [
   '/starnight/',

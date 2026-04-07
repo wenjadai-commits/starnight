@@ -308,7 +308,7 @@
   .chat-sub { font-size: 11px; color: var(--text-dim); letter-spacing: 1px; }
 
   .chat-messages {
-    flex: 0.9;
+    flex: 1;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
@@ -358,6 +358,7 @@
   .chat-input-wrap {
     display: flex;
     gap: 10px;
+    margin-bottom:40px;
     align-items: flex-end;
   }
   .chat-input {
@@ -1700,9 +1701,9 @@ onAuthStateChanged(auth, (user) => {
     <input type="file" id="photo-input" accept="image/*" style="display:none" onchange="handlePhotoImport(event)">
 
     <div class="canvas-actions-row">
-      <button class="clear-btn" onclick="undoCanvas()">上一步</button>
+      <button class="clear-btn" onclick="undoCanvas()">↩ 上一步</button>
       <button class="clear-btn" onclick="clearCanvas()">清除</button>
-      <button class="release-btn" onclick="releaseCanvas()">儲存</button>
+      <button class="release-btn" onclick="releaseCanvas()">✦ 儲存</button>
     </div>
 
   </div>
@@ -2463,7 +2464,6 @@ async function sendMsg() {
 async function callAI(text, isRetry = false) {
   const msgs = document.getElementById('chat-messages');
 
-  // Remove previous error if retrying
   if (isRetry) {
     const errMsg = msgs.querySelector('.msg.error');
     if (errMsg) errMsg.remove();
@@ -2479,7 +2479,7 @@ async function callAI(text, isRetry = false) {
   if (CHAT_API) {
     try {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 15000); // 15s timeout
+      const timeout = setTimeout(() => controller.abort(), 20000);
 
       const res = await fetch(CHAT_API, {
         method: 'POST',
@@ -2493,11 +2493,31 @@ async function callAI(text, isRetry = false) {
       });
       clearTimeout(timeout);
 
-      if (!res.ok) throw new Error('server_error_' + res.status);
+      // Read raw response for debugging
+      const raw = await res.text();
+      console.log('[Starfold] API status:', res.status);
+      console.log('[Starfold] API response:', raw);
 
-      const data = await res.json();
-      const reply = data.reply || data.text || data.output || data.message;
+      let data;
+      try {
+        data = JSON.parse(raw);
+      } catch (e) {
+        throw new Error(`invalid_json_${res.status}`);
+      }
 
+      if (!res.ok) {
+        const errCode = data?.error || 'unknown';
+        // Map backend errors to user-friendly messages
+        if (errCode === 'ai_service_error' || res.status === 502) {
+          throw new Error('ai_busy');
+        } else if (res.status === 429) {
+          throw new Error('rate_limit');
+        } else {
+          throw new Error(`server_error_${res.status}_${errCode}`);
+        }
+      }
+
+      const reply = data.reply;
       if (!reply) throw new Error('empty_response');
 
       const t = document.getElementById('typing');
@@ -2510,20 +2530,27 @@ async function callAI(text, isRetry = false) {
     } catch (err) {
       const t = document.getElementById('typing');
       if (t) t.remove();
+      console.error('[Starfold] Chat error:', err.message);
 
-      // Determine error type
       let errText = '';
       if (err.name === 'AbortError') {
-        errText = '回應超時，可能是網路較慢，要再試一次嗎？';
+        errText = '回應時間較長，可能是網路較慢 🌙 要再試一次嗎？';
       } else if (!navigator.onLine) {
-        errText = '目前沒有網路，請確認連線後再試。';
+        errText = '目前沒有網路連線，請確認後再試。';
+      } else if (err.message.includes('ai_busy')) {
+        errText = 'AI 正在忙碌中，請稍後再試 ✦';
+      } else if (err.message.includes('rate_limit')) {
+        errText = '訊息發送太頻繁了，休息一下再試 🌙';
+      } else if (err.message.includes('empty_response')) {
+        errText = 'AI 沒有回應，要再試一次嗎？';
+      } else if (err.message.includes('invalid_json')) {
+        errText = '伺服器回應異常，請稍後再試。';
       } else if (err.message.includes('server_error')) {
         errText = 'AI 服務暫時無法使用，請稍後再試。';
       } else {
         errText = '連線出現問題，要再試一次嗎？';
       }
 
-      // Show error message with retry button
       const errDiv = document.createElement('div');
       errDiv.className = 'msg error';
 
@@ -2544,7 +2571,7 @@ async function callAI(text, isRetry = false) {
     }
   }
 
-  // No webhook - use fallback
+  // No API configured - use fallback
   setTimeout(() => {
     const t = document.getElementById('typing');
     if (t) t.remove();
