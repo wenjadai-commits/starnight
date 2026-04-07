@@ -308,12 +308,11 @@
   .chat-sub { font-size: 11px; color: var(--text-dim); letter-spacing: 1px; }
 
   .chat-messages {
-    flex: 1;
+    flex: 0.9;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
     gap: 12px;
-    margin-bottom: 16px;
     padding-right: 4px;
     scrollbar-width: none;
   }
@@ -1492,6 +1491,83 @@
   }
   .retry-btn:hover { background: rgba(240,128,128,0.1); }
 
+  /* Crisis resource card */
+  .crisis-card {
+    background: rgba(240,160,122,0.08);
+    border: 0.5px solid rgba(240,160,122,0.25);
+    border-radius: 16px;
+    padding: 14px 16px;
+    align-self: flex-start;
+    max-width: 90%;
+    animation: msgIn 0.3s ease;
+  }
+  .crisis-card-title {
+    font-size: 12px;
+    color: #f0a07a;
+    font-weight: 500;
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+  }
+  .crisis-card-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    font-size: 12px;
+    color: var(--text-main);
+  }
+  .crisis-card-line a {
+    color: #8dd4b8;
+    text-decoration: none;
+    font-size: 12px;
+  }
+  .crisis-card-line a:hover { text-decoration: underline; }
+  .crisis-card-note {
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-top: 8px;
+    line-height: 1.5;
+  }
+
+  /* Home entrance animation */
+  .bottle-entrance {
+    animation: bottleDrop 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+  @keyframes bottleDrop {
+    0% { transform: translateY(-120px) scale(0.6); opacity: 0; }
+    40% { opacity: 1; }
+    70% { transform: translateY(10px) scale(1.02); }
+    85% { transform: translateY(-5px) scale(0.98); }
+    100% { transform: translateY(0) scale(1); opacity: 1; }
+  }
+  .bottle-count-entrance {
+    animation: fadeSlideUp 0.6s ease 0.8s both;
+  }
+  .enter-btn-entrance {
+    animation: fadeSlideUp 0.6s ease 1.0s both;
+  }
+  .disclaimer-entrance {
+    animation: fadeSlideUp 0.6s ease 1.2s both;
+  }
+  @keyframes fadeSlideUp {
+    0% { opacity: 0; transform: translateY(16px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  /* Floating stars during entrance */
+  .entrance-star {
+    position: fixed;
+    font-size: 10px;
+    color: #f5e6c8;
+    pointer-events: none;
+    z-index: 100;
+    animation: starFloat 1.4s ease-out forwards;
+  }
+  @keyframes starFloat {
+    0% { opacity: 0; transform: translateY(0) scale(0.5); }
+    20% { opacity: 1; }
+    100% { opacity: 0; transform: translateY(-200px) scale(0.2); }
+  }
+
   @keyframes flyToBottle {
     0% { transform: translate(0, 0) scale(1); opacity: 1; }
     100% { transform: translate(var(--tx), var(--ty)) scale(0.2); opacity: 0; }
@@ -1564,13 +1640,13 @@ onAuthStateChanged(auth, (user) => {
 
   <!-- HOME -->
   <div class="screen active" id="screen-home" style="display:flex; flex-direction:column; align-items:center; justify-content:center;">
-    <div class="bottle-container" id="bottle-btn" onclick="showToast('今天也辛苦你了 ✦')">
+    <div class="bottle-container bottle-entrance" id="bottle-btn" onclick="showToast('今天也辛苦你了 ✦')">
       <canvas id="bottle-canvas" width="340" height="340"></canvas>
       <img src="bottle.png" class="bottle-img" alt="星星瓶" draggable="false">
     </div>
-    <p class="bottle-count" id="bottle-count">✦ 0 顆情緒星星</p>
-    <button class="enter-btn" onclick="goScreen('diary', this); renderDiary(); bounceShell();">進入 Starfold →</button>
-    <p class="disclaimer-bar">
+    <p class="bottle-count bottle-count-entrance" id="bottle-count">✦ 0 顆情緒星星</p>
+    <button class="enter-btn enter-btn-entrance" onclick="goScreen('diary', this); renderDiary(); bounceShell();">進入 Starfold →</button>
+    <p class="disclaimer-bar disclaimer-entrance">
       本 App 提供情緒抒發空間，不能取代專業心理諮商。<br>
       如有緊急心理危機，請撥打 1925 安心專線。<br>
       <a href="#" onclick="goScreen('resources', null); return false;">諮商資源</a>
@@ -2458,7 +2534,71 @@ async function sendMsg() {
   input.style.height = '';
   chatHistory.push({ role: 'user', content: text });
   saveChatLocal();
+
+  // Crisis keyword detection
+  if (detectCrisis(text)) {
+    showCrisisCard();
+  }
+
   await callAI(text);
+}
+
+// ─── Crisis Detection ───
+const CRISIS_KEYWORDS = [
+  '想死', '不想活', '自殺', '自我了斷', '了結', '結束生命',
+  '去死', '活不下去', '沒有意義', '跳樓', '割腕', '燒炭',
+  '安眠藥', '安眠藥哪裡買', '怎麼死', '死掉算了',
+  '不如死', '世界沒有我', '消失就好', '好想消失',
+  '自我傷害', '自傷', '不想醒來', '永遠睡著',
+];
+
+function detectCrisis(text) {
+  const normalized = text.toLowerCase().replace(/\s/g, '');
+  return CRISIS_KEYWORDS.some(kw => normalized.includes(kw));
+}
+
+function showCrisisCard() {
+  const msgs = document.getElementById('chat-messages');
+  const card = document.createElement('div');
+  card.className = 'crisis-card';
+  card.innerHTML = `
+    <div class="crisis-card-title">✦ 我們在乎你的安全</div>
+    <div class="crisis-card-line">📞 安心專線：<a href="tel:1925"><strong>1925</strong></a>（24小時）</div>
+    <div class="crisis-card-line">📞 生命線：<a href="tel:1995"><strong>1995</strong></a></div>
+    <div class="crisis-card-line">📞 張老師專線：<a href="tel:1980"><strong>1980</strong></a></div>
+    <div class="crisis-card-line"><a href="#" onclick="goScreen('resources', null); return false;">→ 查看更多諮商資源</a></div>
+    <div class="crisis-card-note">你不需要一個人面對。如果現在很痛苦，請撥打上面的電話，會有人陪你。</div>
+  `;
+  msgs.appendChild(card);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+// ─── Home Entrance Stars ───
+function playEntranceStars() {
+  const bottle = document.getElementById('bottle-btn');
+  if (!bottle) return;
+  const rect = bottle.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+
+  for (let i = 0; i < 8; i++) {
+    setTimeout(() => {
+      const star = document.createElement('div');
+      star.className = 'entrance-star';
+      star.textContent = '✦';
+      star.style.left = (cx + (Math.random() - 0.5) * 200) + 'px';
+      star.style.top = (cy + Math.random() * 80 + 40) + 'px';
+      star.style.animationDelay = (Math.random() * 0.3) + 's';
+      document.body.appendChild(star);
+      setTimeout(() => star.remove(), 1800);
+    }, 200 + i * 100);
+  }
+}
+
+// Trigger entrance animation on first load
+if (!sessionStorage.getItem('starfold-entered')) {
+  sessionStorage.setItem('starfold-entered', '1');
+  setTimeout(playEntranceStars, 600);
 }
 
 async function callAI(text, isRetry = false) {
