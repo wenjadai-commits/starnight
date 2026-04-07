@@ -1695,8 +1695,8 @@ onAuthStateChanged(auth, (user) => {
     <div class="canvas-gallery-bar" id="canvas-gallery"></div>
     <div class="gallery-actions">
       <button class="gallery-action-btn" onclick="newCanvasDrawing()">＋ 新畫布</button>
-      <button class="gallery-action-btn" onclick="importPhoto()">📷 匯入照片</button>
-      <button class="gallery-action-btn danger" onclick="deleteCurrentDrawing()">🗑 刪除</button>
+      <button class="gallery-action-btn" onclick="importPhoto()">匯入照片</button>
+      <button class="gallery-action-btn danger" onclick="deleteCurrentDrawing()">刪除</button>
     </div>
     <input type="file" id="photo-input" accept="image/*" style="display:none" onchange="handlePhotoImport(event)">
 
@@ -1706,8 +1706,6 @@ onAuthStateChanged(auth, (user) => {
       <button class="release-btn" onclick="releaseCanvas()">✦ 儲存</button>
     </div>
 
-    <div class="saved-gallery-title" id="saved-gallery-title" style="display:none;">已儲存的畫作</div>
-    <div class="saved-gallery-list" id="saved-gallery-list"></div>
   </div>
 
   <!-- DIARY -->
