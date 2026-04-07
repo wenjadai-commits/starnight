@@ -313,6 +313,7 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
+    margin-bottom: 16px;
     padding-right: 4px;
     scrollbar-width: none;
   }
@@ -1858,6 +1859,14 @@ onAuthStateChanged(auth, (user) => {
       </div>
       <div class="game-card-arrow">›</div>
     </div>
+    <div class="game-card" onclick="launchGame('sand')">
+      <div class="game-card-icon" style="background:rgba(245,230,200,0.12);">⏳</div>
+      <div class="game-card-info">
+        <div class="game-card-name">星砂瓶</div>
+        <div class="game-card-desc">傾斜手機，看星星像流沙一樣緩緩流動</div>
+      </div>
+      <div class="game-card-arrow">›</div>
+    </div>
   </div>
 
 </div>
@@ -2081,6 +2090,15 @@ onAuthStateChanged(auth, (user) => {
     <canvas id="bubble-canvas" style="display:block; position:absolute; top:0; left:0; touch-action:none;"></canvas>
     <div style="position:absolute; bottom:calc(env(safe-area-inset-bottom)+24px); left:0; right:0; z-index:81; display:flex; justify-content:center;">
       <button class="game-back-btn" onclick="stopBubbleGame()">← 返回</button>
+    </div>
+  </div>
+
+  <!-- GAME: Sand Bottle -->
+  <div id="sand-overlay" style="display:none; position:fixed; inset:0; z-index:80; background:#070f2b;">
+    <canvas id="sand-canvas" style="display:block; position:absolute; top:0; left:0;"></canvas>
+    <div style="position:absolute; bottom:calc(env(safe-area-inset-bottom)+24px); left:0; right:0; z-index:81; display:flex; justify-content:center; gap:12px; align-items:center;">
+      <button class="game-back-btn" onclick="stopSandGame()">← 返回</button>
+      <button class="game-back-btn" onclick="shakeSand()" style="font-size:14px;">✦ 搖一搖</button>
     </div>
   </div>
 
@@ -2373,6 +2391,9 @@ function goScreen(name, btn) {
   const bubbleOv = document.getElementById('bubble-overlay');
   if (bubbleOv) bubbleOv.style.display = 'none';
   if (bubbleActive) { bubbleActive = false; cancelAnimationFrame(bubbleAnimFrame); }
+  const sandOv = document.getElementById('sand-overlay');
+  if (sandOv) sandOv.style.display = 'none';
+  if (typeof sandActive !== 'undefined' && sandActive) { sandActive = false; cancelAnimationFrame(sandAnimFrame); }
 
   document.querySelectorAll('.screen').forEach(s => {
     s.classList.remove('active');
@@ -3837,6 +3858,8 @@ function launchGame(type) {
     startPressBallGame();
   } else if (type === 'bubble') {
     startBubbleGame();
+  } else if (type === 'sand') {
+    startSandGame();
   }
 }
 
@@ -3874,6 +3897,222 @@ function startBubbleGame() {
   initBlob();
   bubbleActive = true;
   drawBubble();
+}
+
+// ─── Sand Bottle Game ───
+let sandCanvas, sCtx, sandActive = false, sandAnimFrame;
+let sandGrains = [];
+let gravX = 0, gravY = 1; // default gravity down
+let gyroAvailable = false;
+
+function initSandGrains() {
+  const W = sandCanvas.width, H = sandCanvas.height;
+  sandGrains = [];
+  const SAND_COLORS = ['#f5e6c8','#ffe066','#c8a8f8','#aac4ff','#8dd4b8','#f0a07a','#ffd6e0','#e8dff8','#a78de0','#80d4f0'];
+  for (let i = 0; i < 120; i++) {
+    sandGrains.push({
+      x: 40 + Math.random() * (W - 80),
+      y: H * 0.5 + Math.random() * (H * 0.4),
+      vx: 0, vy: 0,
+      r: 2 + Math.random() * 3,
+      color: SAND_COLORS[Math.floor(Math.random() * SAND_COLORS.length)],
+      twinkle: Math.random() * Math.PI * 2,
+    });
+  }
+}
+
+function startSandGame() {
+  currentGameType = 'sand';
+  const overlay = document.getElementById('sand-overlay');
+  overlay.style.display = 'block';
+  const W = window.innerWidth, H = window.innerHeight;
+  sandCanvas = document.getElementById('sand-canvas');
+  sandCanvas.width = W; sandCanvas.height = H;
+  sandCanvas.style.width = W + 'px'; sandCanvas.style.height = H + 'px';
+  sCtx = sandCanvas.getContext('2d');
+
+  initSandGrains();
+  sandActive = true;
+
+  // Request gyroscope permission (iOS 13+)
+  if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+    DeviceOrientationEvent.requestPermission().then(state => {
+      if (state === 'granted') {
+        window.addEventListener('deviceorientation', handleGyro);
+        gyroAvailable = true;
+      }
+    }).catch(() => {});
+  } else if ('DeviceOrientationEvent' in window) {
+    window.addEventListener('deviceorientation', handleGyro);
+    gyroAvailable = true;
+  }
+
+  // Also support touch drag as fallback
+  sandCanvas.ontouchmove = (e) => {
+    e.preventDefault();
+    if (gyroAvailable) return;
+    const t = e.touches[0];
+    const cx = sandCanvas.width / 2, cy = sandCanvas.height / 2;
+    gravX = (t.clientX - cx) / cx * 1.5;
+    gravY = (t.clientY - cy) / cy * 1.5;
+  };
+  sandCanvas.ontouchend = () => {
+    if (!gyroAvailable) { gravX = 0; gravY = 1; }
+  };
+
+  drawSand();
+}
+
+function handleGyro(e) {
+  // gamma = left/right tilt (-90 to 90)
+  // beta = front/back tilt (-180 to 180)
+  const gamma = e.gamma || 0;
+  const beta = e.beta || 0;
+  gravX = Math.max(-2, Math.min(2, gamma / 30));
+  gravY = Math.max(-2, Math.min(2, (beta - 40) / 30)); // offset for phone held upright
+}
+
+function shakeSand() {
+  sandGrains.forEach(g => {
+    g.vx += (Math.random() - 0.5) * 15;
+    g.vy += (Math.random() - 0.5) * 15;
+  });
+}
+
+function drawSand() {
+  if (!sandActive) return;
+  const W = sandCanvas.width, H = sandCanvas.height;
+  sCtx.clearRect(0, 0, W, H);
+
+  // Background stars
+  sCtx.fillStyle = 'rgba(200,184,232,0.1)';
+  const t = performance.now();
+  for (let i = 0; i < 30; i++) {
+    const sx = (Math.sin(i * 73.7 + t * 0.00005) * 0.5 + 0.5) * W;
+    const sy = (Math.cos(i * 47.3 + t * 0.00004) * 0.5 + 0.5) * H;
+    sCtx.beginPath();
+    sCtx.arc(sx, sy, 0.5, 0, Math.PI * 2);
+    sCtx.fill();
+  }
+
+  // Bottle outline (rounded rect)
+  const bx = W * 0.1, by = H * 0.08;
+  const bw = W * 0.8, bh = H * 0.78;
+  const br = 30;
+  sCtx.beginPath();
+  sCtx.moveTo(bx + br, by);
+  // Neck
+  const neckW = bw * 0.3;
+  const neckH = bh * 0.06;
+  sCtx.lineTo(bx + bw / 2 - neckW / 2, by);
+  sCtx.lineTo(bx + bw / 2 - neckW / 2, by - neckH);
+  sCtx.arcTo(bx + bw / 2 - neckW / 2, by - neckH - 8, bx + bw / 2, by - neckH - 8, 8);
+  sCtx.lineTo(bx + bw / 2 + neckW / 2 - 8, by - neckH - 8);
+  sCtx.arcTo(bx + bw / 2 + neckW / 2, by - neckH - 8, bx + bw / 2 + neckW / 2, by - neckH, 8);
+  sCtx.lineTo(bx + bw / 2 + neckW / 2, by);
+  sCtx.lineTo(bx + bw - br, by);
+  sCtx.arcTo(bx + bw, by, bx + bw, by + br, br);
+  sCtx.lineTo(bx + bw, by + bh - br);
+  sCtx.arcTo(bx + bw, by + bh, bx + bw - br, by + bh, br);
+  sCtx.lineTo(bx + br, by + bh);
+  sCtx.arcTo(bx, by + bh, bx, by + bh - br, br);
+  sCtx.lineTo(bx, by + br);
+  sCtx.arcTo(bx, by, bx + br, by, br);
+  sCtx.closePath();
+  sCtx.strokeStyle = 'rgba(200,184,232,0.15)';
+  sCtx.lineWidth = 1.5;
+  sCtx.stroke();
+
+  // Physics update
+  const gravity = 0.3;
+  const friction = 0.985;
+  const bounce = 0.4;
+
+  sandGrains.forEach(g => {
+    g.vx += gravX * gravity;
+    g.vy += gravY * gravity;
+    g.vx *= friction;
+    g.vy *= friction;
+    g.x += g.vx;
+    g.y += g.vy;
+
+    // Bottle boundary collision
+    if (g.x - g.r < bx + 4) { g.x = bx + 4 + g.r; g.vx *= -bounce; }
+    if (g.x + g.r > bx + bw - 4) { g.x = bx + bw - 4 - g.r; g.vx *= -bounce; }
+    if (g.y - g.r < by + 4) { g.y = by + 4 + g.r; g.vy *= -bounce; }
+    if (g.y + g.r > by + bh - 4) { g.y = by + bh - 4 - g.r; g.vy *= -bounce; }
+
+    g.twinkle += 0.03;
+  });
+
+  // Grain-grain collision (simple)
+  for (let i = 0; i < sandGrains.length; i++) {
+    for (let j = i + 1; j < sandGrains.length; j++) {
+      const a = sandGrains[i], b = sandGrains[j];
+      const dx = b.x - a.x, dy = b.y - a.y;
+      const dist = Math.hypot(dx, dy);
+      const minD = a.r + b.r;
+      if (dist < minD && dist > 0) {
+        const nx = dx / dist, ny = dy / dist;
+        const overlap = (minD - dist) * 0.5;
+        a.x -= nx * overlap; a.y -= ny * overlap;
+        b.x += nx * overlap; b.y += ny * overlap;
+        // Exchange velocity
+        const dvx = a.vx - b.vx, dvy = a.vy - b.vy;
+        a.vx -= nx * dvx * 0.3; a.vy -= ny * dvy * 0.3;
+        b.vx += nx * dvx * 0.3; b.vy += ny * dvy * 0.3;
+      }
+    }
+  }
+
+  // Draw grains
+  sandGrains.forEach(g => {
+    const alpha = 0.6 + Math.sin(g.twinkle) * 0.3;
+    sCtx.save();
+    sCtx.globalAlpha = alpha;
+    // Glow
+    const grd = sCtx.createRadialGradient(g.x, g.y, 0, g.x, g.y, g.r * 3);
+    grd.addColorStop(0, g.color + '44');
+    grd.addColorStop(1, 'transparent');
+    sCtx.beginPath();
+    sCtx.arc(g.x, g.y, g.r * 3, 0, Math.PI * 2);
+    sCtx.fillStyle = grd;
+    sCtx.fill();
+    // Core
+    sCtx.beginPath();
+    sCtx.arc(g.x, g.y, g.r, 0, Math.PI * 2);
+    sCtx.fillStyle = g.color;
+    sCtx.fill();
+    sCtx.restore();
+  });
+
+  // Gravity indicator (subtle arrow)
+  if (gyroAvailable) {
+    const cx = W / 2, cy = H * 0.95;
+    const angle = Math.atan2(gravY, gravX);
+    const len = Math.min(Math.hypot(gravX, gravY) * 8, 20);
+    sCtx.save();
+    sCtx.globalAlpha = 0.2;
+    sCtx.strokeStyle = '#8090b8';
+    sCtx.lineWidth = 1.5;
+    sCtx.beginPath();
+    sCtx.moveTo(cx, cy);
+    sCtx.lineTo(cx + Math.cos(angle) * len, cy + Math.sin(angle) * len);
+    sCtx.stroke();
+    sCtx.restore();
+  }
+
+  sandAnimFrame = requestAnimationFrame(drawSand);
+}
+
+function stopSandGame() {
+  sandActive = false;
+  if (sandAnimFrame) cancelAnimationFrame(sandAnimFrame);
+  sandGrains = [];
+  window.removeEventListener('deviceorientation', handleGyro);
+  gyroAvailable = false;
+  document.getElementById('sand-overlay').style.display = 'none';
+  goToGamesScreen();
 }
 
 function stopGame() {
