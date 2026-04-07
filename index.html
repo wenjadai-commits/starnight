@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
-<title>星夜 — 你的情緒空間</title>
+<title>Starfold — 你的情緒空間</title>
 
 <!-- PWA -->
 <link rel="manifest" href="manifest.json">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="星夜">
+<meta name="apple-mobile-web-app-title" content="Starfold">
 <meta name="theme-color" content="#070f2b">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png">
@@ -1486,7 +1486,7 @@ onAuthStateChanged(auth, (user) => {
       <img src="bottle.png" class="bottle-img" alt="星星瓶" draggable="false">
     </div>
     <p class="bottle-count" id="bottle-count">✦ 0 顆情緒星星</p>
-    <button class="enter-btn" onclick="goToChat()">進入星夜 →</button>
+    <button class="enter-btn" onclick="goToChat()">進入 Starfold →</button>
     <p class="disclaimer-bar">
       本 App 提供情緒抒發空間，不能取代專業心理諮商。<br>
       如有緊急心理危機，請撥打 1925 安心專線。<br>
@@ -1627,11 +1627,11 @@ onAuthStateChanged(auth, (user) => {
   <!-- DIARY -->
   <div class="screen" id="screen-diary">
     <div class="diary-header">
-      <div class="diary-title">情緒星圖</div>
+      <div class="diary-title">情緒藏星</div>
       <div class="diary-sub">每一天都是一顆星</div>
     </div>
     <div class="diary-tab-bar">
-      <button class="diary-tab active" onclick="switchDiaryTab('map', this)">✦ 星圖</button>
+      <button class="diary-tab active" onclick="switchDiaryTab('map', this)">✦ 藏星</button>
       <button class="diary-tab" onclick="switchDiaryTab('trail', this)">☽ 星軌</button>
     </div>
     <div id="star-map-view">
@@ -1705,8 +1705,8 @@ onAuthStateChanged(auth, (user) => {
 <!-- Nav -->
 <nav class="nav">
   <button class="nav-btn active" onclick="goScreen('home', this)">
-    <img src="assets/icons/nav-star.svg" alt="星夜 icon">
-    <span>星夜</span>
+    <img src="assets/icons/nav-star.svg" alt="Starfold icon">
+    <span>Starfold</span>
   </button>
   <button class="nav-btn" onclick="goScreen('chat', this)">
     <img src="assets/icons/nav-chat.svg" alt="傾訴 icon">
@@ -1714,9 +1714,9 @@ onAuthStateChanged(auth, (user) => {
   </button>
   <button class="nav-btn nav-btn-center" onclick="goScreen('diary', this); renderDiary()">
     <div class="icon-shell">
-      <img src="assets/icons/nav-bottle.svg" alt="星圖 icon">
+      <img src="assets/icons/nav-bottle.svg" alt="藏星 icon">
     </div>
-    <span>星圖</span>
+    <span>藏星</span>
   </button>
   <button class="nav-btn" onclick="goScreen('canvas', this); setTimeout(initCanvas, 150)">
     <img src="assets/icons/nav-brush.svg" alt="畫布 icon">
@@ -1868,13 +1868,13 @@ onAuthStateChanged(auth, (user) => {
     <p class="privacy-updated">最後更新：2026 年 3 月</p>
 
     <div class="privacy-section">
-      <h3>關於星夜</h3>
-      <p>星夜是一個提供情緒抒發與陪伴的個人工具。本政策說明我們如何處理您的資料。</p>
+      <h3>關於 Starfold</h3>
+      <p>Starfold 是一個提供情緒抒發與陪伴的個人工具。本政策說明我們如何處理您的資料。</p>
     </div>
 
     <div class="privacy-section">
       <h3>⚠️ 重要聲明</h3>
-      <p>星夜提供情緒表達與 AI 陪伴功能，<strong style="color:#f0a07a">不能取代專業心理諮商或治療</strong>。若您有緊急心理健康需求，請尋求專業協助或撥打安心專線 1925。</p>
+      <p>Starfold 提供情緒表達與 AI 陪伴功能，<strong style="color:#f0a07a">不能取代專業心理諮商或治療</strong>。若您有緊急心理健康需求，請尋求專業協助或撥打安心專線 1925。</p>
     </div>
 
     <div class="privacy-section">
@@ -1941,12 +1941,12 @@ onAuthStateChanged(auth, (user) => {
 <div class="welcome-overlay" id="welcome-overlay" style="display:none;">
   <div class="welcome-box">
     <div class="welcome-moon">🌙</div>
-    <div class="welcome-title">歡迎來到星夜</div>
+    <div class="welcome-title">歡迎來到 Starfold</div>
 
     <div class="welcome-section">
       <div class="welcome-section-title">⚠️ 重要提醒</div>
       <div class="welcome-section-text">
-        星夜提供情緒抒發與 AI 陪伴，<strong style="color:#f0a07a">無法取代專業心理諮商</strong>。如有緊急心理危機，請撥打安心專線 <strong style="color:#f5e6c8">1925</strong>。
+        Starfold 提供情緒抒發與 AI 陪伴，<strong style="color:#f0a07a">無法取代專業心理諮商</strong>。如有緊急心理危機，請撥打安心專線 <strong style="color:#f5e6c8">1925</strong>。
       </div>
     </div>
 
@@ -3768,7 +3768,7 @@ function checkAuthOnStart() {
 <div class="auth-overlay" id="auth-modal" style="display:none;">
   <div class="auth-box">
     <div class="auth-moon">🌙</div>
-    <div class="auth-title">歡迎回到星夜</div>
+    <div class="auth-title">歡迎回到 Starfold</div>
     <div class="auth-sub">登入以同步你的情緒日記</div>
     <div class="auth-tabs">
       <button class="auth-tab active" onclick="switchAuthTab('login')">登入</button>
