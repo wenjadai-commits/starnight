@@ -936,6 +936,31 @@
     margin-bottom: 16px;
     letter-spacing: 1px;
   }
+  /* Diary mood picker */
+  .diary-mood-picker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .diary-mood-opt {
+    padding: 5px 12px;
+    border-radius: 16px;
+    border: 0.5px solid var(--border);
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-family: 'Noto Sans TC', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .diary-mood-opt:hover { border-color: var(--mc); }
+  .diary-mood-opt.selected {
+    background: color-mix(in srgb, var(--mc) 15%, transparent);
+    border-color: var(--mc);
+    color: var(--mc);
+  }
+
   .diary-textarea {
     width: 100%;
     background: var(--mid);
@@ -2127,6 +2152,18 @@ onAuthStateChanged(auth, (user) => {
 <div class="modal-overlay" id="diary-modal" style="display:none" onclick="closeDiaryModal(event)">
   <div class="modal">
     <div class="modal-title">今天的心情</div>
+    <div class="diary-mood-picker" id="diary-mood-picker">
+      <div class="diary-mood-opt selected" data-mood="平靜" data-color="#7b9cf5" onclick="selectDiaryMood(this)" style="--mc:#7b9cf5">平靜</div>
+      <div class="diary-mood-opt" data-mood="開心" data-color="#ffe066" onclick="selectDiaryMood(this)" style="--mc:#ffe066">開心</div>
+      <div class="diary-mood-opt" data-mood="感恩" data-color="#8dd4b8" onclick="selectDiaryMood(this)" style="--mc:#8dd4b8">感恩</div>
+      <div class="diary-mood-opt" data-mood="期待" data-color="#f5e6c8" onclick="selectDiaryMood(this)" style="--mc:#f5e6c8">期待</div>
+      <div class="diary-mood-opt" data-mood="疲憊" data-color="#a78de0" onclick="selectDiaryMood(this)" style="--mc:#a78de0">疲憊</div>
+      <div class="diary-mood-opt" data-mood="焦慮" data-color="#f0a07a" onclick="selectDiaryMood(this)" style="--mc:#f0a07a">焦慮</div>
+      <div class="diary-mood-opt" data-mood="難過" data-color="#aac4ff" onclick="selectDiaryMood(this)" style="--mc:#aac4ff">難過</div>
+      <div class="diary-mood-opt" data-mood="低落" data-color="#6c6c9e" onclick="selectDiaryMood(this)" style="--mc:#6c6c9e">低落</div>
+      <div class="diary-mood-opt" data-mood="憤怒" data-color="#f08080" onclick="selectDiaryMood(this)" style="--mc:#f08080">憤怒</div>
+      <div class="diary-mood-opt" data-mood="放鬆" data-color="#b8f0d8" onclick="selectDiaryMood(this)" style="--mc:#b8f0d8">放鬆</div>
+    </div>
     <textarea class="diary-textarea" id="diary-input" placeholder="今天發生了什麼？心裡有什麼話想說..."></textarea>
     <div id="diary-img-preview" style="display:none; margin-bottom:12px; position:relative;">
       <img id="diary-img-thumb" style="width:100%; max-height:150px; object-fit:cover; border-radius:12px; display:block;">
@@ -3225,12 +3262,24 @@ function drawStarMap() {
 }
 
 let _diaryImageData = null;
+let _diaryMood = { name: '平靜', color: '#7b9cf5' };
+
+function selectDiaryMood(el) {
+  document.querySelectorAll('.diary-mood-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  _diaryMood = { name: el.dataset.mood, color: el.dataset.color };
+}
 
 function openDiaryModal() {
   document.getElementById('diary-modal').style.display = 'flex';
   document.getElementById('diary-input').value = '';
   _diaryImageData = null;
+  _diaryMood = { name: '平靜', color: '#7b9cf5' };
   document.getElementById('diary-img-preview').style.display = 'none';
+  // Reset mood picker
+  document.querySelectorAll('.diary-mood-opt').forEach(o => o.classList.remove('selected'));
+  const defaultOpt = document.querySelector('.diary-mood-opt[data-mood="平靜"]');
+  if (defaultOpt) defaultOpt.classList.add('selected');
   setTimeout(() => document.getElementById('diary-input').focus(), 100);
 }
 function closeDiaryModal(e) {
@@ -3274,7 +3323,7 @@ function removeDiaryImg() {
 function saveDiaryEntry() {
   const text = document.getElementById('diary-input').value.trim();
   if (!text && !_diaryImageData) { showToast('寫幾個字或附張照片吧 ✦'); return; }
-  const mood = selectedMood || { name: '平靜', color: '#7b9cf5' };
+  const mood = _diaryMood || { name: '平靜', color: '#7b9cf5' };
   const now = new Date();
   const entry = {
     id: Date.now().toString(),
@@ -4088,8 +4137,8 @@ function handleGyro(e) {
 
 function shakeSand() {
   sandGrains.forEach(g => {
-    g.vx += (Math.random() - 0.5) * 15;
-    g.vy += (Math.random() - 0.5) * 15;
+    g.vx += (Math.random() - 0.5) * 6;
+    g.vy += (Math.random() - 0.5) * 6;
   });
 }
 
@@ -4156,9 +4205,9 @@ function drawSand() {
   });
 
   // Physics update — sand settles, shifts with tilt
-  const gravity = 0.35;
-  const friction = 0.92;
-  const bounce = 0.15;
+  const gravity = 0.12;   // gentle gravity
+  const friction = 0.96;  // smooth deceleration
+  const bounce = 0.08;    // almost no bounce
   const restThreshold = 0.12;
   const tiltThreshold = 0.2; // how flat = "level"
 
