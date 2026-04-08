@@ -2115,6 +2115,12 @@ onAuthStateChanged(auth, (user) => {
       <button class="game-back-btn" onclick="stopSandGame()">← 返回</button>
       <button class="game-back-btn" onclick="shakeSand()" style="font-size:14px;">✦ 搖一搖</button>
     </div>
+    <!-- Landscape warning -->
+    <div id="sand-landscape-warn" style="display:none; position:absolute; inset:0; z-index:90; background:#070f2b; justify-content:center; align-items:center; flex-direction:column; gap:12px;">
+      <div style="font-size:28px;">🔄</div>
+      <div style="font-size:14px; color:#e8dff8; font-family:'Noto Sans TC',sans-serif;">請將手機轉為直向</div>
+      <div style="font-size:11px; color:#4a5a8a; font-family:'Noto Sans TC',sans-serif;">星砂瓶需要直向使用</div>
+    </div>
   </div>
 
 <!-- Diary Modal -->
@@ -4013,12 +4019,31 @@ function startSandGame() {
   sandCanvas.style.width = W + 'px'; sandCanvas.style.height = H + 'px';
   sCtx = sandCanvas.getContext('2d');
 
-  // Lock screen orientation to portrait
+  // Try fullscreen + orientation lock (works on Android Chrome)
   try {
-    if (screen.orientation && screen.orientation.lock) {
-      screen.orientation.lock('portrait').catch(() => {});
+    const el = document.documentElement;
+    const rfs = el.requestFullscreen || el.webkitRequestFullscreen;
+    if (rfs) {
+      rfs.call(el).then(() => {
+        if (screen.orientation && screen.orientation.lock) {
+          screen.orientation.lock('portrait').catch(() => {});
+        }
+      }).catch(() => {});
     }
   } catch {}
+
+  // Monitor orientation changes — show warning if landscape
+  window._sandOrientCheck = () => {
+    const warn = document.getElementById('sand-landscape-warn');
+    if (!warn || !sandActive) return;
+    if (window.innerWidth > window.innerHeight) {
+      warn.style.display = 'flex';
+    } else {
+      warn.style.display = 'none';
+    }
+  };
+  window.addEventListener('resize', window._sandOrientCheck);
+  window._sandOrientCheck(); // check now
 
   initSandGrains();
   sandActive = true;
@@ -4112,6 +4137,24 @@ function drawSand() {
   sCtx.lineWidth = 1.5;
   sCtx.stroke();
 
+  // Internal obstacles (shelves/barriers)
+  const obstacles = [
+    { x1: bx + bw * 0.15, y1: by + bh * 0.35, x2: bx + bw * 0.55, y2: by + bh * 0.35 }, // top-left shelf
+    { x1: bx + bw * 0.45, y1: by + bh * 0.55, x2: bx + bw * 0.85, y2: by + bh * 0.55 }, // mid-right shelf
+    { x1: bx + bw * 0.2,  y1: by + bh * 0.75, x2: bx + bw * 0.6,  y2: by + bh * 0.75 }, // bottom-left shelf
+  ];
+
+  // Draw obstacles
+  sCtx.strokeStyle = 'rgba(200,184,232,0.12)';
+  sCtx.lineWidth = 2;
+  sCtx.lineCap = 'round';
+  obstacles.forEach(ob => {
+    sCtx.beginPath();
+    sCtx.moveTo(ob.x1, ob.y1);
+    sCtx.lineTo(ob.x2, ob.y2);
+    sCtx.stroke();
+  });
+
   // Physics update — sand settles, shifts with tilt
   const gravity = 0.35;
   const friction = 0.92;
@@ -4143,6 +4186,27 @@ function drawSand() {
     if (g.x + g.r > bx + bw - 4) { g.x = bx + bw - 4 - g.r; g.vx *= -bounce; }
     if (g.y - g.r < by + 4) { g.y = by + 4 + g.r; g.vy *= -bounce; }
     if (g.y + g.r > by + bh - 4) { g.y = by + bh - 4 - g.r; g.vy *= -bounce; }
+
+    // Obstacle collision (horizontal shelves)
+    obstacles.forEach(ob => {
+      const shelfY = ob.y1;
+      const shelfLeft = Math.min(ob.x1, ob.x2);
+      const shelfRight = Math.max(ob.x1, ob.x2);
+      const thickness = 3;
+      // Check if grain is within shelf x-range
+      if (g.x + g.r > shelfLeft && g.x - g.r < shelfRight) {
+        // Coming from above
+        if (g.y + g.r > shelfY - thickness && g.y + g.r < shelfY + thickness && g.vy > 0) {
+          g.y = shelfY - thickness - g.r;
+          g.vy *= -bounce;
+        }
+        // Coming from below
+        if (g.y - g.r < shelfY + thickness && g.y - g.r > shelfY - thickness && g.vy < 0) {
+          g.y = shelfY + thickness + g.r;
+          g.vy *= -bounce;
+        }
+      }
+    });
 
     g.twinkle += 0.02;
   });
@@ -4213,11 +4277,16 @@ function stopSandGame() {
   sandGrains = [];
   window.removeEventListener('deviceorientation', handleGyro);
   gyroAvailable = false;
-  // Unlock screen orientation
+  // Remove orientation listener
+  if (window._sandOrientCheck) {
+    window.removeEventListener('resize', window._sandOrientCheck);
+    window._sandOrientCheck = null;
+  }
+  // Exit fullscreen & unlock orientation
   try {
-    if (screen.orientation && screen.orientation.unlock) {
-      screen.orientation.unlock();
-    }
+    if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock();
+    if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
+    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
   } catch {}
   document.getElementById('sand-overlay').style.display = 'none';
   goToGamesScreen();
