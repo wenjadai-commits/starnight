@@ -593,8 +593,17 @@
     background: var(--mid);
     border: 0.5px solid var(--border);
     border-radius: 16px;
-    padding: 16px;
+    overflow: hidden;
     margin-bottom: 12px;
+  }
+  .diary-entry-img {
+    width: 100%;
+    max-height: 200px;
+    object-fit: cover;
+    display: block;
+  }
+  .diary-entry-body {
+    padding: 14px 16px;
   }
   .diary-entry-top {
     display: flex;
@@ -2113,6 +2122,14 @@ onAuthStateChanged(auth, (user) => {
   <div class="modal">
     <div class="modal-title">今天的心情</div>
     <textarea class="diary-textarea" id="diary-input" placeholder="今天發生了什麼？心裡有什麼話想說..."></textarea>
+    <div id="diary-img-preview" style="display:none; margin-bottom:12px; position:relative;">
+      <img id="diary-img-thumb" style="width:100%; max-height:150px; object-fit:cover; border-radius:12px; display:block;">
+      <button onclick="removeDiaryImg()" style="position:absolute; top:6px; right:6px; width:24px; height:24px; border-radius:50%; background:rgba(7,15,43,0.7); border:none; color:#f08080; font-size:12px; cursor:pointer;">✕</button>
+    </div>
+    <div style="display:flex; gap:8px; margin-bottom:12px;">
+      <button onclick="document.getElementById('diary-photo-input').click()" style="flex:1; background:rgba(141,212,184,0.08); border:0.5px solid rgba(141,212,184,0.2); border-radius:12px; padding:8px; color:var(--teal); font-size:11px; cursor:pointer; font-family:'Noto Sans TC',sans-serif;">附加照片</button>
+    </div>
+    <input type="file" id="diary-photo-input" accept="image/*" style="display:none" onchange="handleDiaryPhoto(event)">
     <div class="modal-actions">
       <button class="modal-cancel" onclick="closeDiaryModal()">取消</button>
       <button class="modal-save" onclick="saveDiaryEntry()">✦ 化作星星</button>
@@ -3061,6 +3078,19 @@ function renderDiary() {
     const entry = document.createElement('div');
     entry.className = 'diary-entry';
 
+    // Image (if exists)
+    if (e.image) {
+      const img = document.createElement('img');
+      img.className = 'diary-entry-img';
+      img.src = e.image;
+      img.alt = '日記照片';
+      img.loading = 'lazy';
+      entry.appendChild(img);
+    }
+
+    const body = document.createElement('div');
+    body.className = 'diary-entry-body';
+
     const top = document.createElement('div');
     top.className = 'diary-entry-top';
 
@@ -3087,12 +3117,16 @@ function renderDiary() {
     top.appendChild(mood);
     top.appendChild(deleteBtn);
 
-    const text = document.createElement('div');
-    text.className = 'entry-text';
-    text.textContent = e.text || '';
+    body.appendChild(top);
 
-    entry.appendChild(top);
-    entry.appendChild(text);
+    if (e.text) {
+      const text = document.createElement('div');
+      text.className = 'entry-text';
+      text.textContent = e.text;
+      body.appendChild(text);
+    }
+
+    entry.appendChild(body);
     list.appendChild(entry);
   });
 
@@ -3184,19 +3218,56 @@ function drawStarMap() {
   }
 }
 
+let _diaryImageData = null;
+
 function openDiaryModal() {
   document.getElementById('diary-modal').style.display = 'flex';
   document.getElementById('diary-input').value = '';
+  _diaryImageData = null;
+  document.getElementById('diary-img-preview').style.display = 'none';
   setTimeout(() => document.getElementById('diary-input').focus(), 100);
 }
 function closeDiaryModal(e) {
   if (!e || e.target === document.getElementById('diary-modal')) {
     document.getElementById('diary-modal').style.display = 'none';
+    _diaryImageData = null;
   }
 }
+
+function handleDiaryPhoto(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    // Compress image to save localStorage space
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      const maxW = 600, maxH = 400;
+      let w = img.width, h = img.height;
+      if (w > maxW) { h = h * maxW / w; w = maxW; }
+      if (h > maxH) { w = w * maxH / h; h = maxH; }
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      _diaryImageData = canvas.toDataURL('image/jpeg', 0.7);
+      document.getElementById('diary-img-thumb').src = _diaryImageData;
+      document.getElementById('diary-img-preview').style.display = 'block';
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+  e.target.value = '';
+}
+
+function removeDiaryImg() {
+  _diaryImageData = null;
+  document.getElementById('diary-img-preview').style.display = 'none';
+}
+
 function saveDiaryEntry() {
   const text = document.getElementById('diary-input').value.trim();
-  if (!text) { showToast('寫幾個字吧，哪怕只有一句話 ✦'); return; }
+  if (!text && !_diaryImageData) { showToast('寫幾個字或附張照片吧 ✦'); return; }
   const mood = selectedMood || { name: '平靜', color: '#7b9cf5' };
   const now = new Date();
   const entry = {
@@ -3204,12 +3275,14 @@ function saveDiaryEntry() {
     date: `${now.getMonth()+1}月${now.getDate()}日`,
     mood: mood.name,
     color: mood.color,
-    text,
+    text: text || '',
+    image: _diaryImageData || null,
     createdAt: now.toISOString()
   };
   diaryEntries.push(entry);
   saveDiary();
   closeDiaryModal();
+  _diaryImageData = null;
   renderDiary();
   flyStarToBottle(mood.color);
   showToast('已化作一顆新的星星 ✦');
@@ -3940,6 +4013,13 @@ function startSandGame() {
   sandCanvas.style.width = W + 'px'; sandCanvas.style.height = H + 'px';
   sCtx = sandCanvas.getContext('2d');
 
+  // Lock screen orientation to portrait
+  try {
+    if (screen.orientation && screen.orientation.lock) {
+      screen.orientation.lock('portrait').catch(() => {});
+    }
+  } catch {}
+
   initSandGrains();
   sandActive = true;
 
@@ -4034,24 +4114,25 @@ function drawSand() {
 
   // Physics update — sand settles, shifts with tilt
   const gravity = 0.35;
-  const friction = 0.92; // heavy friction so grains settle fast
-  const bounce = 0.15;   // low bounce = sand-like
-  const restThreshold = 0.08; // velocity below this = at rest
+  const friction = 0.92;
+  const bounce = 0.15;
+  const restThreshold = 0.12;
+  const tiltThreshold = 0.2; // how flat = "level"
+
+  // Check if phone is roughly level
+  const isLevel = Math.abs(gravX) < tiltThreshold && Math.abs(gravY - 1) < tiltThreshold;
 
   sandGrains.forEach(g => {
-    // Apply gravity based on tilt
-    g.vx += gravX * gravity;
-    g.vy += gravY * gravity;
-
-    // Strong friction to make grains settle quickly
-    g.vx *= friction;
-    g.vy *= friction;
-
-    // Stop micro-jitter when nearly at rest
-    if (Math.abs(g.vx) < restThreshold && Math.abs(g.vy) < restThreshold
-        && Math.abs(gravX) < 0.15 && Math.abs(gravY - 1) < 0.3) {
+    if (isLevel && Math.abs(g.vx) < restThreshold && Math.abs(g.vy) < restThreshold) {
+      // Fully freeze — no gravity, no movement
       g.vx = 0;
       g.vy = 0;
+    } else {
+      // Apply gravity based on tilt
+      g.vx += gravX * gravity;
+      g.vy += gravY * gravity;
+      g.vx *= friction;
+      g.vy *= friction;
     }
 
     g.x += g.vx;
@@ -4132,6 +4213,12 @@ function stopSandGame() {
   sandGrains = [];
   window.removeEventListener('deviceorientation', handleGyro);
   gyroAvailable = false;
+  // Unlock screen orientation
+  try {
+    if (screen.orientation && screen.orientation.unlock) {
+      screen.orientation.unlock();
+    }
+  } catch {}
   document.getElementById('sand-overlay').style.display = 'none';
   goToGamesScreen();
 }
