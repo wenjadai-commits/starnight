@@ -4137,8 +4137,8 @@ function handleGyro(e) {
 
 function shakeSand() {
   sandGrains.forEach(g => {
-    g.vx += (Math.random() - 0.5) * 6;
-    g.vy += (Math.random() - 0.5) * 6;
+    g.vx += (Math.random() - 0.5) * 3;
+    g.vy += (Math.random() - 0.5) * 3;
   });
 }
 
@@ -4158,21 +4158,12 @@ function drawSand() {
     sCtx.fill();
   }
 
-  // Bottle outline (rounded rect)
+  // Bottle outline (simple rounded rect, no neck)
   const bx = W * 0.1, by = H * 0.08;
   const bw = W * 0.8, bh = H * 0.78;
-  const br = 30;
+  const br = 20;
   sCtx.beginPath();
   sCtx.moveTo(bx + br, by);
-  // Neck
-  const neckW = bw * 0.3;
-  const neckH = bh * 0.06;
-  sCtx.lineTo(bx + bw / 2 - neckW / 2, by);
-  sCtx.lineTo(bx + bw / 2 - neckW / 2, by - neckH);
-  sCtx.arcTo(bx + bw / 2 - neckW / 2, by - neckH - 8, bx + bw / 2, by - neckH - 8, 8);
-  sCtx.lineTo(bx + bw / 2 + neckW / 2 - 8, by - neckH - 8);
-  sCtx.arcTo(bx + bw / 2 + neckW / 2, by - neckH - 8, bx + bw / 2 + neckW / 2, by - neckH, 8);
-  sCtx.lineTo(bx + bw / 2 + neckW / 2, by);
   sCtx.lineTo(bx + bw - br, by);
   sCtx.arcTo(bx + bw, by, bx + bw, by + br, br);
   sCtx.lineTo(bx + bw, by + bh - br);
@@ -4205,11 +4196,11 @@ function drawSand() {
   });
 
   // Physics update — sand settles, shifts with tilt
-  const gravity = 0.12;   // gentle gravity
-  const friction = 0.96;  // smooth deceleration
-  const bounce = 0.08;    // almost no bounce
-  const restThreshold = 0.12;
-  const tiltThreshold = 0.2; // how flat = "level"
+  const gravity = 0.04;   // very gentle, like underwater
+  const friction = 0.985;  // slow smooth glide
+  const bounce = 0.03;    // almost no bounce
+  const restThreshold = 0.03;
+  const tiltThreshold = 0.15;
 
   // Check if phone is roughly level
   const isLevel = Math.abs(gravX) < tiltThreshold && Math.abs(gravY - 1) < tiltThreshold;
