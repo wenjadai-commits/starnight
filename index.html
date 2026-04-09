@@ -1854,21 +1854,20 @@ onAuthStateChanged(auth, (user) => {
 <div class="app">
 
   <!-- HOME -->
-  <div class="screen active" id="screen-home" style="display:flex; flex-direction:column; align-items:center; justify-content:center;">
+  <div class="screen active" id="screen-home" style="display:flex; flex-direction:column; align-items:center;">
+    <!-- Bottle section -->
     <div class="bottle-container bottle-entrance" id="bottle-btn" onclick="showToast('今天也辛苦你了 ✦')">
       <canvas id="bottle-canvas" width="340" height="340"></canvas>
       <img src="bottle.png" class="bottle-img" alt="星星瓶" draggable="false">
     </div>
     <p class="bottle-count bottle-count-entrance" id="bottle-count">✦ 0 顆情緒星星</p>
-    <button class="enter-btn enter-btn-entrance" onclick="goScreen('diary', this); renderDiary(); bounceShell();">我的藏星 ★</button>
+    <button class="enter-btn enter-btn-entrance" onclick="goScreen('diary', null); renderDiary();">我的藏星 ★</button>
     <p class="disclaimer-bar disclaimer-entrance">
       本 App 提供情緒抒發空間，不能取代專業心理諮商。<br>
       如有緊急心理危機，請撥打 1925 安心專線。<br>
       <a href="#" onclick="goScreen('resources', null); return false;">諮商資源</a>
       &nbsp;·&nbsp;
       <a href="#" onclick="goScreen('privacy', null); return false;">隱私政策</a>
-      &nbsp;·&nbsp;
-      <a href="#" onclick="goScreen('settings', null); return false;">設定</a>
     </p>
   </div>
 
@@ -2093,27 +2092,30 @@ onAuthStateChanged(auth, (user) => {
 
 <!-- Nav -->
 <nav class="nav">
-  <button class="nav-btn active" onclick="goScreen('home', this)">
-    <img src="assets/icons/nav-star.svg" alt="Starfold icon">
-    <span>Starfold</span>
-  </button>
   <button class="nav-btn" onclick="goScreen('chat', this); loadChatHistory()">
     <img src="assets/icons/nav-chat.svg" alt="傾訴 icon">
     <span>傾訴</span>
-  </button>
-  <button class="nav-btn nav-btn-center" onclick="goScreen('diary', this); renderDiary(); bounceShell();">
-    <div class="icon-shell" id="center-shell">
-      <img src="assets/icons/nav-bottle.svg" alt="藏星 icon">
-    </div>
-    <span>藏星</span>
   </button>
   <button class="nav-btn" onclick="goScreen('canvas', this); setTimeout(initCanvas, 150)">
     <img src="assets/icons/nav-brush.svg" alt="畫布 icon">
     <span>畫布</span>
   </button>
+  <button class="nav-btn nav-btn-center active" onclick="goScreen('home', this)">
+    <div class="icon-shell" id="center-shell">
+      <img src="assets/icons/nav-bottle.svg" alt="藏星 icon">
+    </div>
+    <span>藏星</span>
+  </button>
   <button class="nav-btn" onclick="goScreen('games', this)">
     <img src="assets/icons/nav-mood.svg" alt="解壓 icon">
     <span>解壓</span>
+  </button>
+  <button class="nav-btn" onclick="goScreen('settings', this); initSettingsPage();">
+    <svg   width="22"   height="22"   viewBox="0 0 24 24"   fill="none"   stroke="#f9eac5"   stroke-width="1.8"   stroke-linecap="round"stroke-linejoin="round">
+    <circle cx="12" cy="12" r="3"/>
+    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+    </svg>
+    <span>設定</span>
   </button>
 </nav>
 
@@ -2298,7 +2300,6 @@ onAuthStateChanged(auth, (user) => {
 
   <!-- SETTINGS -->
   <div class="screen scrollable" id="screen-settings" style="display:none;">
-    <button class="privacy-back" onclick="goScreen('home', document.querySelectorAll('.nav-btn')[0])">← 返回</button>
     <div class="settings-header">
       <div class="settings-title">我的設定</div>
       <div class="settings-sub">個人化你的 Starfold 體驗</div>
@@ -5023,10 +5024,9 @@ function stopBubbleGame() {
 }
 
 function goToGamesScreen() {
-  // Show games select screen, keep nav active on 解壓
   const navBtns = document.querySelectorAll('.nav-btn');
   navBtns.forEach(b => b.classList.remove('active'));
-  navBtns[navBtns.length - 1].classList.add('active'); // last btn = 解壓
+  navBtns[3].classList.add('active'); // 解壓 btn
   document.querySelectorAll('.screen').forEach(s => { s.classList.remove('active'); s.style.display = 'none'; });
   const games = document.getElementById('screen-games');
   if (games) { games.style.display = 'flex'; games.classList.add('active'); }
