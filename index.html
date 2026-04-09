@@ -1697,6 +1697,106 @@
     font-size: 16px;
     animation: flyToBottle 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
   }
+  /* ===== SETTINGS PAGE ===== */
+  .settings-header {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .settings-title {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 16px;
+    color: var(--star-white);
+    letter-spacing: 2px;
+    margin-bottom: 4px;
+  }
+  .settings-sub { font-size: 11px; color: var(--text-dim); }
+  .settings-section {
+    margin-bottom: 16px;
+  }
+  .settings-section-title {
+    font-size: 12px;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+  .settings-card {
+    background: var(--mid);
+    border: 0.5px solid var(--border);
+    border-radius: 16px;
+    padding: 14px 16px;
+    margin-bottom: 8px;
+  }
+  .settings-label {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+  }
+  .settings-input {
+    width: 100%;
+    background: var(--deep);
+    border: 0.5px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    color: var(--text-main);
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 13px;
+    outline: none;
+    margin-bottom: 8px;
+  }
+  .settings-input:focus { border-color: rgba(123,156,245,0.4); }
+  .settings-input::placeholder { color: var(--text-dim); }
+  .settings-radio-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  .settings-radio {
+    padding: 6px 14px;
+    border-radius: 16px;
+    border: 0.5px solid var(--border);
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-family: 'Noto Sans TC', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .settings-radio.active {
+    background: rgba(123,156,245,0.12);
+    border-color: var(--blue);
+    color: var(--blue);
+  }
+  .settings-info {
+    font-size: 11px;
+    color: var(--text-dim);
+    line-height: 1.5;
+    padding: 8px 0;
+  }
+  .settings-info code {
+    background: rgba(123,156,245,0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    color: var(--text-muted);
+    word-break: break-all;
+  }
+  .settings-btn {
+    width: 100%;
+    padding: 12px;
+    border-radius: 12px;
+    border: 0.5px solid var(--border);
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-family: 'Noto Sans TC', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 8px;
+  }
+  .settings-btn:hover { background: rgba(123,156,245,0.08); }
+  .settings-btn.danger { border-color: rgba(240,128,128,0.3); color: #f08080; }
+  .settings-btn.danger:hover { background: rgba(240,128,128,0.08); }
 </style>
 
 <!-- Firebase SDK -->
@@ -1768,6 +1868,8 @@ onAuthStateChanged(auth, (user) => {
       <a href="#" onclick="goScreen('resources', null); return false;">諮商資源</a>
       &nbsp;·&nbsp;
       <a href="#" onclick="goScreen('privacy', null); return false;">隱私政策</a>
+      &nbsp;·&nbsp;
+      <a href="#" onclick="goScreen('settings', null); return false;">設定</a>
     </p>
   </div>
 
@@ -1893,7 +1995,7 @@ onAuthStateChanged(auth, (user) => {
     <input type="file" id="photo-input" accept="image/*" style="display:none" onchange="handlePhotoImport(event)">
 
     <div class="canvas-actions-row">
-      <button class="clear-btn" onclick="undoCanvas()">↩ 上一步</button>
+      <button class="clear-btn" onclick="undoCanvas()">上一步</button>
       <button class="clear-btn" onclick="clearCanvas()">清除</button>
       <button class="release-btn" onclick="releaseCanvas()">✦ 儲存</button>
     </div>
@@ -2194,6 +2296,65 @@ onAuthStateChanged(auth, (user) => {
     <div class="privacy-section">
       <h3>聯絡我們</h3>
       <p>如有任何疑問，歡迎透過 App 的傾訴功能反映，或聯繫開發者。</p>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="screen scrollable" id="screen-settings" style="display:none;">
+    <button class="privacy-back" onclick="goScreen('home', document.querySelectorAll('.nav-btn')[0])">← 返回</button>
+    <div class="settings-header">
+      <div class="settings-title">我的設定</div>
+      <div class="settings-sub">個人化你的 Starfold 體驗</div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">個人資料</div>
+      <div class="settings-card">
+        <div class="settings-label">暱稱</div>
+        <input class="settings-input" id="settings-nickname" placeholder="你希望怎麼被稱呼？" maxlength="20" oninput="saveSettings()">
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">AI 陪伴風格</div>
+      <div class="settings-card">
+        <div class="settings-label">你希望 AI 用什麼方式陪你？</div>
+        <div class="settings-radio-group" id="style-radios">
+          <div class="settings-radio active" onclick="setAIStyle('溫柔傾聽', this)">溫柔傾聽</div>
+          <div class="settings-radio" onclick="setAIStyle('給我建議', this)">給我建議</div>
+          <div class="settings-radio" onclick="setAIStyle('理性分析', this)">理性分析</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">安全與支援</div>
+      <div class="settings-card">
+        <div class="settings-label">信任聯絡人姓名</div>
+        <input class="settings-input" id="settings-trust-name" placeholder="例如：媽媽" maxlength="20" oninput="saveTrustSettings()">
+        <div class="settings-label">與你的關係</div>
+        <input class="settings-input" id="settings-trust-relation" placeholder="例如：家人" maxlength="20" oninput="saveTrustSettings()">
+        <div class="settings-label">聯絡電話</div>
+        <input class="settings-input" id="settings-trust-phone" type="tel" placeholder="例如：0912345678" maxlength="15" oninput="saveTrustSettings()">
+        <div class="settings-label">預設求助訊息</div>
+        <input class="settings-input" id="settings-trust-msg" placeholder="我現在狀態不太好，可以陪我一下嗎？" maxlength="100" oninput="saveTrustSettings()">
+        <div class="settings-info">只有在你主動選擇時，才會用來快速聯絡信任的人。不會自動撥號或通知。</div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">使用狀態</div>
+      <div class="settings-card">
+        <div class="settings-info">識別碼：<code id="settings-uid">-</code></div>
+        <div class="settings-info">對話紀錄：<span id="settings-chat-count">0</span> 則</div>
+        <div class="settings-info">情緒日記：<span id="settings-diary-count">0</span> 則</div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">資料管理</div>
+      <button class="settings-btn" onclick="clearChatHistory()">清除對話紀錄</button>
+      <button class="settings-btn danger" onclick="resetAllSettings()">重設所有個人設定</button>
     </div>
   </div>
 
@@ -2621,6 +2782,93 @@ function goToChat() {
   // Don't reset — load saved history instead
   loadChatHistory();
 }
+
+// ─── Anonymous UserId ───
+let _userId = localStorage.getItem('starfold-user-id');
+if (!_userId) {
+  _userId = crypto.randomUUID ? crypto.randomUUID() : (Date.now().toString(36) + Math.random().toString(36).slice(2));
+  localStorage.setItem('starfold-user-id', _userId);
+}
+
+// ─── Settings Management ───
+function loadSettings() {
+  try {
+    const saved = localStorage.getItem('starfold-settings');
+    return saved ? JSON.parse(saved) : { nickname: '', aiStyle: '溫柔傾聽' };
+  } catch { return { nickname: '', aiStyle: '溫柔傾聽' }; }
+}
+
+function saveSettings() {
+  const nickname = document.getElementById('settings-nickname')?.value || '';
+  const settings = loadSettings();
+  settings.nickname = nickname;
+  try { localStorage.setItem('starfold-settings', JSON.stringify(settings)); } catch {}
+}
+
+function setAIStyle(style, el) {
+  document.querySelectorAll('#style-radios .settings-radio').forEach(r => r.classList.remove('active'));
+  if (el) el.classList.add('active');
+  const settings = loadSettings();
+  settings.aiStyle = style;
+  try { localStorage.setItem('starfold-settings', JSON.stringify(settings)); } catch {}
+}
+
+function saveTrustSettings() {
+  const data = {
+    name: document.getElementById('settings-trust-name')?.value || '',
+    relation: document.getElementById('settings-trust-relation')?.value || '',
+    phone: document.getElementById('settings-trust-phone')?.value || '',
+    message: document.getElementById('settings-trust-msg')?.value || '我現在狀態不太好，可以陪我一下嗎？',
+  };
+  saveTrustContact(data);
+}
+
+function initSettingsPage() {
+  const settings = loadSettings();
+  const nicknameEl = document.getElementById('settings-nickname');
+  if (nicknameEl) nicknameEl.value = settings.nickname || '';
+
+  // AI style
+  document.querySelectorAll('#style-radios .settings-radio').forEach(r => {
+    r.classList.toggle('active', r.textContent === settings.aiStyle);
+  });
+
+  // Trust contact
+  const trust = loadTrustContact();
+  if (trust) {
+    const n = document.getElementById('settings-trust-name');
+    const r = document.getElementById('settings-trust-relation');
+    const p = document.getElementById('settings-trust-phone');
+    const m = document.getElementById('settings-trust-msg');
+    if (n) n.value = trust.name || '';
+    if (r) r.value = trust.relation || '';
+    if (p) p.value = trust.phone || '';
+    if (m) m.value = trust.message || '';
+  }
+
+  // Usage stats
+  const uidEl = document.getElementById('settings-uid');
+  if (uidEl) uidEl.textContent = _userId.slice(0, 12) + '...';
+  const chatCountEl = document.getElementById('settings-chat-count');
+  if (chatCountEl) chatCountEl.textContent = chatHistory.length;
+  const diaryCountEl = document.getElementById('settings-diary-count');
+  if (diaryCountEl) diaryCountEl.textContent = (typeof diaryEntries !== 'undefined' ? diaryEntries.length : 0);
+}
+
+function resetAllSettings() {
+  if (!confirm('確定要重設所有個人設定嗎？（暱稱、AI 風格、信任聯絡人）')) return;
+  localStorage.removeItem('starfold-settings');
+  localStorage.removeItem('starfold-trust-contact');
+  initSettingsPage();
+  showToast('已重設個人設定 ✦');
+}
+
+// Hook into goScreen to init settings
+const _origGoScreen = goScreen;
+goScreen = function(name, btn) {
+  _origGoScreen(name, btn);
+  if (name === 'settings') initSettingsPage();
+};
 
 // ─── Chat: Safety-First Architecture ───
 // Flow: User Input → Safety Layer → Response Policy → Response Generator → Support UI
@@ -3103,11 +3351,14 @@ async function callAI(text, isRetry, policy) {
         headers: { 'Content-Type': 'application/json' },
         signal: controller.signal,
         body: JSON.stringify({
+          userId: _userId,
           message: text,
           mood: selectedMood ? selectedMood.name : '未知',
           history: chatHistory.slice(-6),
           riskLevel: policy ? (policy.showSupport ? 'high' : 'low') : 'low',
           policyHint: policy ? policy.systemAddendum : '',
+          nickname: loadSettings().nickname || '',
+          aiStyle: loadSettings().aiStyle || '',
         })
       });
       clearTimeout(timeout);
@@ -3137,10 +3388,13 @@ async function callAI(text, isRetry, policy) {
       let errText = '';
       if (err.name === 'AbortError') errText = '回應時間較長，可能是網路較慢 🌙 要再試一次嗎？';
       else if (!navigator.onLine) errText = '目前沒有網路連線，請確認後再試。';
+      else if (err.message.includes('rate_limit')) errText = '訊息送得有點快，先等一下再試 🌙';
+      else if (err.message.includes('ai_timeout')) errText = 'AI 回應逾時了，請再試一次。';
       else if (err.message.includes('missing_api_key')) errText = 'AI 設定尚未完成，請稍後再試。';
       else if (err.message.includes('invalid_api_key')) errText = 'AI 服務驗證失敗，請稍後再試。';
-      else if (err.message.includes('quota_exceeded')) errText = 'AI 服務額度已滿，請稍後再試 🌙';
-      else if (err.message.includes('empty_response')) errText = 'AI 沒有回應，要再試一次嗎？';
+      else if (err.message.includes('quota_exceeded')) errText = 'AI 服務目前較忙或額度已滿，請稍後再試。';
+      else if (err.message.includes('model_not_found')) errText = 'AI 模型設定有誤，請稍後再試。';
+      else if (err.message.includes('empty_response')) errText = 'AI 這次沒有成功回應，請再試一次。';
       else errText = '連線出現問題，要再試一次嗎？';
 
       const errDiv = document.createElement('div');
