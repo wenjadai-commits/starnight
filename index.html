@@ -1564,6 +1564,87 @@
     line-height: 1.5;
   }
 
+  /* Support Panel (high/crisis) */
+  .support-panel-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(7,15,43,0.92);
+    z-index: 300;
+    display: flex;
+    align-items: flex-end;
+    animation: fadeIn 0.3s ease;
+  }
+  .support-panel {
+    background: var(--deep);
+    border: 0.5px solid var(--border);
+    border-radius: 24px 24px 0 0;
+    padding: 28px 24px calc(env(safe-area-inset-bottom) + 24px);
+    width: 100%;
+    max-width: 420px;
+    margin: 0 auto;
+    animation: slideUp 0.3s ease;
+  }
+  .support-panel-title {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 16px;
+    color: var(--star-white);
+    margin-bottom: 6px;
+    letter-spacing: 1px;
+  }
+  .support-panel-sub {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+  .support-action {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--mid);
+    border: 0.5px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    color: var(--text-main);
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 13px;
+    width: 100%;
+    text-align: left;
+  }
+  .support-action:hover { border-color: rgba(141,212,184,0.3); }
+  .support-action-icon { font-size: 18px; flex-shrink: 0; }
+  .support-action-info { flex: 1; }
+  .support-action-label { font-size: 13px; color: var(--text-main); }
+  .support-action-desc { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
+  .support-close {
+    display: block;
+    margin: 12px auto 0;
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-size: 12px;
+    cursor: pointer;
+    font-family: 'Noto Sans TC', sans-serif;
+    padding: 8px 16px;
+  }
+  /* Turn limit notice */
+  .turn-limit-msg {
+    background: rgba(123,156,245,0.08);
+    border: 0.5px solid rgba(123,156,245,0.2);
+    border-radius: 16px;
+    padding: 12px 16px;
+    align-self: flex-start;
+    max-width: 85%;
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    animation: msgIn 0.3s ease;
+  }
+
   /* Home entrance animation */
   .bottle-entrance {
     animation: bottleDrop 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
@@ -1812,7 +1893,7 @@ onAuthStateChanged(auth, (user) => {
     <input type="file" id="photo-input" accept="image/*" style="display:none" onchange="handlePhotoImport(event)">
 
     <div class="canvas-actions-row">
-      <button class="clear-btn" onclick="undoCanvas()">上一步</button>
+      <button class="clear-btn" onclick="undoCanvas()">↩ 上一步</button>
       <button class="clear-btn" onclick="clearCanvas()">清除</button>
       <button class="release-btn" onclick="releaseCanvas()">✦ 儲存</button>
     </div>
@@ -2181,6 +2262,50 @@ onAuthStateChanged(auth, (user) => {
 </div>
 
 
+<!-- Support Panel -->
+<div class="support-panel-overlay" id="support-panel" style="display:none" onclick="if(event.target===this)closeSupportPanel()">
+  <div class="support-panel">
+    <div class="support-panel-title">✦ 你不需要一個人面對</div>
+    <div class="support-panel-sub">現在最重要的是讓自己安全。以下是一些可以幫助你的方式。</div>
+    <a class="support-action" href="tel:1925">
+      <div class="support-action-icon">📞</div>
+      <div class="support-action-info">
+        <div class="support-action-label">安心專線 1925</div>
+        <div class="support-action-desc">24 小時免費，專業人員接聽</div>
+      </div>
+    </a>
+    <a class="support-action" href="tel:1995">
+      <div class="support-action-icon">📞</div>
+      <div class="support-action-info">
+        <div class="support-action-label">生命線 1995</div>
+        <div class="support-action-desc">24 小時免費</div>
+      </div>
+    </a>
+    <a class="support-action" href="tel:1980">
+      <div class="support-action-icon">📞</div>
+      <div class="support-action-info">
+        <div class="support-action-label">張老師專線 1980</div>
+        <div class="support-action-desc">週一至週六 9:00-21:00</div>
+      </div>
+    </a>
+    <div class="support-action" id="trust-contact-action" style="display:none" onclick="contactTrustPerson()">
+      <div class="support-action-icon">💬</div>
+      <div class="support-action-info">
+        <div class="support-action-label" id="trust-contact-label">聯絡信任的人</div>
+        <div class="support-action-desc">傳送預設訊息給你信任的人</div>
+      </div>
+    </div>
+    <a class="support-action" href="#" onclick="goScreen('resources', null); closeSupportPanel(); return false;">
+      <div class="support-action-icon">🏥</div>
+      <div class="support-action-info">
+        <div class="support-action-label">查看更多諮商資源</div>
+        <div class="support-action-desc">台灣各地心理衛生中心</div>
+      </div>
+    </a>
+    <button class="support-close" onclick="closeSupportPanel()">稍後再看</button>
+  </div>
+</div>
+
 <!-- First-open Welcome Modal -->
 <div class="welcome-overlay" id="welcome-overlay" style="display:none;">
   <div class="welcome-box">
@@ -2497,23 +2622,318 @@ function goToChat() {
   loadChatHistory();
 }
 
-// ─── Chat ───
+// ─── Chat: Safety-First Architecture ───
+// Flow: User Input → Safety Layer → Response Policy → Response Generator → Support UI
 const CHAT_API = 'https://starnight-api.vercel.app/api/chat';
-
-const FALLBACK_RESPONSES = [
-  '我聽到了，謝謝你願意告訴我。能說說更多嗎？',
-  '這種感覺真的不好受。你今天還好嗎？',
-  '嗯，我在這裡，你不用一個人扛著。',
-  '有時候把話說出來，心裡會輕一點。還有什麼想說的嗎？',
-  '我懂你說的那種感覺。你平常怎麼讓自己好過一些？',
-  '聽起來今天很辛苦。你已經很努力了。',
-  '謝謝你願意分享這些。你覺得有什麼事情能讓你現在好一點點？',
-];
+const MAX_TURNS = 5; // max conversation turns before winding down
+let chatTurnCount = 0;
 let responseIdx = 0;
 let chatHistory = [];
 let _chatLoaded = false;
 
-// Load chat from localStorage
+// ══════════════════════════════════════
+// 1. RISK KEYWORDS (scored by severity)
+// ══════════════════════════════════════
+
+const RISK_KEYWORDS = {
+  low: [ // +1 each
+    '好累','很累','壓力好大','焦慮','空虛','孤單','難過','想哭','崩潰',
+    '心好累','好煩','不開心','鬱悶','煩躁','失眠','無力','沮喪','低潮',
+  ],
+  medium: [ // +3 each
+    '撐不住','撐不下去','沒有意義','活著好累','想消失','不想醒來',
+    '不想面對明天','我不行了','好想消失','沒人在乎','沒人懂我',
+    '活著沒意思','世界沒有我','不想面對','受不了了','好想逃',
+  ],
+  high: [ // +6 each
+    '不想活了','我想死','想死','想自殺','活不下去','不想再活',
+    '想傷害自己','想自殘','去死','死掉算了','不如死','自我了斷',
+    '了結','結束生命','自我傷害','自傷',
+  ],
+  crisis: [ // +10 each
+    '我現在要做了','我已經準備好了','我已經決定了',
+    '這是最後一次','我不會再回來了','最後一封','遺書',
+  ],
+  means: [ // +8 each — tools/methods/locations
+    '刀','藥','跳樓','割腕','吞藥','上吊','燒炭',
+    '安眠藥','橋上','頂樓','安眠藥哪裡買','怎麼死',
+  ],
+  farewell: [ // +7 each
+    '再見了','永別了','謝謝你陪我到現在','大家保重',
+    '你幫我照顧','永遠睡著','不想醒來',
+  ],
+  hyperbole: [ // these reduce score if no other negative context
+    '笑死','煩死了','尷尬到想死','累死了','忙死了','餓死了','熱死了',
+  ],
+};
+
+// Response templates per risk level (used when API unavailable or as guidance)
+const RESPONSE_TEMPLATES = {
+  low: [
+    '聽起來你真的有點累了。',
+    '這種感覺其實蠻不好受的。',
+    '謝謝你願意說出來。',
+  ],
+  medium: [
+    '你撐了很久了。',
+    '如果可以，找一個人講一句話也好。',
+    '能說出來就是很重要的一步。',
+  ],
+  high: [
+    '我很在意你現在的狀態。',
+    '現在最重要的是不要一個人，請試著聯絡一位可以陪你的人。',
+  ],
+  crisis: [
+    '請先確保你現在是安全的。',
+    '現在請立刻聯絡一位真人幫助你。',
+  ],
+  turnLimit: [
+    '先讓自己休息一下也可以 🌙',
+    '先停在這裡就好，你已經很勇敢了。',
+    '說出來就是很棒的事。先好好休息。',
+  ],
+};
+
+// ══════════════════════════════════════
+// 2. KEYWORD SCORING
+// ══════════════════════════════════════
+
+function scoreKeywords(message) {
+  const text = message.toLowerCase().replace(/\s/g, '');
+  let score = 0;
+  const matched = [];
+
+  // Check hyperbole first — if ONLY hyperbole, reduce concern
+  let hasHyperbole = false;
+  RISK_KEYWORDS.hyperbole.forEach(kw => {
+    if (text.includes(kw)) hasHyperbole = true;
+  });
+
+  const score_map = { low: 1, medium: 3, high: 6, crisis: 10, means: 8, farewell: 7 };
+  ['low','medium','high','crisis','means','farewell'].forEach(level => {
+    RISK_KEYWORDS[level].forEach(kw => {
+      if (text.includes(kw)) {
+        score += score_map[level];
+        matched.push(kw);
+      }
+    });
+  });
+
+  // If only hyperbole matched and no real negative keywords, reduce score
+  if (hasHyperbole && matched.length === 0) {
+    score = 0;
+  }
+
+  return { score, matched };
+}
+
+// ══════════════════════════════════════
+// 3. SEMANTIC ANALYSIS (heuristic-based)
+// ══════════════════════════════════════
+
+function analyzeSemantics(message, recentMessages) {
+  const text = message.toLowerCase();
+  const flags = {
+    isSelf: false,
+    isCurrent: false,
+    hasIntent: false,
+    hasPlan: false,
+    hasMeans: false,
+    hasLocation: false,
+    isFarewell: false,
+    isQuotedContext: false,
+    isPastEvent: false,
+    isHyperbole: false,
+  };
+
+  // Self reference
+  flags.isSelf = /我|自己/.test(text);
+
+  // Current/immediacy
+  flags.isCurrent = /現在|今晚|等一下|剛剛|已經|馬上|待會/.test(text);
+
+  // Intent
+  flags.hasIntent = /想死|想自殺|想結束|不想活|想傷害自己|想自殘|要做了/.test(text);
+
+  // Plan
+  flags.hasPlan = /準備好了|已經決定|計畫|打算|安排好了/.test(text);
+
+  // Means/tools
+  flags.hasMeans = /刀|藥|安眠藥|繩|吞|割|吊|燒炭/.test(text);
+
+  // Location
+  flags.hasLocation = /橋上|頂樓|樓頂|河邊|鐵軌|高處/.test(text);
+
+  // Farewell
+  flags.isFarewell = /再見了|永別|最後一次|保重|幫我照顧|遺書|交代/.test(text);
+
+  // Quoted context (talking about others/media)
+  flags.isQuotedContext = /朋友|同學|新聞|電影|小說|他說|她說|聽說/.test(text);
+
+  // Past event
+  flags.isPastEvent = /以前|過去|那時候|之前|小時候|曾經/.test(text);
+
+  // Hyperbole
+  flags.isHyperbole = /笑死|煩死了|尷尬到想死|累死了|忙死了|餓死了|熱死了/.test(text)
+    && !/我想死|不想活|自殺|傷害/.test(text);
+
+  // Context escalation: check recent messages
+  if (recentMessages && recentMessages.length >= 3) {
+    let negCount = 0;
+    const recent = recentMessages.slice(-5);
+    recent.forEach(msg => {
+      const { score } = scoreKeywords(msg);
+      if (score >= 3) negCount++;
+    });
+    if (negCount >= 3) {
+      flags._contextEscalation = true;
+    }
+  }
+
+  return flags;
+}
+
+// ══════════════════════════════════════
+// 4. RISK DETECTION (combines keyword + semantic)
+// ══════════════════════════════════════
+
+function detectRisk(message, recentMsgs) {
+  const { score, matched } = scoreKeywords(message);
+  const flags = analyzeSemantics(message, recentMsgs);
+
+  let level = 'low';
+
+  // Base level from score
+  if (score >= 10) level = 'crisis';
+  else if (score >= 6) level = 'high';
+  else if (score >= 3) level = 'medium';
+  else level = 'low';
+
+  // Semantic overrides (priority order)
+
+  // Crisis: has plan, means, or location
+  if (flags.hasPlan || flags.hasMeans || flags.hasLocation) {
+    level = 'crisis';
+  }
+
+  // Crisis: farewell + current
+  if (flags.isFarewell && flags.isCurrent) {
+    level = 'crisis';
+  }
+
+  // High: self + intent + high keywords
+  if (flags.isSelf && flags.hasIntent && score >= 6 && level !== 'crisis') {
+    level = 'high';
+  }
+
+  // Downgrade: quoted context (talking about others)
+  if (flags.isQuotedContext && !flags.isSelf && level !== 'crisis') {
+    const levels = ['low','medium','high','crisis'];
+    const idx = levels.indexOf(level);
+    if (idx > 0) level = levels[idx - 1];
+  }
+
+  // Downgrade: pure hyperbole with no other context
+  if (flags.isHyperbole && matched.length <= 1 && level !== 'crisis') {
+    level = 'low';
+  }
+
+  // Context escalation: bump one level if recent messages show pattern
+  if (flags._contextEscalation && level !== 'crisis') {
+    const levels = ['low','medium','high','crisis'];
+    const idx = levels.indexOf(level);
+    if (idx < 3) level = levels[idx + 1];
+  }
+
+  console.log('[Starfold Safety]', { level, score, matched, flags });
+
+  return { riskLevel: level, keywordScore: score, matchedKeywords: matched, semanticFlags: flags };
+}
+
+// ══════════════════════════════════════
+// 5. RESPONSE POLICY
+// ══════════════════════════════════════
+
+function getResponsePolicy(riskLevel) {
+  const policies = {
+    low: {
+      useAI: true,
+      maxSentences: 2,
+      systemAddendum: '回應最多2句。短句共感，輕度接住。不主導對話，不連續提問。',
+      showSupport: false,
+    },
+    medium: {
+      useAI: true,
+      maxSentences: 2,
+      systemAddendum: '回應最多2句。共感為主，輕微導向現實支持。不深挖原因，不延長對話，不分析人格。可以說「如果可以，找一個人講一句話也好」。',
+      showSupport: false,
+    },
+    high: {
+      useAI: true,
+      maxSentences: 2,
+      systemAddendum: '回應最多2句。表達關心，明確導向真人支持。不聊天延伸，不分析，不給自我傷害相關建議。必須提到「請試著聯絡一位可以陪你的人」或「撥打 1925 安心專線」。',
+      showSupport: true,
+    },
+    crisis: {
+      useAI: false, // use template directly, don't send to AI
+      maxSentences: 1,
+      systemAddendum: '',
+      showSupport: true,
+    },
+  };
+  return policies[riskLevel] || policies.low;
+}
+
+function shouldShowSupportPanel(riskLevel) {
+  return riskLevel === 'high' || riskLevel === 'crisis';
+}
+
+// ══════════════════════════════════════
+// 6. SUPPORT PANEL
+// ══════════════════════════════════════
+
+function showSupportPanel() {
+  const panel = document.getElementById('support-panel');
+  if (panel) panel.style.display = 'flex';
+  // Show trust contact if configured
+  const trust = loadTrustContact();
+  const trustAction = document.getElementById('trust-contact-action');
+  const trustLabel = document.getElementById('trust-contact-label');
+  if (trust && trust.name && trust.phone && trustAction) {
+    trustAction.style.display = 'flex';
+    trustLabel.textContent = `聯絡 ${trust.name}（${trust.relation || '信任的人'}）`;
+  }
+}
+
+function closeSupportPanel() {
+  const panel = document.getElementById('support-panel');
+  if (panel) panel.style.display = 'none';
+}
+
+// ── Trust Contact ──
+function loadTrustContact() {
+  try {
+    const saved = localStorage.getItem('starfold-trust-contact');
+    return saved ? JSON.parse(saved) : null;
+  } catch { return null; }
+}
+
+function saveTrustContact(data) {
+  try { localStorage.setItem('starfold-trust-contact', JSON.stringify(data)); } catch {}
+}
+
+function contactTrustPerson() {
+  const trust = loadTrustContact();
+  if (!trust || !trust.phone) { showToast('尚未設定信任聯絡人'); return; }
+  const msg = trust.message || '我現在狀態不太好，可以陪我一下嗎？';
+  const url = `sms:${trust.phone}?body=${encodeURIComponent(msg)}`;
+  window.open(url, '_blank');
+}
+
+// ══════════════════════════════════════
+// 7. CHAT PERSISTENCE (unchanged)
+// ══════════════════════════════════════
+
 function loadChatLocal() {
   try {
     const saved = localStorage.getItem('starfold-chat');
@@ -2525,14 +2945,13 @@ function saveChatLocal() {
   if (window._currentUser) syncChatToCloud();
 }
 
-// Firestore sync
 async function syncChatToCloud() {
   if (!window._fb || !window._currentUser) return;
   try {
     const { db, doc, setDoc } = window._fb;
     const uid = window._currentUser.uid;
     await setDoc(doc(db, 'users', uid, 'chat', 'history'), {
-      messages: chatHistory.slice(-50), // keep last 50 messages in cloud
+      messages: chatHistory.slice(-50),
       updatedAt: new Date().toISOString()
     });
   } catch(e) { console.error('sync chat:', e); }
@@ -2541,9 +2960,8 @@ async function syncChatToCloud() {
 window.loadChatFromCloud = async function() {
   if (!window._fb || !window._currentUser) return;
   try {
-    const { db, doc, getDocs, collection } = window._fb;
+    const { db, doc } = window._fb;
     const uid = window._currentUser.uid;
-    // Use getDoc for single document
     const docRef = doc(db, 'users', uid, 'chat', 'history');
     const { getDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
     const snap = await getDoc(docRef);
@@ -2563,11 +2981,11 @@ function saveChatLocalOnly() {
 }
 
 function loadChatHistory() {
-  if (_chatLoaded) return; // only load once
+  if (_chatLoaded) return;
   _chatLoaded = true;
   chatHistory = loadChatLocal();
+  chatTurnCount = Math.floor(chatHistory.filter(h => h.role === 'user').length);
   renderChatMessages();
-  // Also try cloud
   if (window._currentUser) window.loadChatFromCloud();
 }
 
@@ -2575,13 +2993,7 @@ function renderChatMessages() {
   const msgs = document.getElementById('chat-messages');
   msgs.innerHTML = '';
   if (chatHistory.length === 0) {
-    const greetings = [
-      '今晚的星空很美。有什麼想說的嗎？我在這裡陪你。🌙',
-      '嗨，你來了。今天過得怎麼樣呢？',
-      '我在這裡，有什麼心裡的話都可以說。',
-      '今晚願意來這裡，就是很棒的事。說說你的心情吧。',
-    ];
-    addMsg('ai', greetings[Math.floor(Math.random() * greetings.length)]);
+    addMsg('ai', '有什麼想說的嗎？我在這裡聽你說 🌙');
     return;
   }
   chatHistory.forEach(h => {
@@ -2593,6 +3005,7 @@ function renderChatMessages() {
 function clearChatHistory() {
   if (!confirm('確定要清除所有對話紀錄嗎？')) return;
   chatHistory = [];
+  chatTurnCount = 0;
   _chatLoaded = false;
   saveChatLocal();
   loadChatHistory();
@@ -2609,6 +3022,10 @@ function addMsg(type, text) {
   msgs.scrollTop = msgs.scrollHeight;
 }
 
+// ══════════════════════════════════════
+// 8. MAIN SEND FLOW (safety-first)
+// ══════════════════════════════════════
+
 let _lastUserMsg = '';
 
 async function sendMsg() {
@@ -2620,75 +3037,48 @@ async function sendMsg() {
   input.value = '';
   input.style.height = '';
   chatHistory.push({ role: 'user', content: text });
+  chatTurnCount++;
   saveChatLocal();
 
-  // Crisis keyword detection
-  if (detectCrisis(text)) {
-    showCrisisCard();
+  // ── Step 1: Safety Layer ──
+  const recentUserMsgs = chatHistory.filter(h => h.role === 'user').map(h => h.content).slice(-5);
+  const safety = detectRisk(text, recentUserMsgs);
+  const policy = getResponsePolicy(safety.riskLevel);
+
+  // ── Step 2: Show support panel if needed ──
+  if (shouldShowSupportPanel(safety.riskLevel)) {
+    showCrisisCard(); // inline card in chat
+    setTimeout(() => showSupportPanel(), 800); // full panel after brief delay
   }
 
-  await callAI(text);
-}
-
-// ─── Crisis Detection ───
-const CRISIS_KEYWORDS = [
-  '想死', '不想活', '自殺', '自我了斷', '了結', '結束生命',
-  '去死', '活不下去', '沒有意義', '跳樓', '割腕', '燒炭',
-  '安眠藥', '安眠藥哪裡買', '怎麼死', '死掉算了',
-  '不如死', '世界沒有我', '消失就好', '好想消失',
-  '自我傷害', '自傷', '不想醒來', '永遠睡著',
-];
-
-function detectCrisis(text) {
-  const normalized = text.toLowerCase().replace(/\s/g, '');
-  return CRISIS_KEYWORDS.some(kw => normalized.includes(kw));
-}
-
-function showCrisisCard() {
-  const msgs = document.getElementById('chat-messages');
-  const card = document.createElement('div');
-  card.className = 'crisis-card';
-  card.innerHTML = `
-    <div class="crisis-card-title">✦ 我們在乎你的安全</div>
-    <div class="crisis-card-line">📞 安心專線：<a href="tel:1925"><strong>1925</strong></a>（24小時）</div>
-    <div class="crisis-card-line">📞 生命線：<a href="tel:1995"><strong>1995</strong></a></div>
-    <div class="crisis-card-line">📞 張老師專線：<a href="tel:1980"><strong>1980</strong></a></div>
-    <div class="crisis-card-line"><a href="#" onclick="goScreen('resources', null); return false;">→ 查看更多諮商資源</a></div>
-    <div class="crisis-card-note">你不需要一個人面對。如果現在很痛苦，請撥打上面的電話，會有人陪你。</div>
-  `;
-  msgs.appendChild(card);
-  msgs.scrollTop = msgs.scrollHeight;
-}
-
-// ─── Home Entrance Stars ───
-function playEntranceStars() {
-  const bottle = document.getElementById('bottle-btn');
-  if (!bottle) return;
-  const rect = bottle.getBoundingClientRect();
-  const cx = rect.left + rect.width / 2;
-  const cy = rect.top + rect.height / 2;
-
-  for (let i = 0; i < 8; i++) {
-    setTimeout(() => {
-      const star = document.createElement('div');
-      star.className = 'entrance-star';
-      star.textContent = '✦';
-      star.style.left = (cx + (Math.random() - 0.5) * 200) + 'px';
-      star.style.top = (cy + Math.random() * 80 + 40) + 'px';
-      star.style.animationDelay = (Math.random() * 0.3) + 's';
-      document.body.appendChild(star);
-      setTimeout(() => star.remove(), 1800);
-    }, 200 + i * 100);
+  // ── Step 3: Check turn limit ──
+  if (chatTurnCount > MAX_TURNS && safety.riskLevel === 'low') {
+    const turnMsg = RESPONSE_TEMPLATES.turnLimit[Math.floor(Math.random() * RESPONSE_TEMPLATES.turnLimit.length)];
+    addMsg('ai', turnMsg);
+    chatHistory.push({ role: 'assistant', content: turnMsg });
+    saveChatLocal();
+    return;
   }
+
+  // ── Step 4: Generate response ──
+  if (safety.riskLevel === 'crisis') {
+    // Crisis: use template directly, do NOT send to AI
+    const crisisReply = RESPONSE_TEMPLATES.crisis[Math.floor(Math.random() * RESPONSE_TEMPLATES.crisis.length)];
+    addMsg('ai', crisisReply);
+    chatHistory.push({ role: 'assistant', content: crisisReply });
+    saveChatLocal();
+    return;
+  }
+
+  // Non-crisis: use AI with bounded policy
+  await callAI(text, false, policy);
 }
 
-// Trigger entrance animation on first load
-if (!sessionStorage.getItem('starfold-entered')) {
-  sessionStorage.setItem('starfold-entered', '1');
-  setTimeout(playEntranceStars, 600);
-}
+// ══════════════════════════════════════
+// 9. AI CALL (with policy constraints)
+// ══════════════════════════════════════
 
-async function callAI(text, isRetry = false) {
+async function callAI(text, isRetry, policy) {
   const msgs = document.getElementById('chat-messages');
 
   if (isRetry) {
@@ -2715,27 +3105,19 @@ async function callAI(text, isRetry = false) {
         body: JSON.stringify({
           message: text,
           mood: selectedMood ? selectedMood.name : '未知',
-          history: chatHistory.slice(-6)
+          history: chatHistory.slice(-6),
+          riskLevel: policy ? (policy.showSupport ? 'high' : 'low') : 'low',
+          policyHint: policy ? policy.systemAddendum : '',
         })
       });
       clearTimeout(timeout);
 
-      // Read raw text first for debug
       const raw = await res.text();
-      console.log('[Starfold] API status:', res.status);
-      console.log('[Starfold] API raw:', raw);
+      console.log('[Starfold] API status:', res.status, 'raw:', raw);
 
       let data = {};
-      try {
-        data = raw ? JSON.parse(raw) : {};
-      } catch (e) {
-        throw new Error('invalid_json_' + res.status);
-      }
-
-      // Throw with backend's actual error code
-      if (!res.ok) {
-        throw new Error(data.error || 'server_error_' + res.status);
-      }
+      try { data = raw ? JSON.parse(raw) : {}; } catch (e) { throw new Error('invalid_json_' + res.status); }
+      if (!res.ok) throw new Error(data.error || 'server_error_' + res.status);
 
       const reply = data.reply;
       if (!reply) throw new Error('empty_response');
@@ -2753,61 +3135,74 @@ async function callAI(text, isRetry = false) {
       console.error('[Starfold] Chat error:', err.message);
 
       let errText = '';
-      if (err.name === 'AbortError') {
-        errText = '回應時間較長，可能是網路較慢 🌙 要再試一次嗎？';
-      } else if (!navigator.onLine) {
-        errText = '目前沒有網路連線，請確認後再試。';
-      } else if (err.message.includes('missing_api_key')) {
-        errText = 'AI 設定尚未完成，請稍後再試。';
-      } else if (err.message.includes('invalid_api_key')) {
-        errText = 'AI 服務驗證失敗，請稍後再試。';
-      } else if (err.message.includes('quota_exceeded')) {
-        errText = 'AI 服務額度已滿，請稍後再試 🌙';
-      } else if (err.message.includes('model_not_found')) {
-        errText = 'AI 模型設定有誤，請稍後再試。';
-      } else if (err.message.includes('ai_service_error')) {
-        errText = 'AI 正在忙碌中，請稍後再試 ✦';
-      } else if (err.message.includes('empty_response')) {
-        errText = 'AI 沒有回應，要再試一次嗎？';
-      } else if (err.message.includes('invalid_json')) {
-        errText = '伺服器回應異常，請稍後再試。';
-      } else if (err.message.includes('server_error')) {
-        errText = 'AI 服務暫時無法使用，請稍後再試。';
-      } else {
-        errText = '連線出現問題，要再試一次嗎？';
-      }
+      if (err.name === 'AbortError') errText = '回應時間較長，可能是網路較慢 🌙 要再試一次嗎？';
+      else if (!navigator.onLine) errText = '目前沒有網路連線，請確認後再試。';
+      else if (err.message.includes('missing_api_key')) errText = 'AI 設定尚未完成，請稍後再試。';
+      else if (err.message.includes('invalid_api_key')) errText = 'AI 服務驗證失敗，請稍後再試。';
+      else if (err.message.includes('quota_exceeded')) errText = 'AI 服務額度已滿，請稍後再試 🌙';
+      else if (err.message.includes('empty_response')) errText = 'AI 沒有回應，要再試一次嗎？';
+      else errText = '連線出現問題，要再試一次嗎？';
 
       const errDiv = document.createElement('div');
       errDiv.className = 'msg error';
-
       const errTextNode = document.createElement('div');
       errTextNode.textContent = errText;
       errDiv.appendChild(errTextNode);
-
       const retryBtn = document.createElement('button');
       retryBtn.className = 'retry-btn';
       retryBtn.type = 'button';
       retryBtn.textContent = '↩ 重新傳送';
       retryBtn.addEventListener('click', retryAI);
       errDiv.appendChild(retryBtn);
-
       msgs.appendChild(errDiv);
       msgs.scrollTop = 99999;
       return;
     }
   }
 
-  // No API configured - use fallback
+  // Fallback: use templates based on detected risk
   setTimeout(() => {
     const t = document.getElementById('typing');
     if (t) t.remove();
-    addMsg('ai', FALLBACK_RESPONSES[responseIdx % FALLBACK_RESPONSES.length]);
+    const recentUserMsgs = chatHistory.filter(h => h.role === 'user').map(h => h.content).slice(-5);
+    const safety = detectRisk(text, recentUserMsgs);
+    const templates = RESPONSE_TEMPLATES[safety.riskLevel] || RESPONSE_TEMPLATES.low;
+    const reply = templates[responseIdx % templates.length];
+    addMsg('ai', reply);
+    chatHistory.push({ role: 'assistant', content: reply });
+    saveChatLocal();
     responseIdx++;
-  }, 1000 + Math.random() * 500);
+  }, 800);
 }
 
 async function retryAI() {
-  if (_lastUserMsg) await callAI(_lastUserMsg, true);
+  if (_lastUserMsg) {
+    const recentUserMsgs = chatHistory.filter(h => h.role === 'user').map(h => h.content).slice(-5);
+    const safety = detectRisk(_lastUserMsg, recentUserMsgs);
+    const policy = getResponsePolicy(safety.riskLevel);
+    await callAI(_lastUserMsg, true, policy);
+  }
+}
+
+// ══════════════════════════════════════
+// 10. CRISIS CARD (inline in chat)
+// ══════════════════════════════════════
+
+function showCrisisCard() {
+  const msgs = document.getElementById('chat-messages');
+  // Don't show duplicate if already there
+  if (msgs.querySelector('.crisis-card')) return;
+  const card = document.createElement('div');
+  card.className = 'crisis-card';
+  card.innerHTML = `
+    <div class="crisis-card-title">✦ 我們在乎你的安全</div>
+    <div class="crisis-card-line">📞 安心專線：<a href="tel:1925"><strong>1925</strong></a>（24小時）</div>
+    <div class="crisis-card-line">📞 生命線：<a href="tel:1995"><strong>1995</strong></a></div>
+    <div class="crisis-card-line">📞 張老師專線：<a href="tel:1980"><strong>1980</strong></a></div>
+    <div class="crisis-card-note">你不需要一個人面對。如果現在很痛苦，請撥打上面的電話，會有人陪你。</div>
+  `;
+  msgs.appendChild(card);
+  msgs.scrollTop = msgs.scrollHeight;
 }
 
 function handleKey(e) {
@@ -2816,6 +3211,31 @@ function handleKey(e) {
 function autoResize(el) {
   el.style.height = 'auto';
   el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+}
+
+// ─── Home Entrance Stars ───
+function playEntranceStars() {
+  const bottle = document.getElementById('bottle-btn');
+  if (!bottle) return;
+  const rect = bottle.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+  for (let i = 0; i < 8; i++) {
+    setTimeout(() => {
+      const star = document.createElement('div');
+      star.className = 'entrance-star';
+      star.textContent = '✦';
+      star.style.left = (cx + (Math.random() - 0.5) * 200) + 'px';
+      star.style.top = (cy + Math.random() * 80 + 40) + 'px';
+      star.style.animationDelay = (Math.random() * 0.3) + 's';
+      document.body.appendChild(star);
+      setTimeout(() => star.remove(), 1800);
+    }, 200 + i * 100);
+  }
+}
+if (!sessionStorage.getItem('starfold-entered')) {
+  sessionStorage.setItem('starfold-entered', '1');
+  setTimeout(playEntranceStars, 600);
 }
 
 // ─── Drawing Canvas ───
