@@ -1855,19 +1855,33 @@
     0% { opacity: 0; transform: translateY(16px); }
     100% { opacity: 1; transform: translateY(0); }
   }
-  /* Floating stars during entrance */
+  /* Floating stars during entrance — converge toward bottle */
   .entrance-star {
     position: fixed;
-    font-size: 10px;
+    font-size: 12px;
     color: #f5e6c8;
     pointer-events: none;
     z-index: 100;
-    animation: starFloat 1.4s ease-out forwards;
+    animation: starConverge 1.0s cubic-bezier(0.4, 0, 0.2, 1) forwards;
   }
-  @keyframes starFloat {
-    0% { opacity: 0; transform: translateY(0) scale(0.5); }
-    20% { opacity: 1; }
-    100% { opacity: 0; transform: translateY(-200px) scale(0.2); }
+  @keyframes starConverge {
+    0% { opacity: 0; transform: translate(var(--sx), var(--sy)) scale(1.2); }
+    30% { opacity: 1; }
+    100% { opacity: 0; transform: translate(0, 0) scale(0.1); }
+  }
+  /* Flash after stars converge */
+  .entrance-flash {
+    position: fixed;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 101;
+    background: radial-gradient(circle, rgba(245,230,200,0.6) 0%, rgba(245,230,200,0) 70%);
+    animation: flashPulse 0.8s ease-out forwards;
+  }
+  @keyframes flashPulse {
+    0% { transform: scale(0.2); opacity: 0; }
+    30% { transform: scale(1); opacity: 1; }
+    100% { transform: scale(2.5); opacity: 0; }
   }
 
   @keyframes flyToBottle {
@@ -3813,18 +3827,37 @@ function playEntranceStars() {
   const rect = bottle.getBoundingClientRect();
   const cx = rect.left + rect.width / 2;
   const cy = rect.top + rect.height / 2;
-  for (let i = 0; i < 8; i++) {
+
+  // Spawn stars from random positions, converging to bottle center
+  for (let i = 0; i < 12; i++) {
     setTimeout(() => {
       const star = document.createElement('div');
       star.className = 'entrance-star';
       star.textContent = '✦';
-      star.style.left = (cx + (Math.random() - 0.5) * 200) + 'px';
-      star.style.top = (cy + Math.random() * 80 + 40) + 'px';
-      star.style.animationDelay = (Math.random() * 0.3) + 's';
+      // Random starting offset from center
+      const offsetX = (Math.random() - 0.5) * 300;
+      const offsetY = (Math.random() - 0.5) * 400;
+      star.style.left = cx + 'px';
+      star.style.top = cy + 'px';
+      star.style.setProperty('--sx', offsetX + 'px');
+      star.style.setProperty('--sy', offsetY + 'px');
       document.body.appendChild(star);
-      setTimeout(() => star.remove(), 1800);
-    }, 200 + i * 100);
+      setTimeout(() => star.remove(), 1200);
+    }, i * 60);
   }
+
+  // Flash effect after stars converge
+  setTimeout(() => {
+    const flash = document.createElement('div');
+    flash.className = 'entrance-flash';
+    const size = 200;
+    flash.style.width = size + 'px';
+    flash.style.height = size + 'px';
+    flash.style.left = (cx - size / 2) + 'px';
+    flash.style.top = (cy - size / 2) + 'px';
+    document.body.appendChild(flash);
+    setTimeout(() => flash.remove(), 900);
+  }, 12 * 60 + 600);
 }
 if (!sessionStorage.getItem('starfold-entered')) {
   sessionStorage.setItem('starfold-entered', '1');
@@ -5093,10 +5126,10 @@ function deformPress(tx, ty, strength) {
     const angleDiff = Math.abs(((p.angle - pressAngle + Math.PI) % (Math.PI * 2)) - Math.PI);
     // Near press point: push inward (flatten)
     const nearness = Math.max(0, 1 - angleDiff / (Math.PI * 0.5));
-    p.vel -= nearness * strength * blob.baseR * 0.08 * proximity;
+    p.vel -= nearness * strength * blob.baseR * 0.16 * proximity;
     // Perpendicular to press: bulge outward (mochi squish)
     const perpNearness = Math.max(0, Math.sin(angleDiff * 2)) * (angleDiff < Math.PI * 0.8 ? 1 : 0);
-    p.vel += perpNearness * strength * blob.baseR * 0.04 * proximity;
+    p.vel += perpNearness * strength * blob.baseR * 0.08 * proximity;
   });
 }
 
@@ -5106,22 +5139,22 @@ function deformStretch(x1, y1, x2, y2) {
   const angle1 = Math.atan2(y1 - blob.y, x1 - blob.x);
   const angle2 = Math.atan2(y2 - blob.y, x2 - blob.x);
   const dist = Math.hypot(x2 - x1, y2 - y1);
-  const stretchAmount = Math.min(dist / blob.baseR * 0.06, 0.4);
+  const stretchAmount = Math.min(dist / blob.baseR * 0.12, 0.7);
 
   blob.points.forEach(p => {
     // Stretch toward finger 1
     const diff1 = Math.abs(((p.angle - angle1 + Math.PI) % (Math.PI * 2)) - Math.PI);
     const near1 = Math.max(0, 1 - diff1 / (Math.PI * 0.45));
-    p.vel += near1 * stretchAmount * blob.baseR * 0.06;
+    p.vel += near1 * stretchAmount * blob.baseR * 0.12;
     // Stretch toward finger 2
     const diff2 = Math.abs(((p.angle - angle2 + Math.PI) % (Math.PI * 2)) - Math.PI);
     const near2 = Math.max(0, 1 - diff2 / (Math.PI * 0.45));
-    p.vel += near2 * stretchAmount * blob.baseR * 0.06;
+    p.vel += near2 * stretchAmount * blob.baseR * 0.12;
     // Compress perpendicular (volume conservation)
     const midAngle = (angle1 + angle2) / 2;
     const perpDiff = Math.abs(((p.angle - midAngle - Math.PI/2 + Math.PI) % (Math.PI * 2)) - Math.PI);
     const perpNear = Math.max(0, 1 - perpDiff / (Math.PI * 0.4));
-    p.vel -= perpNear * stretchAmount * blob.baseR * 0.03;
+    p.vel -= perpNear * stretchAmount * blob.baseR * 0.06;
   });
 }
 
@@ -5155,7 +5188,7 @@ function drawBubble() {
     p.vel += (0 - p.offset) * 0.07; // spring constant (stiffness)
     p.vel *= 0.88; // damping (lower = slower bounce back, more mochi-like)
     p.offset += p.vel;
-    p.offset = Math.max(-blob.baseR * 0.5, Math.min(blob.baseR * 0.5, p.offset));
+    p.offset = Math.max(-blob.baseR * 0.6, Math.min(blob.baseR * 0.7, p.offset));
   });
 
   // Breathing
