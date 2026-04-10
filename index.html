@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
-<title>Starfold — 你的情緒空間</title>
+<title>藏星瓶 — 你的情緒空間</title>
 
 <!-- PWA -->
 <link rel="manifest" href="manifest.json">
@@ -450,25 +450,60 @@
     width: 28px;
     flex-shrink: 0;
   }
-
-  /* Color swatches */
-  .color-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    flex: 1;
-  }
-  .color-dot {
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    cursor: pointer;
-    border: 2px solid transparent;
-    transition: transform 0.15s, border-color 0.15s;
+  .toolbar-hint {
+    font-size: 9px;
+    color: var(--text-muted);
+    letter-spacing: 0.4px;
     flex-shrink: 0;
   }
-  .color-dot:hover { transform: scale(1.2); }
-  .color-dot.selected { border-color: white; transform: scale(1.15); }
+
+  /* Color gradient bar */
+  .color-slider-wrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    padding: 2px 0 4px;
+  }
+  .color-gradient-bar {
+    position: relative;
+    width: 100%;
+    height: 22px;
+    border-radius: 999px;
+    cursor: pointer;
+    border: 1.5px solid rgba(255,255,255,0.12);
+    background: linear-gradient(90deg,
+      #a78de0 0%,
+      #c8a8f8 8%,
+      #7b9cf5 16%,
+      #aac4ff 24%,
+      #80d4f0 32%,
+      #8dd4b8 40%,
+      #b8f0d8 48%,
+      #a0e878 56%,
+      #ffe066 64%,
+      #f5e6c8 72%,
+      #f5c8a0 80%,
+      #f0a07a 88%,
+      #f08080 94%,
+      #ffd6e0 97%,
+      #ffffff 100%);
+    box-shadow: inset 0 1px 2px rgba(255,255,255,0.14), 0 0 0 1px rgba(0,0,0,0.08);
+    overflow: visible;
+    touch-action: none;
+  }
+  .color-gradient-thumb {
+    position: absolute;
+    top: 50%;
+    left: 0%;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: transparent;
+    border: 2px solid rgba(255,255,255,0.98);
+    box-shadow: 0 0 0 2px rgba(22,18,38,0.24), 0 2px 6px rgba(0,0,0,0.22);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
 
   /* Brush type buttons */
   .brush-types {
@@ -1107,9 +1142,9 @@
   .game-card:active { transform: scale(0.97); }
   .game-card:hover { border-color: rgba(123,156,245,0.3); }
   .game-card-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 14px;
+    width: 25px;
+    height: 25px;
+    border-radius: 30px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1845,14 +1880,49 @@ onAuthStateChanged(auth, (user) => {
     if (userBar) userBar.style.display = 'none';
   }
 });
+
+window.addEventListener('load', () => {
+  initGradientColorPicker();
+});
+
 </script>
 </head>
 <body>
 
 <canvas id="star-bg"></canvas>
 
-<div class="app">
 
+<!-- Nav -->
+<nav class="nav">
+  <button class="nav-btn" onclick="goScreen('canvas', this); setTimeout(initCanvas, 150)">
+    <img src="assets/icons/nav-brush.svg" alt="畫布 icon">
+    <span>畫布</span>
+  </button>
+  <button class="nav-btn" onclick="goScreen('chat', this); loadChatHistory()">
+    <img src="assets/icons/nav-chat.svg" alt="傾訴 icon">
+    <span>傾訴</span>
+  </button>
+  <button class="nav-btn nav-btn-center active" onclick="goScreen('home', this)">
+    <div class="icon-shell" id="center-shell">
+      <img src="assets/icons/nav-bottle.svg" alt="首頁 icon">
+    </div>
+    <span>首頁</span>
+  </button>
+  <button class="nav-btn" onclick="goScreen('games', this)">
+    <img src="assets/icons/nav-mood.svg" alt="解壓 icon">
+    <span>解壓</span>
+  </button>
+  <button class="nav-btn" onclick="goScreen('settings', this); initSettingsPage();">
+    <svg   width="22"   height="22"   viewBox="0 0 24 24"   fill="none"   stroke="#f9eac5"   stroke-width="1.8"   stroke-linecap="round"stroke-linejoin="round">
+    <circle cx="12" cy="12" r="3"/>
+    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+    </svg>
+    <span>設定</span>
+  </button>
+</nav>
+
+
+<div class="app">
   <!-- HOME -->
   <div class="screen active" id="screen-home" style="display:flex; flex-direction:column; align-items:center;">
     <!-- Bottle section -->
@@ -1907,23 +1977,11 @@ onAuthStateChanged(auth, (user) => {
       <!-- Colors -->
       <div class="toolbar-row">
         <span class="toolbar-label">顏色</span>
-        <div class="color-grid" id="color-palette">
-          <div class="color-dot selected" style="background:#a78de0" data-color="#a78de0" onclick="setColor(this)"></div>
-          <div class="color-dot" style="background:#c8a8f8" data-color="#c8a8f8" onclick="setColor(this)"></div>
-          <div class="color-dot" style="background:#7b9cf5" data-color="#7b9cf5" onclick="setColor(this)"></div>
-          <div class="color-dot" style="background:#aac4ff" data-color="#aac4ff" onclick="setColor(this)"></div>
-          <div class="color-dot" style="background:#8dd4b8" data-color="#8dd4b8" onclick="setColor(this)"></div>
-          <div class="color-dot" style="background:#b8f0d8" data-color="#b8f0d8" onclick="setColor(this)"></div>
-          <div class="color-dot" style="background:#f0a07a" data-color="#f0a07a" onclick="setColor(this)"></div>
-          <div class="color-dot" style="background:#f5c8a0" data-color="#f5c8a0" onclick="setColor(this)"></div>
-          <div class="color-dot" style="background:#f5e6c8" data-color="#f5e6c8" onclick="setColor(this)"></div>
-          <div class="color-dot" style="background:#ffffff" data-color="#ffffff" onclick="setColor(this)"></div>
-          <div class="color-dot" style="background:#f08080" data-color="#f08080" onclick="setColor(this)"></div>
-          <div class="color-dot" style="background:#ffd6e0" data-color="#ffd6e0" onclick="setColor(this)"></div>
-          <div class="color-dot" style="background:#80d4f0" data-color="#80d4f0" onclick="setColor(this)"></div>
-          <div class="color-dot" style="background:#ffe066" data-color="#ffe066" onclick="setColor(this)"></div>
-          <div class="color-dot" style="background:#a0e878" data-color="#a0e878" onclick="setColor(this)"></div>
-          <div class="color-dot" style="background:#6c6c9e" data-color="#6c6c9e" onclick="setColor(this)"></div>
+        <span class="toolbar-hint">點色條選取</span>
+        <div class="color-slider-wrap">
+          <div class="color-gradient-bar" id="color-gradient-bar" onclick="pickGradientColor(event)">
+            <div class="color-gradient-thumb" id="color-gradient-thumb"></div>
+          </div>
         </div>
       </div>
 
@@ -2008,7 +2066,7 @@ onAuthStateChanged(auth, (user) => {
     </div>
     <div class="diary-tab-bar">
       <button class="diary-tab active" onclick="switchDiaryTab('map', this)">✦ 藏星</button>
-      <button class="diary-tab" onclick="switchDiaryTab('trail', this)">☽ 星軌</button>
+      <button class="diary-tab" onclick="switchDiaryTab('trail', this)">☽ 數星</button>
     </div>
     <div id="star-map-view">
       <div class="star-map">
@@ -2059,8 +2117,8 @@ onAuthStateChanged(auth, (user) => {
       <div class="games-sub">選一個放鬆方式吧</div>
     </div>
     <div class="game-card" onclick="launchGame('press')">
-      <div class="game-card-icon" style="background:rgba(167,141,224,0.12);">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a78de0" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      <div class="game-card-icon" >
+        <img src="assets/icons/game-star-tap.svg" alt="星星點點 icon">
       </div>
       <div class="game-card-info">
         <div class="game-card-name">星星點點</div>
@@ -2069,8 +2127,8 @@ onAuthStateChanged(auth, (user) => {
       <div class="game-card-arrow">›</div>
     </div>
     <div class="game-card" onclick="launchGame('bubble')">
-      <div class="game-card-icon" style="background:rgba(123,156,245,0.12);">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7b9cf5" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><circle cx="9" cy="10" r="2" opacity="0.4"/></svg>
+      <div class="game-card-icon">
+        <img src="assets/icons/game-bubble.svg" alt="揉捏泡泡 icon">
       </div>
       <div class="game-card-info">
         <div class="game-card-name">揉捏泡泡</div>
@@ -2079,8 +2137,8 @@ onAuthStateChanged(auth, (user) => {
       <div class="game-card-arrow">›</div>
     </div>
     <div class="game-card" onclick="launchGame('sand')">
-      <div class="game-card-icon" style="background:rgba(245,230,200,0.12);">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f5e6c8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l-1.5 7h-9L6 3z"/><path d="M7.5 10l-1 11h11l-1-11"/><circle cx="10" cy="16" r="1" fill="#f5e6c8" stroke="none"/><circle cx="14" cy="17" r="0.8" fill="#f5e6c8" stroke="none"/><circle cx="12" cy="15" r="0.8" fill="#f5e6c8" stroke="none"/></svg>
+      <div class="game-card-icon">
+        <img src="assets/icons/game-sand-bottle.svg" alt="星砂瓶 icon">
       </div>
       <div class="game-card-info">
         <div class="game-card-name">星砂瓶</div>
@@ -2090,34 +2148,6 @@ onAuthStateChanged(auth, (user) => {
     </div>
   </div>
 
-<!-- Nav -->
-<nav class="nav">
-  <button class="nav-btn" onclick="goScreen('chat', this); loadChatHistory()">
-    <img src="assets/icons/nav-chat.svg" alt="傾訴 icon">
-    <span>傾訴</span>
-  </button>
-  <button class="nav-btn" onclick="goScreen('canvas', this); setTimeout(initCanvas, 150)">
-    <img src="assets/icons/nav-brush.svg" alt="畫布 icon">
-    <span>畫布</span>
-  </button>
-  <button class="nav-btn nav-btn-center active" onclick="goScreen('home', this)">
-    <div class="icon-shell" id="center-shell">
-      <img src="assets/icons/nav-bottle.svg" alt="藏星 icon">
-    </div>
-    <span>藏星</span>
-  </button>
-  <button class="nav-btn" onclick="goScreen('games', this)">
-    <img src="assets/icons/nav-mood.svg" alt="解壓 icon">
-    <span>解壓</span>
-  </button>
-  <button class="nav-btn" onclick="goScreen('settings', this); initSettingsPage();">
-    <svg   width="22"   height="22"   viewBox="0 0 24 24"   fill="none"   stroke="#f9eac5"   stroke-width="1.8"   stroke-linecap="round"stroke-linejoin="round">
-    <circle cx="12" cy="12" r="3"/>
-    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-    </svg>
-    <span>設定</span>
-  </button>
-</nav>
 
 
 
@@ -2340,7 +2370,7 @@ onAuthStateChanged(auth, (user) => {
       </div>
     </div>
 
-    <div class="settings-section">
+    <div class="settings-section" style="display: none;">
       <div class="settings-section-title">使用狀態</div>
       <div class="settings-card">
         <div class="settings-info">識別碼：<code id="settings-uid">-</code></div>
@@ -2359,7 +2389,7 @@ onAuthStateChanged(auth, (user) => {
 </div> <!-- end .app -->
 
   <!-- GAME: Press Ball -->
-  <div id="game-overlay" style="display:none; position:fixed; inset:0; z-index:80; background:#070f2b;">
+  <div id="game-overlay" style="display:none; position:fixed; inset:0; z-index:20; background:#070f2b;">
     <canvas id="game-canvas" style="display:block; position:absolute; top:0; left:0;" onclick="handleGameClick(event)"></canvas>
     <div style="position:absolute; bottom:calc(env(safe-area-inset-bottom)+24px); left:0; right:0; z-index:81; display:flex; justify-content:center;">
       <button class="game-back-btn" onclick="stopGame()">← 返回</button>
@@ -2368,7 +2398,7 @@ onAuthStateChanged(auth, (user) => {
   </div>
 
   <!-- GAME: Squishy Bubble -->
-  <div id="bubble-overlay" style="display:none; position:fixed; inset:0; z-index:80; background:#070f2b;">
+  <div id="bubble-overlay" style="display:none; position:fixed; inset:0; z-index:20; background:#070f2b;">
     <canvas id="bubble-canvas" style="display:block; position:absolute; top:0; left:0; touch-action:none;"></canvas>
     <div style="position:absolute; bottom:calc(env(safe-area-inset-bottom)+24px); left:0; right:0; z-index:81; display:flex; justify-content:center;">
       <button class="game-back-btn" onclick="stopBubbleGame()">← 返回</button>
@@ -2376,14 +2406,14 @@ onAuthStateChanged(auth, (user) => {
   </div>
 
   <!-- GAME: Sand Bottle -->
-  <div id="sand-overlay" style="display:none; position:fixed; inset:0; z-index:80; background:#070f2b;">
-    <canvas id="sand-canvas" style="display:block; position:absolute; top:0; left:0;"></canvas>
+  <div id="sand-overlay" style="display:none; position:fixed; inset:0; z-index:20; background:#070f2b;">
+    <canvas id="sand-canvas" style="display:block; position:absolute; top:20px; left:0;"></canvas>
     <div style="position:absolute; bottom:calc(env(safe-area-inset-bottom)+24px); left:0; right:0; z-index:81; display:flex; justify-content:center; gap:12px; align-items:center;">
       <button class="game-back-btn" onclick="stopSandGame()">← 返回</button>
       <button class="game-back-btn" onclick="shakeSand()" style="font-size:14px;">✦ 搖一搖</button>
     </div>
     <!-- Landscape warning -->
-    <div id="sand-landscape-warn" style="display:none; position:absolute; inset:0; z-index:90; background:#070f2b; justify-content:center; align-items:center; flex-direction:column; gap:12px;">
+    <div id="sand-landscape-warn" style="display:none; position:absolute; inset:0; z-index:20; background:#070f2b; justify-content:center; align-items:center; flex-direction:column; gap:12px;">
       <div style="font-size:28px;">🔄</div>
       <div style="font-size:14px; color:#e8dff8; font-family:'Noto Sans TC',sans-serif;">請將手機轉為直向</div>
       <div style="font-size:11px; color:#4a5a8a; font-family:'Noto Sans TC',sans-serif;">星砂瓶需要直向使用</div>
@@ -3602,11 +3632,106 @@ function hexToRgb(hex) {
   return {r,g,b};
 }
 
-function setColor(el) {
-  document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('selected'));
-  el.classList.add('selected');
-  brushColor = el.dataset.color;
+const gradientStops = [
+  { pos: 0.00, color: '#a78de0' },
+  { pos: 0.08, color: '#c8a8f8' },
+  { pos: 0.16, color: '#7b9cf5' },
+  { pos: 0.24, color: '#aac4ff' },
+  { pos: 0.32, color: '#80d4f0' },
+  { pos: 0.40, color: '#8dd4b8' },
+  { pos: 0.48, color: '#b8f0d8' },
+  { pos: 0.56, color: '#a0e878' },
+  { pos: 0.64, color: '#ffe066' },
+  { pos: 0.72, color: '#f5e6c8' },
+  { pos: 0.80, color: '#f5c8a0' },
+  { pos: 0.88, color: '#f0a07a' },
+  { pos: 0.94, color: '#f08080' },
+  { pos: 0.97, color: '#ffd6e0' },
+  { pos: 1.00, color: '#ffffff' }
+];
+
+function hexToRgbObj(hex) {
+  const clean = hex.replace('#', '');
+  return {
+    r: parseInt(clean.slice(0, 2), 16),
+    g: parseInt(clean.slice(2, 4), 16),
+    b: parseInt(clean.slice(4, 6), 16)
+  };
+}
+
+function rgbToHex(r, g, b) {
+  return '#' + [r, g, b].map(v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('');
+}
+
+function interpolateGradientColor(t) {
+  const clamped = Math.max(0, Math.min(1, t));
+  for (let i = 0; i < gradientStops.length - 1; i++) {
+    const start = gradientStops[i];
+    const end = gradientStops[i + 1];
+    if (clamped >= start.pos && clamped <= end.pos) {
+      const localT = (clamped - start.pos) / (end.pos - start.pos || 1);
+      const c1 = hexToRgbObj(start.color);
+      const c2 = hexToRgbObj(end.color);
+      return rgbToHex(
+        c1.r + (c2.r - c1.r) * localT,
+        c1.g + (c2.g - c1.g) * localT,
+        c1.b + (c2.b - c1.b) * localT
+      );
+    }
+  }
+  return gradientStops[gradientStops.length - 1].color;
+}
+
+function updateGradientThumb(t) {
+  const thumb = document.getElementById('color-gradient-thumb');
+  if (thumb) thumb.style.left = `${Math.max(0, Math.min(1, t)) * 100}%`;
+}
+
+function setGradientColorByRatio(t) {
+  brushColor = interpolateGradientColor(t);
+  updateGradientThumb(t);
   if (brushType === 'eraser') setBrushByType('pen');
+}
+
+function gradientRatioFromEvent(event, bar) {
+  const rect = bar.getBoundingClientRect();
+  const clientX = event.touches ? event.touches[0].clientX : event.clientX;
+  return (clientX - rect.left) / rect.width;
+}
+
+function pickGradientColor(event) {
+  const bar = document.getElementById('color-gradient-bar');
+  if (!bar) return;
+  setGradientColorByRatio(gradientRatioFromEvent(event, bar));
+}
+
+function initGradientColorPicker() {
+  const bar = document.getElementById('color-gradient-bar');
+  if (!bar) return;
+  let dragging = false;
+
+  const move = (event) => {
+    if (!dragging) return;
+    event.preventDefault();
+    setGradientColorByRatio(gradientRatioFromEvent(event, bar));
+  };
+
+  bar.addEventListener('pointerdown', (event) => {
+    dragging = true;
+    bar.setPointerCapture?.(event.pointerId);
+    setGradientColorByRatio(gradientRatioFromEvent(event, bar));
+  });
+  bar.addEventListener('pointermove', move);
+  bar.addEventListener('pointerup', () => dragging = false);
+  bar.addEventListener('pointercancel', () => dragging = false);
+  bar.addEventListener('touchstart', (event) => {
+    dragging = true;
+    setGradientColorByRatio(gradientRatioFromEvent(event, bar));
+  }, { passive: true });
+  bar.addEventListener('touchmove', move, { passive: false });
+  bar.addEventListener('touchend', () => dragging = false);
+
+  setGradientColorByRatio(0);
 }
 function setBrush(el) {
   document.querySelectorAll('.brush-btn').forEach(b => b.classList.remove('selected'));
@@ -4422,109 +4547,143 @@ initCanvas = function() {
 // ─── Squishy Bubble Game (Single Large Blob) ───
 let bubbleCanvas, bCtx, bubbleActive = false, bubbleAnimFrame;
 let blob = null;
-let touchPoints = []; // active touch/press points on the blob
+let mochiTouches = []; // track all active fingers
 
 function initBlob() {
   const W = bubbleCanvas.width, H = bubbleCanvas.height;
-  const baseR = Math.min(W, H) * 0.28;
-  const numPts = 24; // more points = smoother shape
+  const baseR = Math.min(W, H) * 0.25;
+  const numPts = 32;
   const points = [];
   for (let i = 0; i < numPts; i++) {
     points.push({
       angle: (Math.PI * 2 / numPts) * i,
       offset: 0,
       vel: 0,
+      restOffset: 0, // target to spring back to
     });
   }
   blob = {
     x: W / 2,
     y: H / 2 - 20,
     baseR: baseR,
-    r: baseR,
     color: {
       core: '#FFFDF2',
       mid: '#FFE9A8',
       edge: '#FFD36B',
       rim: 'rgba(255,247,214,0.65)',
-      glow: 'rgba(255,224,138,0.42)',
-      shadow: 'rgba(255,183,77,0.18)'
     },
     phase: 0,
     points: points,
     pressed: false,
-    pressX: 0, pressY: 0,
-    pressForce: 0,
-    squashX: 1,
-    squashY: 1,
-    dragOffX: 0, dragOffY: 0,
-    vx: 0, vy: 0,
+    numFingers: 0,
   };
+  mochiTouches = [];
 }
 
 function handleBubbleDown(e) {
   e.preventDefault();
   if (!blob) return;
-  const t = e.touches ? e.touches[0] : e;
-  const x = t.clientX, y = t.clientY;
-  const dist = Math.hypot(x - blob.x, y - blob.y);
-  if (dist < blob.baseR * 1.6) {
-    blob.pressed = true;
-    blob.pressX = x;
-    blob.pressY = y;
-    blob.pressForce = 1;
-    blob.dragOffX = x - blob.x;
-    blob.dragOffY = y - blob.y;
-    // Immediate deformation toward press point
-    deformToward(x, y, 0.4);
+  const touches = e.touches || [e];
+  mochiTouches = [];
+  for (let i = 0; i < touches.length; i++) {
+    mochiTouches.push({ x: touches[i].clientX, y: touches[i].clientY, id: touches[i].identifier || 0 });
+  }
+  blob.pressed = true;
+  blob.numFingers = mochiTouches.length;
+
+  // Single finger: push inward at press point (flatten like pressing mochi)
+  if (mochiTouches.length === 1) {
+    deformPress(mochiTouches[0].x, mochiTouches[0].y, 0.5);
   }
 }
 
 function handleBubbleMove(e) {
   e.preventDefault();
   if (!blob || !blob.pressed) return;
-  const t = e.touches ? e.touches[0] : e;
-  const x = t.clientX, y = t.clientY;
-  const dx = x - blob.pressX, dy = y - blob.pressY;
-  const speed = Math.hypot(dx, dy);
+  const touches = e.touches || [e];
+  mochiTouches = [];
+  for (let i = 0; i < touches.length; i++) {
+    mochiTouches.push({ x: touches[i].clientX, y: touches[i].clientY, id: touches[i].identifier || 0 });
+  }
+  blob.numFingers = mochiTouches.length;
 
-  // Move blob (drag)
-  blob.x = x - blob.dragOffX;
-  blob.y = y - blob.dragOffY;
-
-  // Continuous deformation toward finger
-  deformToward(x, y, Math.min(speed * 0.015, 0.8));
-
-  blob.pressForce = Math.min(1, 0.45 + speed * 0.02);
-  blob.pressX = x;
-  blob.pressY = y;
+  if (mochiTouches.length === 1) {
+    // Single finger: drag + flatten
+    const t = mochiTouches[0];
+    deformPress(t.x, t.y, 0.35);
+    // Move blob center toward finger gently
+    blob.x += (t.x - blob.x) * 0.05;
+    blob.y += (t.y - blob.y) * 0.05;
+  } else if (mochiTouches.length >= 2) {
+    // Two fingers: stretch between them
+    const t1 = mochiTouches[0], t2 = mochiTouches[1];
+    deformStretch(t1.x, t1.y, t2.x, t2.y);
+    // Center blob between two fingers
+    blob.x += ((t1.x + t2.x) / 2 - blob.x) * 0.03;
+    blob.y += ((t1.y + t2.y) / 2 - blob.y) * 0.03;
+  }
 }
 
 function handleBubbleUp(e) {
   if (!blob) return;
-  blob.pressed = false;
-  blob.pressForce = 0;
-  // Bounce back with wobble
+  const remaining = e.touches ? e.touches.length : 0;
+  if (remaining === 0) {
+    blob.pressed = false;
+    blob.numFingers = 0;
+    mochiTouches = [];
+    // Spring bounce back with wobble
+    blob.points.forEach(p => {
+      p.vel += (0 - p.offset) * 0.15 + (Math.random() - 0.5) * 5;
+    });
+  } else {
+    mochiTouches = [];
+    for (let i = 0; i < e.touches.length; i++) {
+      mochiTouches.push({ x: e.touches[i].clientX, y: e.touches[i].clientY });
+    }
+    blob.numFingers = mochiTouches.length;
+  }
+}
+
+// Single finger press: push inward where finger is, bulge outward on sides
+function deformPress(tx, ty, strength) {
+  if (!blob) return;
+  const pressAngle = Math.atan2(ty - blob.y, tx - blob.x);
+  const pressDist = Math.hypot(tx - blob.x, ty - blob.y);
+  const proximity = Math.min(1, pressDist / blob.baseR);
+
   blob.points.forEach(p => {
-    p.vel += (Math.random() - 0.5) * 4;
+    const angleDiff = Math.abs(((p.angle - pressAngle + Math.PI) % (Math.PI * 2)) - Math.PI);
+    // Near press point: push inward (flatten)
+    const nearness = Math.max(0, 1 - angleDiff / (Math.PI * 0.5));
+    p.vel -= nearness * strength * blob.baseR * 0.08 * proximity;
+    // Perpendicular to press: bulge outward (mochi squish)
+    const perpNearness = Math.max(0, Math.sin(angleDiff * 2)) * (angleDiff < Math.PI * 0.8 ? 1 : 0);
+    p.vel += perpNearness * strength * blob.baseR * 0.04 * proximity;
   });
 }
 
-function deformToward(tx, ty, strength) {
+// Two finger stretch: pull blob toward both finger directions
+function deformStretch(x1, y1, x2, y2) {
   if (!blob) return;
+  const angle1 = Math.atan2(y1 - blob.y, x1 - blob.x);
+  const angle2 = Math.atan2(y2 - blob.y, x2 - blob.x);
+  const dist = Math.hypot(x2 - x1, y2 - y1);
+  const stretchAmount = Math.min(dist / blob.baseR * 0.06, 0.4);
+
   blob.points.forEach(p => {
-    // Point position on blob surface
-    const px = blob.x + Math.cos(p.angle) * (blob.baseR + p.offset);
-    const py = blob.y + Math.sin(p.angle) * (blob.baseR + p.offset);
-    const dist = Math.hypot(tx - px, ty - py);
-    const influence = Math.max(0, 1 - dist / (blob.baseR * 1.8));
-    // Push inward (toward center) near the press point
-    const pushDir = Math.atan2(ty - blob.y, tx - blob.x);
-    const angleDiff = Math.abs(((p.angle - pushDir + Math.PI) % (Math.PI * 2)) - Math.PI);
-    const nearness = Math.max(0, 1 - angleDiff / (Math.PI * 0.8));
-    p.vel -= nearness * strength * blob.baseR * 0.15;
-    // Also push outward on opposite side (conservation of volume feel)
-    const oppNearness = Math.max(0, 1 - (Math.PI - angleDiff) / (Math.PI * 0.6));
-    p.vel += oppNearness * strength * blob.baseR * 0.05;
+    // Stretch toward finger 1
+    const diff1 = Math.abs(((p.angle - angle1 + Math.PI) % (Math.PI * 2)) - Math.PI);
+    const near1 = Math.max(0, 1 - diff1 / (Math.PI * 0.45));
+    p.vel += near1 * stretchAmount * blob.baseR * 0.06;
+    // Stretch toward finger 2
+    const diff2 = Math.abs(((p.angle - angle2 + Math.PI) % (Math.PI * 2)) - Math.PI);
+    const near2 = Math.max(0, 1 - diff2 / (Math.PI * 0.45));
+    p.vel += near2 * stretchAmount * blob.baseR * 0.06;
+    // Compress perpendicular (volume conservation)
+    const midAngle = (angle1 + angle2) / 2;
+    const perpDiff = Math.abs(((p.angle - midAngle - Math.PI/2 + Math.PI) % (Math.PI * 2)) - Math.PI);
+    const perpNear = Math.max(0, 1 - perpDiff / (Math.PI * 0.4));
+    p.vel -= perpNear * stretchAmount * blob.baseR * 0.03;
   });
 }
 
@@ -4553,72 +4712,60 @@ function drawBubble() {
   blob.x = Math.max(blob.baseR + 10, Math.min(W - blob.baseR - 10, blob.x));
   blob.y = Math.max(blob.baseR + 60, Math.min(H - blob.baseR - 60, blob.y));
 
-  // Spring physics for deformation points
+  // Spring physics — spring back to 0 (rest shape)
   blob.points.forEach(p => {
-    p.vel += -p.offset * 0.06; // spring constant
-    p.vel *= 0.9; // damping
+    p.vel += (0 - p.offset) * 0.07; // spring constant (stiffness)
+    p.vel *= 0.88; // damping (lower = slower bounce back, more mochi-like)
     p.offset += p.vel;
-    // Clamp deformation
-    p.offset = Math.max(-blob.baseR * 0.4, Math.min(blob.baseR * 0.3, p.offset));
+    p.offset = Math.max(-blob.baseR * 0.5, Math.min(blob.baseR * 0.5, p.offset));
   });
 
   // Breathing
-  blob.phase += 0.012;
-  const breathe = 1 + Math.sin(blob.phase) * 0.025;
+  blob.phase += 0.01;
+  const breathe = 1 + Math.sin(blob.phase) * 0.015;
 
-  // Squash / release animation
-  const targetSquashX = blob.pressed ? 1.12 + blob.pressForce * 0.06 : 1;
-  const targetSquashY = blob.pressed ? 0.88 - blob.pressForce * 0.06 : 1;
-  blob.squashX += (targetSquashX - blob.squashX) * 0.16;
-  blob.squashY += (targetSquashY - blob.squashY) * 0.16;
-  blob.pressForce *= blob.pressed ? 0.97 : 0.84;
-
-  // Idle wobble (subtle)
+  // Idle wobble (subtle jiggle)
   if (!blob.pressed) {
     blob.points.forEach((p, i) => {
-      p.offset += Math.sin(blob.phase * 1.5 + i * 0.8) * 0.15;
+      p.offset += Math.sin(blob.phase * 1.2 + i * 0.7) * 0.1;
     });
   }
 
-  // Build smooth path from control points
+  // Build smooth path
   const pts = blob.points.map(p => {
     const r = (blob.baseR + p.offset) * breathe;
-    const cx = Math.cos(p.angle);
-    const sy = Math.sin(p.angle);
     return {
-      x: blob.x + cx * r * blob.squashX,
-      y: blob.y + sy * r * blob.squashY
+      x: blob.x + Math.cos(p.angle) * r,
+      y: blob.y + Math.sin(p.angle) * r
     };
   });
 
-  // Blob body - catmull-rom-ish smooth curve
+  // Draw mochi body — smooth curve
   bCtx.beginPath();
   for (let i = 0; i < pts.length; i++) {
     const curr = pts[i];
     const next = pts[(i + 1) % pts.length];
     if (i === 0) {
       const prev = pts[pts.length - 1];
-      const mx = (prev.x + curr.x) / 2, my = (prev.y + curr.y) / 2;
-      bCtx.moveTo(mx, my);
+      bCtx.moveTo((prev.x + curr.x) / 2, (prev.y + curr.y) / 2);
     }
-    const mx = (curr.x + next.x) / 2, my = (curr.y + next.y) / 2;
-    bCtx.quadraticCurveTo(curr.x, curr.y, mx, my);
+    bCtx.quadraticCurveTo(curr.x, curr.y, (curr.x + next.x) / 2, (curr.y + next.y) / 2);
   }
   bCtx.closePath();
 
-  // Gradient fill
+  // Gradient fill (warm mochi)
   const bodyGrd = bCtx.createRadialGradient(
-    blob.x - blob.baseR * 0.28, blob.y - blob.baseR * 0.32, 0,
-    blob.x, blob.y, blob.baseR * 1.18
+    blob.x - blob.baseR * 0.25, blob.y - blob.baseR * 0.3, 0,
+    blob.x, blob.y, blob.baseR * 1.2
   );
   bodyGrd.addColorStop(0, blob.color.core);
-  bodyGrd.addColorStop(0.32, 'rgba(255,244,197,0.95)');
-  bodyGrd.addColorStop(0.68, blob.color.mid);
+  bodyGrd.addColorStop(0.35, 'rgba(255,244,197,0.95)');
+  bodyGrd.addColorStop(0.7, blob.color.mid);
   bodyGrd.addColorStop(1, blob.color.edge);
   bCtx.fillStyle = bodyGrd;
   bCtx.fill();
 
-  // Edge line
+  // Soft edge
   bCtx.strokeStyle = blob.color.rim;
   bCtx.lineWidth = 1.5;
   bCtx.stroke();
@@ -4626,33 +4773,32 @@ function drawBubble() {
   // Highlight (top-left)
   bCtx.save();
   bCtx.beginPath();
-  bCtx.ellipse(blob.x - blob.baseR * 0.24, blob.y - blob.baseR * 0.34, blob.baseR * 0.34 * blob.squashX, blob.baseR * 0.16 * blob.squashY, -0.35, 0, Math.PI * 2);
-  bCtx.fillStyle = 'rgba(255,255,255,0.26)';
+  bCtx.ellipse(blob.x - blob.baseR * 0.22, blob.y - blob.baseR * 0.3, blob.baseR * 0.3, blob.baseR * 0.14, -0.35, 0, Math.PI * 2);
+  bCtx.fillStyle = 'rgba(255,255,255,0.25)';
   bCtx.fill();
   bCtx.restore();
 
-  // Small inner highlight
+  // Small shine
   bCtx.save();
   bCtx.beginPath();
-  bCtx.ellipse(blob.x - blob.baseR * 0.3, blob.y - blob.baseR * 0.38, blob.baseR * 0.085 * blob.squashX, blob.baseR * 0.05 * blob.squashY, -0.3, 0, Math.PI * 2);
-  bCtx.fillStyle = 'rgba(255,255,255,0.5)';
+  bCtx.ellipse(blob.x - blob.baseR * 0.28, blob.y - blob.baseR * 0.36, blob.baseR * 0.08, blob.baseR * 0.04, -0.3, 0, Math.PI * 2);
+  bCtx.fillStyle = 'rgba(255,255,255,0.45)';
   bCtx.fill();
   bCtx.restore();
 
-  // Press indicator - show where finger is pressing
-  if (blob.pressed) {
-    const px = blob.pressX, py = blob.pressY;
+  // Press indicators — show where fingers are touching
+  mochiTouches.forEach(mt => {
     bCtx.save();
-    bCtx.globalAlpha = 0.15;
-    const pressGrd = bCtx.createRadialGradient(px, py, 0, px, py, 40);
-    pressGrd.addColorStop(0, '#ffffff');
-    pressGrd.addColorStop(1, 'transparent');
+    bCtx.globalAlpha = 0.12;
+    const pg = bCtx.createRadialGradient(mt.x, mt.y, 0, mt.x, mt.y, 35);
+    pg.addColorStop(0, '#ffffff');
+    pg.addColorStop(1, 'transparent');
     bCtx.beginPath();
-    bCtx.arc(px, py, 40, 0, Math.PI * 2);
-    bCtx.fillStyle = pressGrd;
+    bCtx.arc(mt.x, mt.y, 35, 0, Math.PI * 2);
+    bCtx.fillStyle = pg;
     bCtx.fill();
     bCtx.restore();
-  }
+  });
 
   bubbleAnimFrame = requestAnimationFrame(drawBubble);
 }
@@ -4695,13 +4841,16 @@ function startBubbleGame() {
   bubbleCanvas.width = W; bubbleCanvas.height = H;
   bubbleCanvas.style.width = W + 'px'; bubbleCanvas.style.height = H + 'px';
   bCtx = bubbleCanvas.getContext('2d');
-  bubbleCanvas.onpointerdown = handleBubbleDown;
-  bubbleCanvas.onpointermove = handleBubbleMove;
-  bubbleCanvas.onpointerup = handleBubbleUp;
-  bubbleCanvas.onpointerleave = handleBubbleUp;
+  // Use touch events for multitouch support
   bubbleCanvas.ontouchstart = handleBubbleDown;
   bubbleCanvas.ontouchmove = handleBubbleMove;
   bubbleCanvas.ontouchend = handleBubbleUp;
+  bubbleCanvas.ontouchcancel = handleBubbleUp;
+  // Mouse fallback for desktop
+  bubbleCanvas.onmousedown = handleBubbleDown;
+  bubbleCanvas.onmousemove = handleBubbleMove;
+  bubbleCanvas.onmouseup = handleBubbleUp;
+  bubbleCanvas.onmouseleave = handleBubbleUp;
   initBlob();
   bubbleActive = true;
   drawBubble();
@@ -4811,8 +4960,8 @@ function handleGyro(e) {
 
 function shakeSand() {
   sandGrains.forEach(g => {
-    g.vx += (Math.random() - 0.5) * 3;
-    g.vy += (Math.random() - 0.5) * 3;
+    g.vx += (Math.random() - 0.5) * 1.5;
+    g.vy += (Math.random() - 0.5) * 1.5;
   });
 }
 
@@ -4870,9 +5019,9 @@ function drawSand() {
   });
 
   // Physics update — sand settles, shifts with tilt
-  const gravity = 0.04;   // very gentle, like underwater
-  const friction = 0.985;  // slow smooth glide
-  const bounce = 0.03;    // almost no bounce
+  const gravity = 0.02;   // extremely gentle drift
+  const friction = 0.992;  // almost no deceleration
+  const bounce = 0.02;    // virtually no bounce
   const restThreshold = 0.03;
   const tiltThreshold = 0.15;
 
@@ -5034,7 +5183,7 @@ function goToGamesScreen() {
 
 // ─── Press Ball Game ───
 const starImg = new Image();
-starImg.src = 'star.png';
+starImg.src = 'star.svg';
 let starImgLoaded = false;
 starImg.onload = () => { starImgLoaded = true; };
 
