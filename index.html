@@ -307,7 +307,7 @@
   .chat-sub { font-size: 11px; color: var(--text-dim); letter-spacing: 1px; }
 
   .chat-messages {
-    flex: 1;
+    flex: 0.9;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
@@ -412,7 +412,7 @@
     position: relative;
     border-radius: 20px;
     overflow: hidden;
-    background: #05091a;
+    background: #fff;
     border: 0.5px solid var(--border);
     flex: 1;
     min-height: 0;
@@ -1883,6 +1883,7 @@ onAuthStateChanged(auth, (user) => {
 
 window.addEventListener('load', () => {
   initGradientColorPicker();
+  initBgGradientColorPicker();
 });
 
 </script>
@@ -1977,13 +1978,23 @@ window.addEventListener('load', () => {
       <!-- Colors -->
       <div class="toolbar-row">
         <span class="toolbar-label">顏色</span>
-        <span class="toolbar-hint">點色條選取</span>
         <div class="color-slider-wrap">
           <div class="color-gradient-bar" id="color-gradient-bar" onclick="pickGradientColor(event)">
             <div class="color-gradient-thumb" id="color-gradient-thumb"></div>
           </div>
         </div>
       </div>
+
+
+      <div class="toolbar-row">
+        <div class="toolbar-label">背景</div>
+        <div class="color-slider-wrap">
+          <div class="color-gradient-bar" id="bg-gradient-bar">
+            <div class="color-gradient-thumb" id="bg-gradient-thumb"></div>
+          </div>
+        </div>
+      </div>
+
 
       <!-- Brush type -->
       <div class="toolbar-row">
@@ -2044,15 +2055,15 @@ window.addEventListener('load', () => {
 
     <div class="canvas-gallery-bar" id="canvas-gallery"></div>
     <div class="gallery-actions">
-      <button class="gallery-action-btn" onclick="newCanvasDrawing()">＋ 新畫布</button>
       <button class="gallery-action-btn" onclick="importPhoto()">匯入照片</button>
-      <button class="gallery-action-btn danger" onclick="deleteCurrentDrawing()">刪除</button>
+      <button class="gallery-action-btn"onclick="clearCanvas()">清空畫布</button>
     </div>
     <input type="file" id="photo-input" accept="image/*" style="display:none" onchange="handlePhotoImport(event)">
 
     <div class="canvas-actions-row">
-      <button class="clear-btn" onclick="undoCanvas()">上一步</button>
-      <button class="clear-btn" onclick="clearCanvas()">清除</button>
+      <button class="clear-btn" onclick="undoCanvas()">復原</button>
+      <button class="clear-btn" onclick="redoCanvas()">重做</button>
+      <button class="clear-btn"  onclick="deleteCurrentDrawing()">刪除</button>
       <button class="release-btn" onclick="releaseCanvas()">✦ 儲存</button>
     </div>
 
@@ -3529,7 +3540,18 @@ let hasDrawn = false;
 let lastX = 0, lastY = 0;
 let starQueue = [];
 let undoStack = [];
+let redoStack = [];
+let canvasBgColor = '#ffffff';
 const MAX_UNDO = 10;
+
+function saveCanvasState() {
+  if (!dCtx || !drawCanvas) return;
+  const snapshot = dCtx.getImageData(0, 0, drawCanvas.width, drawCanvas.height);
+  undoStack.push(snapshot);
+  if (undoStack.length > MAX_UNDO) undoStack.shift();
+  redoStack = [];
+}
+
 
 function initCanvas() {
   drawCanvas = document.getElementById('draw-canvas');
@@ -3542,6 +3564,7 @@ function initCanvas() {
   dCtx = drawCanvas.getContext('2d');
   if (drawCanvas._inited) return;
   drawCanvas._inited = true;
+  fillCanvasBackground();
 
   const getPos = (e) => {
     const r = drawCanvas.getBoundingClientRect();
@@ -3549,19 +3572,29 @@ function initCanvas() {
     return { x: (t.clientX - r.left) * (drawCanvas.width / r.width), y: (t.clientY - r.top) * (drawCanvas.height / r.height) };
   };
 
-  drawCanvas.onpointerdown = (e) => {
-    drawing = true; hasDrawn = true;
-    // Save state for undo
-    const snapshot = dCtx.getImageData(0, 0, drawCanvas.width, drawCanvas.height);
-    undoStack.push(snapshot);
-    if (undoStack.length > MAX_UNDO) undoStack.shift();
-    const p = getPos(e);
-    lastX = p.x; lastY = p.y;
-    if (brushType === 'star') { drawStar(p.x, p.y); return; }
-    applyBrushStyle();
-    dCtx.beginPath(); dCtx.moveTo(p.x, p.y);
+drawCanvas.onpointerdown = (e) => {
+  drawing = true;
+  hasDrawn = true;
+  saveCanvasState();
+
+  const p = getPos(e);
+  lastX = p.x;
+  lastY = p.y;
+
+  if (brushType === 'star') {
+    drawStar(p.x, p.y);
     e.preventDefault();
-  };
+    return;
+  }
+
+  applyBrushStyle();
+  dCtx.beginPath();
+  dCtx.moveTo(p.x, p.y);
+  e.preventDefault();
+};
+
+
+
   drawCanvas.onpointermove = (e) => {
     if (!drawing) return;
     const p = getPos(e);
@@ -3691,6 +3724,7 @@ function setGradientColorByRatio(t) {
   brushColor = interpolateGradientColor(t);
   updateGradientThumb(t);
   if (brushType === 'eraser') setBrushByType('pen');
+  if (dCtx) applyBrushStyle();
 }
 
 function gradientRatioFromEvent(event, bar) {
@@ -3733,33 +3767,137 @@ function initGradientColorPicker() {
 
   setGradientColorByRatio(0);
 }
+
+function updateBgGradientThumb(t) {
+  const thumb = document.getElementById('bg-gradient-thumb');
+  if (thumb) thumb.style.left = `${Math.max(0, Math.min(1, t)) * 100}%`;
+}
+
+function fillCanvasBackground() {
+  if (!dCtx || !drawCanvas) return;
+  dCtx.save();
+  dCtx.globalCompositeOperation = 'source-over';
+  dCtx.fillStyle = canvasBgColor;
+  dCtx.fillRect(0, 0, drawCanvas.width, drawCanvas.height);
+  dCtx.restore();
+}
+
+function setBackgroundColorByRatio(t) {
+  canvasBgColor = interpolateGradientColor(t);
+  updateBgGradientThumb(t);
+
+  if (!dCtx || !drawCanvas) return;
+
+  saveCanvasState();
+  fillCanvasBackground();
+  hasDrawn = true;
+}
+
+window.setBackgroundColorByRatio = setBackgroundColorByRatio;
+
+function initBgGradientColorPicker() {
+  const bar = document.getElementById('bg-gradient-bar');
+  if (!bar) return;
+  let dragging = false;
+
+  const move = (event) => {
+    if (!dragging) return;
+    event.preventDefault();
+    setBackgroundColorByRatio(gradientRatioFromEvent(event, bar));
+  };
+
+  bar.addEventListener('pointerdown', (event) => {
+    dragging = true;
+    bar.setPointerCapture?.(event.pointerId);
+    setBackgroundColorByRatio(gradientRatioFromEvent(event, bar));
+  });
+  bar.addEventListener('pointermove', move);
+  bar.addEventListener('pointerup', () => dragging = false);
+  bar.addEventListener('pointercancel', () => dragging = false);
+  bar.addEventListener('touchstart', (event) => {
+    dragging = true;
+    setBackgroundColorByRatio(gradientRatioFromEvent(event, bar));
+  }, { passive: true });
+  bar.addEventListener('touchmove', move, { passive: false });
+  bar.addEventListener('touchend', () => dragging = false);
+
+  updateBgGradientThumb(1);
+}
+
 function setBrush(el) {
   document.querySelectorAll('.brush-btn').forEach(b => b.classList.remove('selected'));
-  el.classList.add('selected');
-  brushType = el.dataset.brush;
+  if (el) el.classList.add('selected');
+  brushType = el?.dataset?.brush || 'pen';
   setBrushByType(brushType);
 }
+
 function setBrushByType(type) {
   brushType = type;
   if (dCtx) applyBrushStyle();
 }
+
 function updateSize(input) {
-  brushSize = parseInt(input.value);
+  brushSize = parseInt(input.value, 10);
   const px = Math.max(2, Math.min(brushSize, 36));
-  document.getElementById('size-circle').style.width = px + 'px';
-  document.getElementById('size-circle').style.height = px + 'px';
+  const circle = document.getElementById('size-circle');
+  if (circle) {
+    circle.style.width = px + 'px';
+    circle.style.height = px + 'px';
+  }
+  if (dCtx) applyBrushStyle();
 }
+
 function updateOpacity(input) {
-  brushOpacity = parseInt(input.value) / 100;
-  document.getElementById('opacity-val').textContent = input.value + '%';
+  brushOpacity = parseInt(input.value, 10) / 100;
+  const val = document.getElementById('opacity-val');
+  if (val) val.textContent = input.value + '%';
+  if (dCtx) applyBrushStyle();
 }
+
 function undoCanvas() {
-  if (!dCtx || undoStack.length === 0) { showToast('沒有可以復原的步驟'); return; }
+  if (!dCtx || undoStack.length === 0) {
+    showToast('沒有可以復原的步驟');
+    return;
+  }
+
+  const currentSnapshot = dCtx.getImageData(0, 0, drawCanvas.width, drawCanvas.height);
+  redoStack.push(currentSnapshot);
+  if (redoStack.length > MAX_UNDO) redoStack.shift();
+
   const snapshot = undoStack.pop();
   dCtx.globalCompositeOperation = 'source-over';
   dCtx.putImageData(snapshot, 0, 0);
-  if (undoStack.length === 0) hasDrawn = false;
+  hasDrawn = true;
 }
+
+function redoCanvas() {
+  if (!dCtx || redoStack.length === 0) {
+    showToast('沒有可以重做的步驟');
+    return;
+  }
+
+  const currentSnapshot = dCtx.getImageData(0, 0, drawCanvas.width, drawCanvas.height);
+  undoStack.push(currentSnapshot);
+  if (undoStack.length > MAX_UNDO) undoStack.shift();
+
+  const snapshot = redoStack.pop();
+  dCtx.globalCompositeOperation = 'source-over';
+  dCtx.putImageData(snapshot, 0, 0);
+  hasDrawn = true;
+}
+
+window.setBrush = setBrush;
+window.setBrushByType = setBrushByType;
+window.updateSize = updateSize;
+window.updateOpacity = updateOpacity;
+window.undoCanvas = undoCanvas;
+window.redoCanvas = redoCanvas;
+window.pickGradientColor = pickGradientColor;
+window.setGradientColorByRatio = setGradientColorByRatio;
+window.initGradientColorPicker = initGradientColorPicker;
+window.initBgGradientColorPicker = initBgGradientColorPicker;
+
+
 function clearCanvas() {
   if (!dCtx) return;
   const snapshot = dCtx.getImageData(0, 0, drawCanvas.width, drawCanvas.height);
@@ -3767,6 +3905,7 @@ function clearCanvas() {
   if (undoStack.length > MAX_UNDO) undoStack.shift();
   dCtx.globalCompositeOperation = 'source-over';
   dCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+  fillCanvasBackground();
   hasDrawn = false;
 }
 
@@ -4475,6 +4614,7 @@ function newCanvasDrawing() {
   // New blank
   dCtx.globalCompositeOperation = 'source-over';
   dCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+  fillCanvasBackground();
   hasDrawn = false;
   undoStack = [];
   currentDrawingIdx = canvasDrawings.length; // points to new unsaved slot
@@ -5446,11 +5586,6 @@ function checkAuthOnStart() {
 }
 
 // ─── Service Worker ───
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/starnight/sw.js').catch(() => {});
-    });
-  }
 </script>
 
 <!-- Auth Modal -->
