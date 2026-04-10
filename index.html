@@ -1220,6 +1220,145 @@
   }
 
   /* First-open modal */
+
+
+  /* Intro splash */
+.intro-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 650;
+
+  background:
+    radial-gradient(circle at 50% 20%, rgba(255,226,170,0.12) 0%, rgba(255,226,170,0.06) 28%, rgba(7,15,43,1) 55%),
+    linear-gradient(180deg, rgba(7,15,43,1) 0%, rgba(8,18,52,1) 100%);
+
+  display: none;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.45s ease;
+}
+  
+  .intro-overlay.show { opacity: 1; }
+  .intro-skip {
+    position: absolute;
+    top: max(18px, env(safe-area-inset-top));
+    right: 18px;
+    z-index: 4;
+    border: 0.5px solid rgba(255,255,255,0.14);
+    background: rgba(255,255,255,0.06);
+    color: rgba(245,230,200,0.9);
+    border-radius: 999px;
+    padding: 8px 14px;
+    font-size: 12px;
+    letter-spacing: 1px;
+    backdrop-filter: blur(8px);
+    cursor: pointer;
+  }
+  .intro-scene {
+    position: relative;
+    width: min(92vw, 420px);
+    height: min(78vh, 560px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  #intro-stars {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+  .intro-bottle-wrap {
+    position: relative;
+    width: min(80vw, 320px);
+    aspect-ratio: 1 / 1;
+    transform: translateY(22px) scale(0.92);
+    opacity: 0;
+    transition: transform 1.2s cubic-bezier(.2,.8,.2,1), opacity 0.8s ease;
+    z-index: 2;
+  }
+  .intro-overlay.play .intro-bottle-wrap {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  .intro-bottle-glow {
+    position: absolute;
+    left: 50%;
+    top: 48%;
+    width: 62%;
+    height: 62%;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle, rgba(255,232,163,0.26) 0%, rgba(255,214,125,0.12) 45%, rgba(255,214,125,0) 75%);
+    filter: blur(20px);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.9s ease;
+  }
+  .intro-overlay.collecting .intro-bottle-glow {
+    opacity: 1;
+  }
+
+@keyframes bottleGlow {
+  0% {
+    filter: drop-shadow(0 0 4px rgba(255, 230, 180, 0.2))
+            drop-shadow(0 0 8px rgba(255, 230, 180, 0.15));
+  }
+  50% {
+    filter: drop-shadow(0 0 12px rgba(255, 240, 200, 0.6))
+            drop-shadow(0 0 24px rgba(255, 240, 200, 0.4));
+  }
+  100% {
+    filter: drop-shadow(0 0 4px rgba(255, 230, 180, 0.2))
+            drop-shadow(0 0 8px rgba(255, 230, 180, 0.15));
+  }
+}
+
+.intro-bottle img {
+  animation: bottleGlow 2.5s ease-in-out infinite;
+}
+
+  .intro-bottle-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    z-index: 2;
+    pointer-events: none;
+    filter: drop-shadow(0 12px 28px rgba(255,255,255,0.32));
+  }
+
+  .intro-title {
+    margin-top: 12px;
+    font-family: 'Noto Serif TC', serif;
+    font-size: 18px;
+    letter-spacing: 4px;
+    color: rgba(245,230,200,0.94);
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+    z-index: 2;
+  }
+  .intro-subtitle {
+    margin-top: 8px;
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: rgba(200,184,232,0.72);
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.7s ease 0.12s, transform 0.7s ease 0.12s;
+    z-index: 2;
+  }
+  .intro-overlay.done .intro-title,
+  .intro-overlay.done .intro-subtitle {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
   .welcome-overlay {
     position: fixed;
     inset: 0;
@@ -2508,6 +2647,20 @@ window.addEventListener('load', () => {
   </div>
 </div>
 
+
+<div class="intro-overlay" id="intro-overlay" aria-hidden="true">
+  <button class="intro-skip" type="button" onclick="skipIntro()">略過</button>
+  <div class="intro-scene">
+    <canvas id="intro-stars" width="420" height="560"></canvas>
+    <div class="intro-bottle-wrap">
+      <div class="intro-bottle-glow"></div>
+      <img src="bottle.png" class="intro-bottle-img" alt="藏星瓶開頭動畫" draggable="false">
+    </div>
+    <div class="intro-title">藏 星 瓶</div>
+    <div class="intro-subtitle">把今晚的星光，輕輕收進心裡</div>
+  </div>
+</div>
+
 <!-- First-open Welcome Modal -->
 <div class="welcome-overlay" id="welcome-overlay" style="display:none;">
   <div class="welcome-box">
@@ -2668,8 +2821,135 @@ function flyStarToBottle(color) {
     addBottleStar(color);
   }, 800);
 }
+// ─── Intro Splash ───
+let introCanvas, introCtx, introStars = [], introAnimFrame = null, introStarted = false;
+const INTRO_DURATION = 2800;
+const INTRO_BOTTLE_AREA = { x: 142, y: 182, w: 136, h: 156 };
+
+function resizeIntroCanvas() {
+  introCanvas = document.getElementById('intro-stars');
+  if (!introCanvas) return;
+  const rect = introCanvas.getBoundingClientRect();
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  introCanvas.width = Math.round(rect.width * dpr);
+  introCanvas.height = Math.round(rect.height * dpr);
+  introCtx = introCanvas.getContext('2d');
+  introCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+
+function createIntroStar(canvasW, canvasH) {
+  const side = Math.random() < 0.5 ? -30 : canvasW + 30;
+  return {
+    x: side,
+    y: 60 + Math.random() * (canvasH * 0.58),
+    size: 1.8 + Math.random() * 3.8,
+    alpha: 0.42 + Math.random() * 0.5,
+    speed: 0.012 + Math.random() * 0.02,
+    sway: 12 + Math.random() * 28,
+    phase: Math.random() * Math.PI * 2,
+    targetX: INTRO_BOTTLE_AREA.x + 10 + Math.random() * (INTRO_BOTTLE_AREA.w - 20),
+    targetY: INTRO_BOTTLE_AREA.y + 14 + Math.random() * (INTRO_BOTTLE_AREA.h - 28),
+    color: ['#f5e6c8','#ffe066','#ffd6e0','#aac4ff'][Math.floor(Math.random()*4)]
+  };
+}
+
+function drawIntroStarShape(ctx, x, y, r, color, alpha) {
+  ctx.save();
+  ctx.globalAlpha = alpha * 0.22;
+  ctx.beginPath();
+  ctx.arc(x, y, r * 3.2, 0, Math.PI * 2);
+  ctx.fillStyle = color;
+  ctx.fill();
+  ctx.restore();
+
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  for (let i = 0; i < 5; i++) {
+    const a = (i * Math.PI * 2) / 5 - Math.PI / 2;
+    const inner = a + Math.PI / 5;
+    if (i === 0) ctx.moveTo(Math.cos(a) * r, Math.sin(a) * r);
+    else ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+    ctx.lineTo(Math.cos(inner) * r * 0.45, Math.sin(inner) * r * 0.45);
+  }
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
+function renderIntro(progress) {
+  if (!introCtx || !introCanvas) return;
+  const w = introCanvas.clientWidth;
+  const h = introCanvas.clientHeight;
+  introCtx.clearRect(0, 0, w, h);
+
+  introCtx.fillStyle = 'rgba(255,255,255,0.012)';
+  for (let i = 0; i < 26; i++) {
+    const x = (i * 37) % w;
+    const y = (i * 83) % h;
+    introCtx.fillRect(x, y, 1.5, 1.5);
+  }
+
+  introStars.forEach((s, idx) => {
+    const local = Math.min(Math.max((progress - idx * 0.035) / 0.48, 0), 1);
+    const ease = 1 - Math.pow(1 - local, 3);
+    const x = s.x + (s.targetX - s.x) * ease;
+    const y = s.y + (s.targetY - s.y) * ease + Math.sin(progress * 10 + s.phase) * (1 - ease) * s.sway;
+    const flicker = s.alpha + Math.sin(progress * 16 + s.phase) * 0.1;
+    drawIntroStarShape(introCtx, x, y, s.size * (0.88 + ease * 0.12), s.color, flicker);
+  });
+}
+
+function finishIntro() {
+  const overlay = document.getElementById('intro-overlay');
+  if (!overlay) return;
+  overlay.classList.remove('show', 'play', 'collecting');
+  overlay.classList.add('done');
+  overlay.style.opacity = '0';
+  if (introAnimFrame) cancelAnimationFrame(introAnimFrame);
+  setTimeout(() => {
+    overlay.style.display = 'none';
+    overlay.classList.remove('done');
+    maybeShowWelcome();
+  }, 420);
+}
+
+function playIntro() {
+  const overlay = document.getElementById('intro-overlay');
+  if (!overlay || introStarted) return;
+  introStarted = true;
+  overlay.style.display = 'flex';
+  requestAnimationFrame(() => overlay.classList.add('show', 'play'));
+  resizeIntroCanvas();
+  introStars = Array.from({ length: 14 }, () => createIntroStar(introCanvas.clientWidth, introCanvas.clientHeight));
+  const start = performance.now();
+
+  function frame(now) {
+    const progress = Math.min((now - start) / INTRO_DURATION, 1);
+    if (progress > 0.24) overlay.classList.add('collecting');
+    if (progress > 0.72) overlay.classList.add('done');
+    renderIntro(progress);
+    if (progress < 1) introAnimFrame = requestAnimationFrame(frame);
+    else finishIntro();
+  }
+  introAnimFrame = requestAnimationFrame(frame);
+}
+
+function skipIntro() {
+  if (introAnimFrame) cancelAnimationFrame(introAnimFrame);
+  finishIntro();
+}
+
+window.addEventListener('resize', () => {
+  if (document.getElementById('intro-overlay')?.style.display === 'flex') {
+    resizeIntroCanvas();
+  }
+});
+
 // ─── First Open & Legal ───
-function checkFirstOpen() {
+function maybeShowWelcome() {
   const agreed = localStorage.getItem('starnight-agreed');
   if (!agreed) {
     document.getElementById('welcome-overlay').style.display = 'flex';
@@ -2682,7 +2962,7 @@ function agreeAndClose() {
   overlay.style.transition = 'opacity 0.4s';
   setTimeout(() => overlay.style.display = 'none', 400);
 }
-checkFirstOpen();
+playIntro();
 checkAuthOnStart();
 setTimeout(initBottleAnimation, 300);
 
