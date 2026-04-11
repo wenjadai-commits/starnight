@@ -10,7 +10,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="藏星瓶 Starfold">
+<meta name="apple-mobile-web-app-title" content="藏星瓶">
 <meta name="theme-color" content="#070f2b">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png">
@@ -2044,10 +2044,10 @@ onAuthStateChanged(auth, (user) => {
     const userBar = document.getElementById('user-bar');
     if (userBar) {
       userBar.style.display = 'flex';
-      document.getElementById('user-email').textContent = user.email || user.displayName || '已登入';
+      updateUserBarText();
     }
     const syncBtn = document.getElementById('sync-btn');
-    if (syncBtn) syncBtn.textContent = '☁ 已同步';
+    if (syncBtn) syncBtn.textContent = t('authLoggedInSynced');
     // Load diary from Firestore
     window.loadDiaryFromCloud();
     // Load chat from Firestore
@@ -2056,10 +2056,13 @@ onAuthStateChanged(auth, (user) => {
     window._currentUser = null;
     const userBar = document.getElementById('user-bar');
     if (userBar) userBar.style.display = 'none';
+    const syncBtn = document.getElementById('sync-btn');
+    if (syncBtn) syncBtn.textContent = t('authSyncAccount');
   }
 });
 
 window.addEventListener('load', () => {
+  applyLanguagePreference(loadSettings().language);
   initGradientColorPicker();
   initBgGradientColorPicker();
 });
@@ -2075,28 +2078,28 @@ window.addEventListener('load', () => {
 <nav class="nav">
   <button class="nav-btn" onclick="goScreen('canvas', this); setTimeout(initCanvas, 150)">
     <img src="assets/icons/nav-brush.svg" alt="畫布 icon">
-    <span>畫布</span>
+    <span id="nav-canvas-label">畫布</span>
   </button>
   <button class="nav-btn" onclick="goScreen('chat', this); loadChatHistory()">
     <img src="assets/icons/nav-chat.svg" alt="傾訴 icon">
-    <span>傾訴</span>
+    <span id="nav-chat-label">傾訴</span>
   </button>
   <button class="nav-btn nav-btn-center active" onclick="goScreen('home', this)">
     <div class="icon-shell" id="center-shell">
       <img src="assets/icons/nav-bottle.svg" alt="首頁 icon">
     </div>
-    <span>首頁</span>
+    <span id="nav-home-label">首頁</span>
   </button>
   <button class="nav-btn" onclick="goScreen('games', this)">
     <img src="assets/icons/nav-mood.svg" alt="解壓 icon">
-    <span>解壓</span>
+    <span id="nav-games-label">解壓</span>
   </button>
   <button class="nav-btn" onclick="goScreen('settings', this); initSettingsPage();">
     <svg   width="22"   height="22"   viewBox="0 0 24 24"   fill="none"   stroke="#f9eac5"   stroke-width="1.8"   stroke-linecap="round"stroke-linejoin="round">
     <circle cx="12" cy="12" r="3"/>
     <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
     </svg>
-    <span>設定</span>
+    <span id="nav-settings-label">設定</span>
   </button>
 </nav>
 
@@ -2105,28 +2108,28 @@ window.addEventListener('load', () => {
   <!-- HOME -->
   <div class="screen active" id="screen-home" style="display:flex; flex-direction:column; align-items:center;">
     <!-- Bottle section -->
-    <div class="bottle-container bottle-entrance" id="bottle-btn" onclick="showToast('今天也辛苦你了 ✦')">
+    <div class="bottle-container bottle-entrance" id="bottle-btn" onclick="showToast(t('toast.encouragement'))">
       <canvas id="bottle-canvas" width="340" height="340"></canvas>
       <img src="bottle.png" class="bottle-img" alt="星星瓶" draggable="false">
     </div>
     <p class="bottle-count bottle-count-entrance" id="bottle-count">✦ 0 顆情緒星星</p>
-    <button class="enter-btn enter-btn-entrance" onclick="goScreen('diary', null); renderDiary();">我的藏星 ★</button>
-    <p class="disclaimer-bar disclaimer-entrance">
+    <button class="enter-btn enter-btn-entrance" id="home-enter-btn" onclick="goScreen('diary', null); renderDiary();">我的藏星 ★</button>
+    <p class="disclaimer-bar disclaimer-entrance" id="home-disclaimer">
       本 App 提供情緒抒發空間，不能取代專業心理諮商。<br>
       如有緊急心理危機，請撥打 1925 安心專線。<br>
-      <a href="#" onclick="goScreen('resources', null); return false;">諮商資源</a>
+      <a href="#" id="home-resources-link" onclick="goScreen('resources', null); return false;">諮商資源</a>
       &nbsp;·&nbsp;
-      <a href="#" onclick="goScreen('privacy', null); return false;">隱私政策</a>
+      <a href="#" id="home-privacy-link" onclick="goScreen('privacy', null); return false;">隱私政策</a>
     </p>
   </div>
 
   <!-- CHAT -->
   <div class="screen" id="screen-chat">
     <div style="display:flex; justify-content:space-between; align-items:center; padding-bottom:4px;">
-      <div class="chat-notice" style="flex:1; border:none; margin:0; padding:4px 0;">
+      <div class="chat-notice" id="chat-notice" style="flex:1; border:none; margin:0; padding:4px 0;">
         ✦ 對話內容將透過 AI 處理，請勿輸入個人敏感資料。
       </div>
-      <button onclick="clearChatHistory()" style="background:none; border:none; color:var(--text-dim); font-size:10px; cursor:pointer; font-family:'Noto Sans TC',sans-serif; white-space:nowrap; padding:4px 8px;">清除對話</button>
+      <button id="chat-clear-btn" onclick="clearChatHistory()" style="background:none; border:none; color:var(--text-dim); font-size:10px; cursor:pointer; font-family:'Noto Sans TC',sans-serif; white-space:nowrap; padding:4px 8px;">清除對話</button>
     </div>
     <div class="chat-messages" id="chat-messages">
       <div class="msg ai">嗨，今晚的星空很美。有什麼想說的嗎？我在這裡陪你。🌙</div>
@@ -2263,7 +2266,7 @@ window.addEventListener('load', () => {
       </div>
       <div id="diary-list"></div>
       <div style="display:flex; gap:8px; margin-bottom:8px;">
-        <button onclick="if(!window._currentUser){showAuthModal();}else{showToast('已登入，日記自動同步 ✦');}" style="flex:1;background:rgba(141,212,184,0.08);border:0.5px solid rgba(141,212,184,0.2);border-radius:12px;padding:8px;color:var(--text-dim);font-size:11px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;" id="sync-btn">
+        <button onclick="if(!window._currentUser){showAuthModal();}else{showToast(t('toast.diaryAutoSync'));}" style="flex:1;background:rgba(141,212,184,0.08);border:0.5px solid rgba(141,212,184,0.2);border-radius:12px;padding:8px;color:var(--text-dim);font-size:11px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;" id="sync-btn">
           ☁ 同步帳號
         </button>
       </div>
@@ -2346,8 +2349,8 @@ window.addEventListener('load', () => {
     <button class="privacy-back" onclick="goScreen('home', document.querySelectorAll('.nav-btn')[0])">
       ← 返回
     </button>
-    <div class="resources-title">心理諮商資源</div>
-    <p class="resources-sub">你不需要一個人扛著</p>
+    <div class="resources-title" id="resources-title">心理諮商資源</div>
+    <p class="resources-sub" id="resources-sub">你不需要一個人扛著</p>
 
     <!-- 緊急專線 -->
     <div class="hotline-strip">
@@ -2474,8 +2477,8 @@ window.addEventListener('load', () => {
     <button class="privacy-back" onclick="goScreen('home', document.querySelectorAll('.nav-btn')[0])">
       ← 返回
     </button>
-    <div class="privacy-title">隱私權政策</div>
-    <p class="privacy-updated">最後更新：2026 年 3 月</p>
+    <div class="privacy-title" id="privacy-title">隱私權政策</div>
+    <p class="privacy-updated" id="privacy-updated">最後更新：2026 年 3 月</p>
 
     <div class="privacy-section">
       <h3>關於藏星瓶</h3>
@@ -2520,58 +2523,70 @@ window.addEventListener('load', () => {
   <!-- SETTINGS -->
   <div class="screen scrollable" id="screen-settings" style="display:none;">
     <div class="settings-header">
-      <div class="settings-title">我的設定</div>
-      <div class="settings-sub">個人化你的藏星瓶體驗</div>
+      <div class="settings-title" id="settings-title">我的設定</div>
+      <div class="settings-sub" id="settings-sub">個人化你的藏星瓶體驗</div>
     </div>
 
     <div class="settings-section">
-      <div class="settings-section-title">個人資料</div>
+      <div class="settings-section-title" id="settings-section-profile">個人資料</div>
       <div class="settings-card">
-        <div class="settings-label">暱稱</div>
+        <div class="settings-label" id="settings-label-nickname">暱稱</div>
         <input class="settings-input" id="settings-nickname" placeholder="你希望怎麼被稱呼？" maxlength="20" oninput="saveSettings()">
       </div>
     </div>
 
     <div class="settings-section">
-      <div class="settings-section-title">AI 陪伴風格</div>
+      <div class="settings-section-title" id="settings-section-style">AI 陪伴風格</div>
       <div class="settings-card">
-        <div class="settings-label">你希望 AI 用什麼方式陪你？</div>
+        <div class="settings-label" id="settings-label-style">你希望 AI 用什麼方式陪你？</div>
         <div class="settings-radio-group" id="style-radios">
-          <div class="settings-radio active" onclick="setAIStyle('溫柔傾聽', this)">溫柔傾聽</div>
-          <div class="settings-radio" onclick="setAIStyle('給我建議', this)">給我建議</div>
-          <div class="settings-radio" onclick="setAIStyle('理性分析', this)">理性分析</div>
+          <div class="settings-radio active" data-style="溫柔傾聽" onclick="setAIStyle('溫柔傾聽', this)">溫柔傾聽</div>
+          <div class="settings-radio" data-style="給我建議" onclick="setAIStyle('給我建議', this)">給我建議</div>
+          <div class="settings-radio" data-style="理性分析" onclick="setAIStyle('理性分析', this)">理性分析</div>
         </div>
       </div>
     </div>
 
     <div class="settings-section">
-      <div class="settings-section-title">安全與支援</div>
+      <div class="settings-section-title" id="settings-section-language">語言</div>
       <div class="settings-card">
-        <div class="settings-label">信任聯絡人姓名</div>
-        <input class="settings-input" id="settings-trust-name" placeholder="例如：媽媽" maxlength="20" oninput="saveTrustSettings()">
-        <div class="settings-label">與你的關係</div>
-        <input class="settings-input" id="settings-trust-relation" placeholder="例如：家人" maxlength="20" oninput="saveTrustSettings()">
-        <div class="settings-label">聯絡電話</div>
-        <input class="settings-input" id="settings-trust-phone" type="tel" placeholder="例如：0912345678" maxlength="15" oninput="saveTrustSettings()">
-        <div class="settings-label">預設求助訊息</div>
-        <input class="settings-input" id="settings-trust-msg" placeholder="我現在狀態不太好，可以陪我一下嗎？" maxlength="100" oninput="saveTrustSettings()">
-        <div class="settings-info">只有在你主動選擇時，才會用來快速聯絡信任的人。不會自動撥號或通知。</div>
-      </div>
-    </div>
-
-    <div class="settings-section" style="display: none;">
-      <div class="settings-section-title">使用狀態</div>
-      <div class="settings-card">
-        <div class="settings-info">識別碼：<code id="settings-uid">-</code></div>
-        <div class="settings-info">對話紀錄：<span id="settings-chat-count">0</span> 則</div>
-        <div class="settings-info">情緒日記：<span id="settings-diary-count">0</span> 則</div>
+        <div class="settings-label" id="settings-label-language">你希望 App 與 AI 主要使用哪種語言？</div>
+        <div class="settings-radio-group" id="language-radios">
+          <div class="settings-radio active" data-lang="zh-TW" onclick="setAppLanguage('zh-TW', this)">中文</div>
+          <div class="settings-radio" data-lang="en" onclick="setAppLanguage('en', this)">English</div>
+          <div class="settings-radio" data-lang="ja" onclick="setAppLanguage('ja', this)">日本語</div>
+        </div>
       </div>
     </div>
 
     <div class="settings-section">
-      <div class="settings-section-title">資料管理</div>
-      <button class="settings-btn" onclick="clearChatHistory()">清除對話紀錄</button>
-      <button class="settings-btn danger" onclick="resetAllSettings()">重設所有個人設定</button>
+      <div class="settings-section-title" id="settings-section-support">安全與支援</div>
+      <div class="settings-card">
+        <div class="settings-label" id="settings-label-trust-name">信任聯絡人姓名</div>
+        <input class="settings-input" id="settings-trust-name" placeholder="例如：媽媽" maxlength="20" oninput="saveTrustSettings()">
+        <div class="settings-label" id="settings-label-trust-relation">與你的關係</div>
+        <input class="settings-input" id="settings-trust-relation" placeholder="例如：家人" maxlength="20" oninput="saveTrustSettings()">
+        <div class="settings-label" id="settings-label-trust-phone">聯絡電話</div>
+        <input class="settings-input" id="settings-trust-phone" type="tel" placeholder="例如：0912345678" maxlength="15" oninput="saveTrustSettings()">
+        <div class="settings-label" id="settings-label-trust-message">預設求助訊息</div>
+        <input class="settings-input" id="settings-trust-msg" placeholder="我現在狀態不太好，可以陪我一下嗎？" maxlength="100" oninput="saveTrustSettings()">
+        <div class="settings-info" id="settings-trust-info">只有在你主動選擇時，才會用來快速聯絡信任的人。不會自動撥號或通知。</div>
+      </div>
+    </div>
+
+    <div class="settings-section" style="display: none;">
+      <div class="settings-section-title" id="settings-section-status">使用狀態</div>
+      <div class="settings-card">
+        <div class="settings-info" id="settings-uid-wrap">識別碼：<code id="settings-uid">-</code></div>
+        <div class="settings-info" id="settings-chat-count-wrap">對話紀錄：<span id="settings-chat-count">0</span> 則</div>
+        <div class="settings-info" id="settings-diary-count-wrap">情緒日記：<span id="settings-diary-count">0</span> 則</div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title" id="settings-section-data">資料管理</div>
+      <button class="settings-btn" id="settings-clear-chat-btn" onclick="clearChatHistory()">清除對話紀錄</button>
+      <button class="settings-btn danger" id="settings-reset-btn" onclick="resetAllSettings()">重設所有個人設定</button>
       <button class="settings-btn danger" id="delete-account-btn" onclick="handleDeleteAccount()" style="display:none;">刪除帳號</button>
     </div>
   </div>
@@ -2646,44 +2661,44 @@ window.addEventListener('load', () => {
 <!-- Support Panel -->
 <div class="support-panel-overlay" id="support-panel" style="display:none" onclick="if(event.target===this)closeSupportPanel()">
   <div class="support-panel">
-    <div class="support-panel-title">✦ 你不需要一個人面對</div>
-    <div class="support-panel-sub">現在最重要的是讓自己安全。以下是一些可以幫助你的方式。</div>
+    <div class="support-panel-title" id="support-panel-title">✦ 你不需要一個人面對</div>
+    <div class="support-panel-sub" id="support-panel-sub">現在最重要的是讓自己安全。以下是一些可以幫助你的方式。</div>
     <a class="support-action" href="tel:1925">
       <div class="support-action-icon">📞</div>
       <div class="support-action-info">
         <div class="support-action-label">安心專線 1925</div>
-        <div class="support-action-desc">24 小時免費，專業人員接聽</div>
+        <div class="support-action-desc" id="support-1925-desc">24 小時免費，專業人員接聽</div>
       </div>
     </a>
     <a class="support-action" href="tel:1995">
       <div class="support-action-icon">📞</div>
       <div class="support-action-info">
         <div class="support-action-label">生命線 1995</div>
-        <div class="support-action-desc">24 小時免費</div>
+        <div class="support-action-desc" id="support-1995-desc">24 小時免費</div>
       </div>
     </a>
     <a class="support-action" href="tel:1980">
       <div class="support-action-icon">📞</div>
       <div class="support-action-info">
         <div class="support-action-label">張老師專線 1980</div>
-        <div class="support-action-desc">週一至週六 9:00-21:00</div>
+        <div class="support-action-desc" id="support-1980-desc">週一至週六 9:00-21:00</div>
       </div>
     </a>
     <div class="support-action" id="trust-contact-action" style="display:none" onclick="contactTrustPerson()">
       <div class="support-action-icon">💬</div>
       <div class="support-action-info">
         <div class="support-action-label" id="trust-contact-label">聯絡信任的人</div>
-        <div class="support-action-desc">傳送預設訊息給你信任的人</div>
+        <div class="support-action-desc" id="trust-contact-desc">傳送預設訊息給你信任的人</div>
       </div>
     </div>
     <a class="support-action" href="#" onclick="goScreen('resources', null); closeSupportPanel(); return false;">
       <div class="support-action-icon">🏥</div>
       <div class="support-action-info">
-        <div class="support-action-label">查看更多諮商資源</div>
-        <div class="support-action-desc">台灣各地心理衛生中心</div>
+        <div class="support-action-label" id="support-more-label">查看更多諮商資源</div>
+        <div class="support-action-desc" id="support-more-desc">台灣各地心理衛生中心</div>
       </div>
     </a>
-    <button class="support-close" onclick="closeSupportPanel()">稍後再看</button>
+    <button class="support-close" id="support-close-btn" onclick="closeSupportPanel()">稍後再看</button>
   </div>
 </div>
 
@@ -3160,8 +3175,347 @@ if (!_userId) {
 function loadSettings() {
   try {
     const saved = localStorage.getItem('starfold-settings');
-    return saved ? JSON.parse(saved) : { nickname: '', aiStyle: '溫柔傾聽' };
-  } catch { return { nickname: '', aiStyle: '溫柔傾聽' }; }
+    return saved ? JSON.parse(saved) : { nickname: '', aiStyle: '溫柔傾聽', language: 'zh-TW' };
+  } catch { return { nickname: '', aiStyle: '溫柔傾聽', language: 'zh-TW' }; }
+}
+
+function normalizeLanguage(lang) {
+  if (lang === 'en' || lang === 'ja' || lang === 'zh-TW') return lang;
+  return 'zh-TW';
+}
+
+function getLanguageLabel(lang) {
+  const labels = {
+    'zh-TW': '中文',
+    'en': 'English',
+    'ja': '日本語',
+  };
+  return labels[normalizeLanguage(lang)];
+}
+
+const TRANSLATIONS = {
+  'zh-TW': {
+    navCanvas: '畫布',
+    navChat: '傾訴',
+    navHome: '首頁',
+    navGames: '解壓',
+    navSettings: '設定',
+    homeEnter: '我的藏星 ★',
+    homeDisclaimer: '本 App 提供情緒抒發空間，不能取代專業心理諮商。<br>如有緊急心理危機，請撥打 1925 安心專線。',
+    homeResources: '諮商資源',
+    homePrivacy: '隱私政策',
+    chatNotice: '✦ 對話內容將透過 AI 處理，請勿輸入個人敏感資料。',
+    chatClear: '清除對話',
+    chatPlaceholder: '說說心裡的話...',
+    chatEmpty: '有什麼想說的嗎？我在這裡聽你說 🌙',
+    resourcesTitle: '心理諮商資源',
+    resourcesSub: '你不需要一個人扛著',
+    privacyTitle: '隱私權政策',
+    privacyUpdated: '最後更新：2026 年 3 月',
+    settingsTitle: '我的設定',
+    settingsSub: '個人化你的藏星瓶體驗',
+    settingsProfile: '個人資料',
+    settingsNickname: '暱稱',
+    settingsNicknamePlaceholder: '你希望怎麼被稱呼？',
+    settingsStyle: 'AI 陪伴風格',
+    settingsStyleLabel: '你希望 AI 用什麼方式陪你？',
+    aiStyleGentle: '溫柔傾聽',
+    aiStyleAdvice: '給我建議',
+    aiStyleAnalysis: '理性分析',
+    settingsLanguage: '語言',
+    settingsLanguageLabel: '你希望 App 與 AI 主要使用哪種語言？',
+    settingsSupport: '安全與支援',
+    trustName: '信任聯絡人姓名',
+    trustNamePlaceholder: '例如：媽媽',
+    trustRelation: '與你的關係',
+    trustRelationPlaceholder: '例如：家人',
+    trustPhone: '聯絡電話',
+    trustPhonePlaceholder: '例如：0912345678',
+    trustMessage: '預設求助訊息',
+    trustMessagePlaceholder: '我現在狀態不太好，可以陪我一下嗎？',
+    trustInfo: '只有在你主動選擇時，才會用來快速聯絡信任的人。不會自動撥號或通知。',
+    settingsStatus: '使用狀態',
+    settingsUid: '識別碼：',
+    settingsChatCount: '對話紀錄：{count} 則',
+    settingsDiaryCount: '情緒日記：{count} 則',
+    settingsData: '資料管理',
+    settingsClearChat: '清除對話紀錄',
+    settingsReset: '重設所有個人設定',
+    settingsDelete: '刪除帳號',
+    settingsDeleting: '刪除中...',
+    supportTitle: '✦ 你不需要一個人面對',
+    supportSub: '現在最重要的是讓自己安全。以下是一些可以幫助你的方式。',
+    support1925: '24 小時免費，專業人員接聽',
+    support1995: '24 小時免費',
+    support1980: '週一至週六 9:00-21:00',
+    supportTrustLabel: '聯絡信任的人',
+    supportTrustDesc: '傳送預設訊息給你信任的人',
+    supportMoreLabel: '查看更多諮商資源',
+    supportMoreDesc: '台灣各地心理衛生中心',
+    supportClose: '稍後再看',
+    authTitle: '歡迎回到藏星瓶',
+    authSub: '登入以同步你的情緒日記',
+    authLogin: '登入',
+    authRegister: '註冊',
+    authEmailPlaceholder: '電子郵件',
+    authPasswordPlaceholder: '密碼',
+    authContinue: '✦ 繼續',
+    authGoogle: '使用 Google 登入',
+    authApple: '使用 Apple 登入',
+    authSkip: '暫時跳過，不同步',
+    authSignedOut: '登出',
+    authLoggedIn: '已登入',
+    authLoggedInSynced: '☁ 已同步',
+    authSyncAccount: '☁ 同步帳號',
+    toastEncouragement: '今天也辛苦你了 ✦',
+    toastDiaryAutoSync: '已登入，日記自動同步 ✦',
+    toastSkippedAuth: '已跳過登入，日記僅儲存在本機 ✦',
+    toastSignedOut: '已登出 ✦',
+    toastResetSettings: '已重設個人設定 ✦',
+    toastTrustMissing: '尚未設定信任聯絡人',
+    toastChatCleared: '對話紀錄已清除 ✦',
+    toastDiarySynced: '日記已從雲端同步 ✦',
+    toastAccountDeleted: '帳號與雲端資料已刪除',
+    confirmResetSettings: '確定要重設所有個人設定嗎？（暱稱、AI 風格、信任聯絡人）',
+    confirmDeleteAccount1: '確定要刪除帳號嗎？你的雲端日記、對話與相關資料會一併刪除，且無法復原。',
+    confirmDeleteAccount2: '這是最後確認：刪除帳號後將無法找回資料。確定要繼續嗎？',
+    confirmClearChat: '確定要清除所有對話紀錄嗎？',
+    promptLoginFirst: '請先登入帳號',
+    errorDeleteAccount: '刪除帳號失敗',
+    errorDeleteAccountRetry: '刪除帳號失敗，請稍後再試。',
+    errorFillEmailPassword: '請填寫 Email 和密碼',
+    errorAuthInvalidEmail: 'Email 格式不正確',
+    errorAuthUserNotFound: '找不到這個帳號',
+    errorAuthWrongPassword: '密碼錯誤',
+    errorAuthEmailInUse: '這個 Email 已經註冊過了',
+    errorAuthWeakPassword: '密碼至少需要 6 個字元',
+    errorAuthInvalidCredential: '帳號或密碼錯誤',
+    errorAuthDefault: '登入失敗，請再試一次',
+    errorGoogleAuth: 'Google 登入失敗，請再試一次',
+    errorAppleAccountExists: '此 Email 已用其他登入方式註冊，請先用原本方式登入',
+    errorApplePopupClosed: '你已取消 Apple 登入',
+    errorApplePopupBlocked: '瀏覽器擋住登入視窗，請允許彈出視窗後再試一次',
+    errorAppleUnauthorizedDomain: '目前網域尚未加入 Firebase 授權網域',
+    errorAppleOperationNotAllowed: 'Firebase 尚未啟用 Apple 登入',
+    errorAppleInvalidCredential: 'Apple 登入憑證無效，請重新再試',
+    errorAppleDefault: 'Apple 登入失敗，請檢查 Firebase 與 Apple 設定',
+  },
+  'en': {
+    navCanvas: 'Canvas', navChat: 'Talk', navHome: 'Home', navGames: 'Relax', navSettings: 'Settings',
+    homeEnter: 'My Star Jar ★',
+    homeDisclaimer: 'This app offers a space to express emotions and does not replace professional counseling.<br>If you are in immediate crisis, call 1925 for support.',
+    homeResources: 'Resources', homePrivacy: 'Privacy',
+    chatNotice: '✦ Conversations are processed by AI. Please avoid sharing sensitive personal information.',
+    chatClear: 'Clear',
+    chatPlaceholder: 'Share what is on your mind...',
+    chatEmpty: 'Anything on your mind? I am here with you. 🌙',
+    resourcesTitle: 'Mental Health Resources', resourcesSub: 'You do not have to carry this alone',
+    privacyTitle: 'Privacy Policy', privacyUpdated: 'Last updated: March 2026',
+    settingsTitle: 'Settings', settingsSub: 'Personalize your Starfold experience',
+    settingsProfile: 'Profile', settingsNickname: 'Nickname', settingsNicknamePlaceholder: 'How would you like to be addressed?',
+    settingsStyle: 'AI Companion Style', settingsStyleLabel: 'How would you like the AI to respond?',
+    aiStyleGentle: 'Gentle listening', aiStyleAdvice: 'Give me advice', aiStyleAnalysis: 'Rational analysis',
+    settingsLanguage: 'Language', settingsLanguageLabel: 'Which language should the app and AI mainly use?',
+    settingsSupport: 'Safety & Support', trustName: 'Trusted contact name', trustNamePlaceholder: 'For example: Mom',
+    trustRelation: 'Relationship', trustRelationPlaceholder: 'For example: Family',
+    trustPhone: 'Phone number', trustPhonePlaceholder: 'For example: 0912345678',
+    trustMessage: 'Default support message', trustMessagePlaceholder: 'I am not doing well right now. Can you stay with me for a bit?',
+    trustInfo: 'This is only used when you choose to quickly contact someone you trust. It will not call or notify anyone automatically.',
+    settingsStatus: 'Usage', settingsUid: 'ID: ', settingsChatCount: 'Chats: {count}', settingsDiaryCount: 'Diary entries: {count}',
+    settingsData: 'Data', settingsClearChat: 'Clear chat history', settingsReset: 'Reset personal settings', settingsDelete: 'Delete account', settingsDeleting: 'Deleting...',
+    supportTitle: '✦ You do not have to face this alone', supportSub: 'Your safety matters most right now. Here are a few ways to get support.',
+    support1925: 'Free 24/7 support from trained staff', support1995: 'Free 24/7 hotline', support1980: 'Mon-Sat 9:00-21:00',
+    supportTrustLabel: 'Contact a trusted person', supportTrustDesc: 'Send your default message to someone you trust',
+    supportMoreLabel: 'See more support resources', supportMoreDesc: 'Mental health centers across Taiwan', supportClose: 'Maybe later',
+    authTitle: 'Welcome back to Starfold', authSub: 'Sign in to sync your diary',
+    authLogin: 'Sign in', authRegister: 'Register', authEmailPlaceholder: 'Email', authPasswordPlaceholder: 'Password',
+    authContinue: '✦ Continue', authGoogle: 'Continue with Google', authApple: 'Continue with Apple',
+    authSkip: 'Skip for now, stay local', authSignedOut: 'Sign out', authLoggedIn: 'Signed in', authLoggedInSynced: '☁ Synced', authSyncAccount: '☁ Sync account',
+    toastEncouragement: 'You made it through today ✦', toastDiaryAutoSync: 'Signed in. Your diary will sync automatically ✦',
+    toastSkippedAuth: 'Skipped sign-in. Your diary stays on this device only ✦', toastSignedOut: 'Signed out ✦', toastResetSettings: 'Personal settings reset ✦',
+    toastTrustMissing: 'No trusted contact has been set', toastChatCleared: 'Chat history cleared ✦', toastDiarySynced: 'Diary synced from the cloud ✦', toastAccountDeleted: 'Your account and cloud data have been deleted',
+    confirmResetSettings: 'Reset all personal settings? This includes nickname, AI style, and trusted contact.',
+    confirmDeleteAccount1: 'Delete your account? Your cloud diary, chat, and related data will be permanently removed.',
+    confirmDeleteAccount2: 'Final confirmation: this cannot be undone. Continue?',
+    confirmClearChat: 'Clear all chat history?', promptLoginFirst: 'Please sign in first',
+    errorDeleteAccount: 'Failed to delete account', errorDeleteAccountRetry: 'Failed to delete account. Please try again later.',
+    errorFillEmailPassword: 'Please enter your email and password',
+    errorAuthInvalidEmail: 'Invalid email format', errorAuthUserNotFound: 'Account not found', errorAuthWrongPassword: 'Incorrect password',
+    errorAuthEmailInUse: 'This email is already registered', errorAuthWeakPassword: 'Password must be at least 6 characters',
+    errorAuthInvalidCredential: 'Incorrect email or password', errorAuthDefault: 'Sign-in failed. Please try again.',
+    errorGoogleAuth: 'Google sign-in failed. Please try again.',
+    errorAppleAccountExists: 'This email is already linked to another sign-in method. Use the original method first.',
+    errorApplePopupClosed: 'Apple sign-in was canceled', errorApplePopupBlocked: 'The sign-in popup was blocked. Please allow popups and try again.',
+    errorAppleUnauthorizedDomain: 'This domain has not been added to Firebase authorized domains',
+    errorAppleOperationNotAllowed: 'Apple sign-in is not enabled in Firebase',
+    errorAppleInvalidCredential: 'The Apple credential is invalid. Please try again.',
+    errorAppleDefault: 'Apple sign-in failed. Please check your Firebase and Apple settings.',
+  },
+  'ja': {
+    navCanvas: 'キャンバス', navChat: '対話', navHome: 'ホーム', navGames: 'リラックス', navSettings: '設定',
+    homeEnter: 'わたしの星瓶 ★',
+    homeDisclaimer: 'このアプリは感情を表現するための空間を提供しますが、専門的なカウンセリングの代わりにはなりません。<br>緊急の危機がある場合は、1925 に連絡してください。',
+    homeResources: '相談資源', homePrivacy: 'プライバシー',
+    chatNotice: '✦ 会話内容は AI により処理されます。個人の機微情報は入力しないでください。',
+    chatClear: '会話を消去',
+    chatPlaceholder: '今の気持ちを話してみて...',
+    chatEmpty: '何か話したいことはある？ここで聞いているよ 🌙',
+    resourcesTitle: 'メンタルヘルス資源', resourcesSub: 'ひとりで抱え込まなくていい',
+    privacyTitle: 'プライバシーポリシー', privacyUpdated: '最終更新: 2026年3月',
+    settingsTitle: '設定', settingsSub: '星のボトルをあなたらしく整える',
+    settingsProfile: 'プロフィール', settingsNickname: 'ニックネーム', settingsNicknamePlaceholder: 'どう呼ばれたいですか？',
+    settingsStyle: 'AI の寄り添い方', settingsStyleLabel: 'AI にどんなふうに寄り添ってほしいですか？',
+    aiStyleGentle: 'やさしく聞く', aiStyleAdvice: 'アドバイスがほしい', aiStyleAnalysis: '理性的に分析',
+    settingsLanguage: '言語', settingsLanguageLabel: 'アプリと AI が主に使う言語を選んでください',
+    settingsSupport: '安全とサポート', trustName: '信頼できる人の名前', trustNamePlaceholder: '例: お母さん',
+    trustRelation: '関係', trustRelationPlaceholder: '例: 家族', trustPhone: '電話番号', trustPhonePlaceholder: '例: 0912345678',
+    trustMessage: '既定のメッセージ', trustMessagePlaceholder: '今ちょっとつらいです。少しそばにいてくれる？',
+    trustInfo: 'あなたが選んだときだけ、信頼できる人へすばやく連絡するために使われます。自動で発信や通知はされません。',
+    settingsStatus: '利用状況', settingsUid: 'ID: ', settingsChatCount: '会話: {count}', settingsDiaryCount: '日記: {count}',
+    settingsData: 'データ管理', settingsClearChat: '会話履歴を消去', settingsReset: '個人設定をリセット', settingsDelete: 'アカウントを削除', settingsDeleting: '削除中...',
+    supportTitle: '✦ ひとりで向き合わなくて大丈夫', supportSub: '今はまず安全を確保することが大切です。助けにつながる方法があります。',
+    support1925: '24時間無料、専門スタッフが対応', support1995: '24時間無料ホットライン', support1980: '月-土 9:00-21:00',
+    supportTrustLabel: '信頼できる人に連絡', supportTrustDesc: '既定のメッセージを送信します',
+    supportMoreLabel: '相談資源をもっと見る', supportMoreDesc: '台湾各地のメンタルヘルスセンター', supportClose: 'あとで見る',
+    authTitle: '星のボトルへようこそ', authSub: 'サインインして日記を同期しましょう',
+    authLogin: 'ログイン', authRegister: '登録', authEmailPlaceholder: 'メールアドレス', authPasswordPlaceholder: 'パスワード',
+    authContinue: '✦ 続ける', authGoogle: 'Google で続ける', authApple: 'Apple で続ける',
+    authSkip: '今はスキップして端末のみに保存', authSignedOut: 'ログアウト', authLoggedIn: 'ログイン済み', authLoggedInSynced: '☁ 同期済み', authSyncAccount: '☁ アカウント同期',
+    toastEncouragement: '今日もよくここまで来たね ✦', toastDiaryAutoSync: 'ログイン済みです。日記は自動で同期されます ✦',
+    toastSkippedAuth: 'ログインをスキップしました。日記はこの端末のみに保存されます ✦', toastSignedOut: 'ログアウトしました ✦', toastResetSettings: '個人設定をリセットしました ✦',
+    toastTrustMissing: '信頼できる連絡先がまだ設定されていません', toastChatCleared: '会話履歴を消去しました ✦', toastDiarySynced: '日記をクラウドから同期しました ✦', toastAccountDeleted: 'アカウントとクラウドデータを削除しました',
+    confirmResetSettings: 'ニックネーム、AI スタイル、信頼できる連絡先を含む個人設定をすべてリセットしますか？',
+    confirmDeleteAccount1: 'アカウントを削除しますか？クラウド上の日記、会話、関連データは完全に削除されます。',
+    confirmDeleteAccount2: '最終確認です。削除後は元に戻せません。続けますか？',
+    confirmClearChat: '会話履歴をすべて消去しますか？', promptLoginFirst: '先にログインしてください',
+    errorDeleteAccount: 'アカウントの削除に失敗しました', errorDeleteAccountRetry: 'アカウントの削除に失敗しました。しばらくしてからもう一度お試しください。',
+    errorFillEmailPassword: 'メールアドレスとパスワードを入力してください',
+    errorAuthInvalidEmail: 'メールアドレスの形式が正しくありません', errorAuthUserNotFound: 'アカウントが見つかりません', errorAuthWrongPassword: 'パスワードが違います',
+    errorAuthEmailInUse: 'このメールアドレスは既に登録されています', errorAuthWeakPassword: 'パスワードは6文字以上必要です',
+    errorAuthInvalidCredential: 'メールアドレスまたはパスワードが正しくありません', errorAuthDefault: 'ログインに失敗しました。もう一度お試しください。',
+    errorGoogleAuth: 'Google ログインに失敗しました。もう一度お試しください。',
+    errorAppleAccountExists: 'このメールアドレスは別のログイン方法に紐づいています。先に元の方法でログインしてください。',
+    errorApplePopupClosed: 'Apple ログインがキャンセルされました', errorApplePopupBlocked: 'ポップアップがブロックされました。許可してから再度お試しください。',
+    errorAppleUnauthorizedDomain: 'このドメインは Firebase の認可済みドメインに追加されていません',
+    errorAppleOperationNotAllowed: 'Firebase で Apple ログインが有効になっていません',
+    errorAppleInvalidCredential: 'Apple の認証情報が無効です。もう一度お試しください。',
+    errorAppleDefault: 'Apple ログインに失敗しました。Firebase と Apple の設定を確認してください。',
+  }
+};
+
+function t(key, vars = {}) {
+  const lang = normalizeLanguage(loadSettings().language);
+  const dict = TRANSLATIONS[lang] || TRANSLATIONS['zh-TW'];
+  let value = dict[key] || TRANSLATIONS['zh-TW'][key] || key;
+  Object.entries(vars).forEach(([name, replacement]) => {
+    value = value.replaceAll(`{${name}}`, replacement);
+  });
+  return value;
+}
+
+function getChatEmptyPrompt() {
+  return t('chatEmpty');
+}
+
+function updateUserBarText() {
+  const label = document.getElementById('user-email');
+  if (!label) return;
+  const user = window._currentUser;
+  label.textContent = user ? (user.email || user.displayName || t('authLoggedIn')) : '';
+}
+
+function applyTranslations() {
+  const setText = (id, text) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = text;
+  };
+  const setHtml = (id, html) => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = html;
+  };
+  const setPlaceholder = (id, text) => {
+    const el = document.getElementById(id);
+    if (el) el.placeholder = text;
+  };
+
+  setText('nav-canvas-label', t('navCanvas'));
+  setText('nav-chat-label', t('navChat'));
+  setText('nav-home-label', t('navHome'));
+  setText('nav-games-label', t('navGames'));
+  setText('nav-settings-label', t('navSettings'));
+  setText('home-enter-btn', t('homeEnter'));
+  setHtml('home-disclaimer', `${t('homeDisclaimer')}<br><a href="#" id="home-resources-link" onclick="goScreen('resources', null); return false;">${t('homeResources')}</a>&nbsp;·&nbsp;<a href="#" id="home-privacy-link" onclick="goScreen('privacy', null); return false;">${t('homePrivacy')}</a>`);
+  setText('chat-notice', t('chatNotice'));
+  setText('chat-clear-btn', t('chatClear'));
+  setPlaceholder('chat-input', t('chatPlaceholder'));
+  setText('resources-title', t('resourcesTitle'));
+  setText('resources-sub', t('resourcesSub'));
+  setText('privacy-title', t('privacyTitle'));
+  setText('privacy-updated', t('privacyUpdated'));
+  setText('sync-btn', window._currentUser ? t('authLoggedInSynced') : t('authSyncAccount'));
+  setText('settings-title', t('settingsTitle'));
+  setText('settings-sub', t('settingsSub'));
+  setText('settings-section-profile', t('settingsProfile'));
+  setText('settings-label-nickname', t('settingsNickname'));
+  setPlaceholder('settings-nickname', t('settingsNicknamePlaceholder'));
+  setText('settings-section-style', t('settingsStyle'));
+  setText('settings-label-style', t('settingsStyleLabel'));
+  const styleLabels = {
+    '溫柔傾聽': t('aiStyleGentle'),
+    '給我建議': t('aiStyleAdvice'),
+    '理性分析': t('aiStyleAnalysis'),
+  };
+  document.querySelectorAll('#style-radios .settings-radio').forEach(r => {
+    r.textContent = styleLabels[r.dataset.style] || r.dataset.style;
+  });
+  setText('settings-section-language', t('settingsLanguage'));
+  setText('settings-label-language', t('settingsLanguageLabel'));
+  setText('settings-section-support', t('settingsSupport'));
+  setText('settings-label-trust-name', t('trustName'));
+  setPlaceholder('settings-trust-name', t('trustNamePlaceholder'));
+  setText('settings-label-trust-relation', t('trustRelation'));
+  setPlaceholder('settings-trust-relation', t('trustRelationPlaceholder'));
+  setText('settings-label-trust-phone', t('trustPhone'));
+  setPlaceholder('settings-trust-phone', t('trustPhonePlaceholder'));
+  setText('settings-label-trust-message', t('trustMessage'));
+  setPlaceholder('settings-trust-msg', t('trustMessagePlaceholder'));
+  setText('settings-trust-info', t('trustInfo'));
+  setText('settings-section-status', t('settingsStatus'));
+  setText('settings-section-data', t('settingsData'));
+  setText('settings-clear-chat-btn', t('settingsClearChat'));
+  setText('settings-reset-btn', t('settingsReset'));
+  setText('delete-account-btn', t('settingsDelete'));
+  setText('support-panel-title', t('supportTitle'));
+  setText('support-panel-sub', t('supportSub'));
+  setText('support-1925-desc', t('support1925'));
+  setText('support-1995-desc', t('support1995'));
+  setText('support-1980-desc', t('support1980'));
+  setText('trust-contact-label', t('supportTrustLabel'));
+  setText('trust-contact-desc', t('supportTrustDesc'));
+  setText('support-more-label', t('supportMoreLabel'));
+  setText('support-more-desc', t('supportMoreDesc'));
+  setText('support-close-btn', t('supportClose'));
+  setText('auth-title', t('authTitle'));
+  setText('auth-sub', t('authSub'));
+  setText('auth-tab-login', t('authLogin'));
+  setText('auth-tab-register', t('authRegister'));
+  setPlaceholder('auth-email', t('authEmailPlaceholder'));
+  setPlaceholder('auth-password', t('authPasswordPlaceholder'));
+  setText('auth-continue-btn', t('authContinue'));
+  setText('auth-google-label', t('authGoogle'));
+  setText('auth-apple-label', t('authApple'));
+  setText('auth-skip-btn', t('authSkip'));
+  setText('user-signout-btn', t('authSignedOut'));
+  updateUserBarText();
+  if (!chatHistory.length) renderChatMessages();
+}
+
+function applyLanguagePreference(lang) {
+  const normalized = normalizeLanguage(lang);
+  document.documentElement.lang = normalized;
+  const radios = document.querySelectorAll('#language-radios .settings-radio');
+  radios.forEach(r => r.classList.toggle('active', r.dataset.lang === normalized));
+  applyTranslations();
 }
 
 function saveSettings() {
@@ -3179,12 +3533,22 @@ function setAIStyle(style, el) {
   try { localStorage.setItem('starfold-settings', JSON.stringify(settings)); } catch {}
 }
 
+function setAppLanguage(lang, el) {
+  document.querySelectorAll('#language-radios .settings-radio').forEach(r => r.classList.remove('active'));
+  if (el) el.classList.add('active');
+  const settings = loadSettings();
+  settings.language = normalizeLanguage(lang);
+  try { localStorage.setItem('starfold-settings', JSON.stringify(settings)); } catch {}
+  applyLanguagePreference(settings.language);
+  if (chatHistory.length === 0) renderChatMessages();
+}
+
 function saveTrustSettings() {
   const data = {
     name: document.getElementById('settings-trust-name')?.value || '',
     relation: document.getElementById('settings-trust-relation')?.value || '',
     phone: document.getElementById('settings-trust-phone')?.value || '',
-    message: document.getElementById('settings-trust-msg')?.value || '我現在狀態不太好，可以陪我一下嗎？',
+    message: document.getElementById('settings-trust-msg')?.value || t('trustMessagePlaceholder'),
   };
   saveTrustContact(data);
 }
@@ -3194,9 +3558,11 @@ function initSettingsPage() {
   const nicknameEl = document.getElementById('settings-nickname');
   if (nicknameEl) nicknameEl.value = settings.nickname || '';
 
+  applyLanguagePreference(settings.language);
+
   // AI style
   document.querySelectorAll('#style-radios .settings-radio').forEach(r => {
-    r.classList.toggle('active', r.textContent === settings.aiStyle);
+    r.classList.toggle('active', r.dataset.style === settings.aiStyle);
   });
 
   // Trust contact
@@ -3219,16 +3585,23 @@ function initSettingsPage() {
   if (chatCountEl) chatCountEl.textContent = chatHistory.length;
   const diaryCountEl = document.getElementById('settings-diary-count');
   if (diaryCountEl) diaryCountEl.textContent = (typeof diaryEntries !== 'undefined' ? diaryEntries.length : 0);
+  const uidWrap = document.getElementById('settings-uid-wrap');
+  if (uidWrap) uidWrap.innerHTML = `${t('settingsUid')}<code id="settings-uid">${_userId.slice(0, 12)}...</code>`;
+  const chatWrap = document.getElementById('settings-chat-count-wrap');
+  if (chatWrap) chatWrap.innerHTML = t('settingsChatCount', { count: String(chatHistory.length) }).replace(String(chatHistory.length), `<span id="settings-chat-count">${chatHistory.length}</span>`);
+  const diaryCount = typeof diaryEntries !== 'undefined' ? diaryEntries.length : 0;
+  const diaryWrap = document.getElementById('settings-diary-count-wrap');
+  if (diaryWrap) diaryWrap.innerHTML = t('settingsDiaryCount', { count: String(diaryCount) }).replace(String(diaryCount), `<span id="settings-diary-count">${diaryCount}</span>`);
   const deleteBtn = document.getElementById('delete-account-btn');
   if (deleteBtn) deleteBtn.style.display = window._currentUser ? 'block' : 'none';
 }
 
 function resetAllSettings() {
-  if (!confirm('確定要重設所有個人設定嗎？（暱稱、AI 風格、信任聯絡人）')) return;
+  if (!confirm(t('confirmResetSettings'))) return;
   localStorage.removeItem('starfold-settings');
   localStorage.removeItem('starfold-trust-contact');
   initSettingsPage();
-  showToast('已重設個人設定 ✦');
+  showToast(t('toastResetSettings'));
 }
 
 function clearLocalUserData() {
@@ -3267,21 +3640,21 @@ async function setSignedOutState() {
 
 async function handleDeleteAccount() {
   if (!window._currentUser || !window._fb?.auth?.currentUser) {
-    showToast('請先登入帳號');
+    showToast(t('promptLoginFirst'));
     return;
   }
 
-  const firstConfirm = confirm('確定要刪除帳號嗎？你的雲端日記、對話與相關資料會一併刪除，且無法復原。');
+  const firstConfirm = confirm(t('confirmDeleteAccount1'));
   if (!firstConfirm) return;
 
-  const secondConfirm = confirm('這是最後確認：刪除帳號後將無法找回資料。確定要繼續嗎？');
+  const secondConfirm = confirm(t('confirmDeleteAccount2'));
   if (!secondConfirm) return;
 
   const btn = document.getElementById('delete-account-btn');
   const originalText = btn ? btn.textContent : '';
   if (btn) {
     btn.disabled = true;
-    btn.textContent = '刪除中...';
+    btn.textContent = t('settingsDeleting');
   }
 
   try {
@@ -3300,18 +3673,18 @@ async function handleDeleteAccount() {
     } catch {}
 
     if (!res.ok) {
-      throw new Error(payload?.error || '刪除帳號失敗');
+      throw new Error(payload?.error || t('errorDeleteAccount'));
     }
 
     await setSignedOutState();
-    showToast('帳號與雲端資料已刪除');
+    showToast(t('toastAccountDeleted'));
   } catch (e) {
     console.error('delete account:', e);
-    alert(e.message || '刪除帳號失敗，請稍後再試。');
+    alert(e.message || t('errorDeleteAccountRetry'));
   } finally {
     if (btn) {
       btn.disabled = false;
-      btn.textContent = originalText || '刪除帳號';
+      btn.textContent = originalText || t('settingsDelete');
     }
   }
 }
@@ -3625,8 +3998,8 @@ function saveTrustContact(data) {
 
 function contactTrustPerson() {
   const trust = loadTrustContact();
-  if (!trust || !trust.phone) { showToast('尚未設定信任聯絡人'); return; }
-  const msg = trust.message || '我現在狀態不太好，可以陪我一下嗎？';
+  if (!trust || !trust.phone) { showToast(t('toastTrustMissing')); return; }
+  const msg = trust.message || t('trustMessagePlaceholder');
   const url = `sms:${trust.phone}?body=${encodeURIComponent(msg)}`;
   window.open(url, '_blank');
 }
@@ -3694,7 +4067,7 @@ function renderChatMessages() {
   const msgs = document.getElementById('chat-messages');
   msgs.innerHTML = '';
   if (chatHistory.length === 0) {
-    addMsg('ai', '有什麼想說的嗎？我在這裡聽你說 🌙');
+    addMsg('ai', getChatEmptyPrompt());
     return;
   }
   chatHistory.forEach(h => {
@@ -3704,14 +4077,14 @@ function renderChatMessages() {
 }
 
 function clearChatHistory() {
-  if (!confirm('確定要清除所有對話紀錄嗎？')) return;
+  if (!confirm(t('confirmClearChat'))) return;
   chatHistory = [];
   chatTurnCount = 0;
   _chatLoaded = false;
   saveChatLocal();
   loadChatHistory();
   _chatLoaded = true;
-  showToast('對話紀錄已清除 ✦');
+  showToast(t('toastChatCleared'));
 }
 
 function addMsg(type, text) {
@@ -3812,6 +4185,7 @@ async function callAI(text, isRetry, policy) {
           policyHint: policy ? policy.systemAddendum : '',
           nickname: loadSettings().nickname || '',
           aiStyle: loadSettings().aiStyle || '',
+          language: normalizeLanguage(loadSettings().language),
         })
       });
       clearTimeout(timeout);
@@ -4457,7 +4831,7 @@ window.loadDiaryFromCloud = async function() {
       diaryEntries = snap.docs.map(d => d.data());
       renderDiary();
       initBottleAnimation();
-      showToast('日記已從雲端同步 ✦');
+      showToast(t('toastDiarySynced'));
     }
   } catch(e) { console.error('load diary:', e); }
 };
@@ -5959,14 +6333,14 @@ function showAuthModal() {
 
 function skipAuth() {
   document.getElementById('auth-modal').style.display = 'none';
-  showToast('已跳過登入，日記僅儲存在本機 ✦');
+  showToast(t('toastSkippedAuth'));
 }
 
 async function handleEmailAuth() {
   const email = document.getElementById('auth-email').value.trim();
   const password = document.getElementById('auth-password').value;
   const errEl = document.getElementById('auth-error');
-  if (!email || !password) { errEl.textContent = '請填寫 Email 和密碼'; return; }
+  if (!email || !password) { errEl.textContent = t('errorFillEmailPassword'); return; }
 
   try {
     const { auth, signInWithEmailAndPassword, createUserWithEmailAndPassword } = window._fb;
@@ -5978,14 +6352,14 @@ async function handleEmailAuth() {
     errEl.textContent = '';
   } catch(e) {
     const msgs = {
-      'auth/invalid-email': 'Email 格式不正確',
-      'auth/user-not-found': '找不到這個帳號',
-      'auth/wrong-password': '密碼錯誤',
-      'auth/email-already-in-use': '這個 Email 已經註冊過了',
-      'auth/weak-password': '密碼至少需要 6 個字元',
-      'auth/invalid-credential': '帳號或密碼錯誤',
+      'auth/invalid-email': t('errorAuthInvalidEmail'),
+      'auth/user-not-found': t('errorAuthUserNotFound'),
+      'auth/wrong-password': t('errorAuthWrongPassword'),
+      'auth/email-already-in-use': t('errorAuthEmailInUse'),
+      'auth/weak-password': t('errorAuthWeakPassword'),
+      'auth/invalid-credential': t('errorAuthInvalidCredential'),
     };
-    errEl.textContent = msgs[e.code] || '登入失敗，請再試一次';
+    errEl.textContent = msgs[e.code] || t('errorAuthDefault');
   }
 }
 
@@ -5994,7 +6368,7 @@ async function handleGoogleAuth() {
     const { auth, signInWithPopup, googleProvider } = window._fb;
     await signInWithPopup(auth, googleProvider);
   } catch(e) {
-    document.getElementById('auth-error').textContent = 'Google 登入失敗，請再試一次';
+    document.getElementById('auth-error').textContent = t('errorGoogleAuth');
   }
 }
 
@@ -6005,21 +6379,21 @@ async function handleAppleAuth() {
     document.getElementById('auth-error').textContent = '';
   } catch(e) {
     const msgs = {
-      'auth/account-exists-with-different-credential': '此 Email 已用其他登入方式註冊，請先用原本方式登入',
-      'auth/popup-closed-by-user': '你已取消 Apple 登入',
-      'auth/popup-blocked': '瀏覽器擋住登入視窗，請允許彈出視窗後再試一次',
-      'auth/unauthorized-domain': '目前網域尚未加入 Firebase 授權網域',
-      'auth/operation-not-allowed': 'Firebase 尚未啟用 Apple 登入',
-      'auth/invalid-credential': 'Apple 登入憑證無效，請重新再試',
+      'auth/account-exists-with-different-credential': t('errorAppleAccountExists'),
+      'auth/popup-closed-by-user': t('errorApplePopupClosed'),
+      'auth/popup-blocked': t('errorApplePopupBlocked'),
+      'auth/unauthorized-domain': t('errorAppleUnauthorizedDomain'),
+      'auth/operation-not-allowed': t('errorAppleOperationNotAllowed'),
+      'auth/invalid-credential': t('errorAppleInvalidCredential'),
     };
-    document.getElementById('auth-error').textContent = msgs[e.code] || 'Apple 登入失敗，請檢查 Firebase 與 Apple 設定';
+    document.getElementById('auth-error').textContent = msgs[e.code] || t('errorAppleDefault');
   }
 }
 
 async function handleSignOut() {
   try {
     await setSignedOutState();
-    showToast('已登出 ✦');
+    showToast(t('toastSignedOut'));
   } catch(e) { console.error(e); }
 }
 
@@ -6039,32 +6413,32 @@ function checkAuthOnStart() {
 <div class="auth-overlay" id="auth-modal" style="display:none;">
   <div class="auth-box">
     <div class="auth-moon">🌙</div>
-    <div class="auth-title">歡迎回到藏星瓶</div>
-    <div class="auth-sub">登入以同步你的情緒日記</div>
+    <div class="auth-title" id="auth-title">歡迎回到藏星瓶</div>
+    <div class="auth-sub" id="auth-sub">登入以同步你的情緒日記</div>
     <div class="auth-tabs">
-      <button class="auth-tab active" onclick="switchAuthTab('login')">登入</button>
-      <button class="auth-tab" onclick="switchAuthTab('register')">註冊</button>
+      <button class="auth-tab active" id="auth-tab-login" onclick="switchAuthTab('login')">登入</button>
+      <button class="auth-tab" id="auth-tab-register" onclick="switchAuthTab('register')">註冊</button>
     </div>
     <div id="auth-error" class="auth-error"></div>
     <input class="auth-input" id="auth-email" type="email" placeholder="電子郵件">
     <input class="auth-input" id="auth-password" type="password" placeholder="密碼">
-    <button class="auth-btn" onclick="handleEmailAuth()">✦ 繼續</button>
-    <button class="auth-google" onclick="handleGoogleAuth()">
+    <button class="auth-btn" id="auth-continue-btn" onclick="handleEmailAuth()">✦ 繼續</button>
+    <button class="auth-google" id="auth-google-btn" onclick="handleGoogleAuth()">
       <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-      使用 Google 登入
+      <span id="auth-google-label">使用 Google 登入</span>
     </button>
-    <button class="auth-apple" onclick="handleAppleAuth()">
+    <button class="auth-apple" id="auth-apple-btn" onclick="handleAppleAuth()">
       <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19.67 16.2c-.28.65-.61 1.26-1.01 1.82-.55.78-1 1.31-1.37 1.58-.57.45-1.18.68-1.83.7-.46 0-1.02-.13-1.68-.4-.67-.26-1.28-.4-1.84-.4-.58 0-1.21.13-1.9.4-.69.27-1.24.41-1.65.43-.63.03-1.25-.21-1.87-.72-.39-.31-.87-.86-1.44-1.65-.61-.84-1.11-1.81-1.5-2.92-.42-1.19-.63-2.34-.63-3.45 0-1.27.27-2.37.82-3.29.43-.74 1.01-1.32 1.73-1.75.72-.43 1.5-.65 2.33-.67.46 0 1.06.14 1.81.43.74.29 1.22.43 1.43.43.15 0 .67-.16 1.55-.48.84-.3 1.55-.42 2.13-.37 1.58.13 2.77.75 3.56 1.88-1.41.85-2.11 2.04-2.09 3.57.01 1.19.44 2.18 1.3 2.98.39.37.82.65 1.3.84-.11.33-.23.65-.35.95zM14.92 1.5c0 .93-.34 1.8-1.01 2.61-.81.96-1.8 1.52-2.87 1.44-.01-.11-.02-.22-.02-.34 0-.89.39-1.84 1.08-2.62.35-.4.79-.73 1.31-.99.52-.25 1.01-.4 1.47-.44.03.12.04.23.04.34z"/></svg>
-      使用 Apple 登入
+      <span id="auth-apple-label">使用 Apple 登入</span>
     </button>
-    <button class="auth-skip" onclick="skipAuth()">暫時跳過，不同步</button>
+    <button class="auth-skip" id="auth-skip-btn" onclick="skipAuth()">暫時跳過，不同步</button>
   </div>
 </div>
 
 <!-- User Bar -->
 <div class="user-bar" id="user-bar">
   <span id="user-email"></span>
-  <button onclick="handleSignOut()">登出</button>
+  <button id="user-signout-btn" onclick="handleSignOut()">登出</button>
 </div>
 </body>
 </html>
