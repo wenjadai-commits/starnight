@@ -2704,15 +2704,15 @@ window.addEventListener('load', () => {
 
 
 <div class="intro-overlay" id="intro-overlay" aria-hidden="true">
-  <button class="intro-skip" type="button" onclick="skipIntro()">略過</button>
+  <button class="intro-skip" id="intro-skip-btn" type="button" onclick="skipIntro()">略過</button>
   <div class="intro-scene">
     <canvas id="intro-stars" width="420" height="560"></canvas>
     <div class="intro-bottle-wrap">
       <div class="intro-bottle-glow"></div>
-      <img src="bottle.png" class="intro-bottle-img" alt="藏星瓶開頭動畫" draggable="false">
+      <img src="bottle.png" class="intro-bottle-img" id="intro-bottle-img" alt="藏星瓶開頭動畫" draggable="false">
     </div>
-    <div class="intro-title">藏 星 瓶</div>
-    <div class="intro-subtitle">把今晚的星光，輕輕收進心裡</div>
+    <div class="intro-title" id="intro-title">藏 星 瓶</div>
+    <div class="intro-subtitle" id="intro-subtitle">把今晚的星光，輕輕收進心裡</div>
   </div>
 </div>
 
@@ -2720,33 +2720,33 @@ window.addEventListener('load', () => {
 <div class="welcome-overlay" id="welcome-overlay" style="display:none;">
   <div class="welcome-box">
     <div class="welcome-moon">🌙</div>
-    <div class="welcome-title">歡迎來到藏星瓶</div>
+    <div class="welcome-title" id="welcome-title">歡迎來到藏星瓶</div>
 
     <div class="welcome-section">
-      <div class="welcome-section-title">⚠️ 重要提醒</div>
-      <div class="welcome-section-text">
+      <div class="welcome-section-title" id="welcome-warning-title">⚠️ 重要提醒</div>
+      <div class="welcome-section-text" id="welcome-warning-text">
         藏星瓶 提供情緒抒發與 AI 陪伴，<strong style="color:#f0a07a">無法取代專業心理諮商</strong>。如有緊急心理危機，請撥打安心專線 <strong style="color:#f5e6c8">1925</strong>。
       </div>
     </div>
 
     <div class="welcome-section">
-      <div class="welcome-section-title">📋 資料使用說明</div>
-      <div class="welcome-section-text">
+      <div class="welcome-section-title" id="welcome-data-title">📋 資料使用說明</div>
+      <div class="welcome-section-text" id="welcome-data-text">
         您的對話內容將透過 AI 處理以產生回應，不會被永久儲存。情緒日記僅保存於您的裝置中。
       </div>
     </div>
 
     <div class="welcome-section">
-      <div class="welcome-section-title">✦ 使用條款</div>
-      <div class="welcome-section-text">
+      <div class="welcome-section-title" id="welcome-terms-title">✦ 使用條款</div>
+      <div class="welcome-section-text" id="welcome-terms-text">
         點擊「我了解，開始使用」即表示您已閱讀並同意本 App 的使用方式與隱私政策。
       </div>
     </div>
 
-    <p style="font-size:11px;color:var(--text-dim);text-align:center;margin-top:12px;line-height:1.6;">
+    <p id="welcome-help-text" style="font-size:11px;color:var(--text-dim);text-align:center;margin-top:12px;line-height:1.6;">
       如需協助，可至首頁查看<a href="#" onclick="agreeAndClose(); setTimeout(()=>goScreen('resources',null),300); return false;" style="color:rgba(123,156,245,0.7);text-decoration:none;">台灣諮商資源</a>
     </p>
-    <button class="welcome-agree-btn" onclick="agreeAndClose()">我了解，開始使用 →</button>
+    <button class="welcome-agree-btn" id="welcome-agree-btn" onclick="agreeAndClose()">我了解，開始使用 →</button>
   </div>
 </div>
 <script>
@@ -3200,6 +3200,19 @@ const TRANSLATIONS = {
     navHome: '首頁',
     navGames: '解壓',
     navSettings: '設定',
+    introSkip: '略過',
+    introTitle: '藏 星 瓶',
+    introSubtitle: '把今晚的星光，輕輕收進心裡',
+    introAlt: '藏星瓶開頭動畫',
+    welcomeTitle: '歡迎來到藏星瓶',
+    welcomeWarningTitle: '⚠️ 重要提醒',
+    welcomeWarningText: '藏星瓶 提供情緒抒發與 AI 陪伴，<strong style="color:#f0a07a">無法取代專業心理諮商</strong>。如有緊急心理危機，請撥打安心專線 <strong style="color:#f5e6c8">1925</strong>。',
+    welcomeDataTitle: '📋 資料使用說明',
+    welcomeDataText: '您的對話內容將透過 AI 處理以產生回應，不會被永久儲存。情緒日記僅保存於您的裝置中。',
+    welcomeTermsTitle: '✦ 使用條款',
+    welcomeTermsText: '點擊「我了解，開始使用」即表示您已閱讀並同意本 App 的使用方式與隱私政策。',
+    welcomeHelpText: '如需協助，可至首頁查看<a href="#" onclick="agreeAndClose(); setTimeout(()=>goScreen(\'resources\',null),300); return false;" style="color:rgba(123,156,245,0.7);text-decoration:none;">台灣諮商資源</a>',
+    welcomeAgree: '我了解，開始使用 →',
     homeEnter: '我的藏星 ★',
     homeDisclaimer: '本 App 提供情緒抒發空間，不能取代專業心理諮商。<br>如有緊急心理危機，請撥打 1925 安心專線。',
     homeResources: '諮商資源',
@@ -3302,6 +3315,19 @@ const TRANSLATIONS = {
   },
   'en': {
     navCanvas: 'Canvas', navChat: 'Talk', navHome: 'Home', navGames: 'Relax', navSettings: 'Settings',
+    introSkip: 'Skip',
+    introTitle: 'Starfold',
+    introSubtitle: 'Gently gather tonight\'s starlight into your heart',
+    introAlt: 'Starfold opening animation',
+    welcomeTitle: 'Welcome to Starfold',
+    welcomeWarningTitle: '⚠️ Important',
+    welcomeWarningText: 'Starfold offers emotional expression and AI companionship, but <strong style="color:#f0a07a">it does not replace professional counseling</strong>. If you are in immediate crisis, please call hotline <strong style="color:#f5e6c8">1925</strong>.',
+    welcomeDataTitle: '📋 How your data is used',
+    welcomeDataText: 'Your messages are processed by AI to generate responses and are not stored permanently. Diary entries are stored only on your device.',
+    welcomeTermsTitle: '✦ Terms of use',
+    welcomeTermsText: 'By tapping "I understand, let\'s begin", you confirm that you have read and agree to this app\'s usage and privacy policy.',
+    welcomeHelpText: 'If you need help, you can check the <a href="#" onclick="agreeAndClose(); setTimeout(()=>goScreen(\'resources\',null),300); return false;" style="color:rgba(123,156,245,0.7);text-decoration:none;">Taiwan support resources</a> from the home screen.',
+    welcomeAgree: 'I understand, let\'s begin →',
     homeEnter: 'My Star Jar ★',
     homeDisclaimer: 'This app offers a space to express emotions and does not replace professional counseling.<br>If you are in immediate crisis, call 1925 for support.',
     homeResources: 'Resources', homePrivacy: 'Privacy',
@@ -3353,6 +3379,19 @@ const TRANSLATIONS = {
   },
   'ja': {
     navCanvas: 'キャンバス', navChat: '対話', navHome: 'ホーム', navGames: 'リラックス', navSettings: '設定',
+    introSkip: 'スキップ',
+    introTitle: '星のボトル',
+    introSubtitle: '今夜の星明かりを、そっと心にしまって',
+    introAlt: '星のボトルのオープニングアニメーション',
+    welcomeTitle: '星のボトルへようこそ',
+    welcomeWarningTitle: '⚠️ 大切なお知らせ',
+    welcomeWarningText: '星のボトル は感情の吐き出しと AI の寄り添いを提供しますが、<strong style="color:#f0a07a">専門的なカウンセリングの代わりにはなりません</strong>。緊急の危機がある場合は、<strong style="color:#f5e6c8">1925</strong> に連絡してください。',
+    welcomeDataTitle: '📋 データ利用について',
+    welcomeDataText: 'あなたの対話内容は AI が応答を生成するために処理されますが、永続的には保存されません。日記は端末内のみに保存されます。',
+    welcomeTermsTitle: '✦ 利用について',
+    welcomeTermsText: '「理解して始める」を押すと、このアプリの使い方とプライバシーポリシーを読み、同意したものとみなされます。',
+    welcomeHelpText: 'サポートが必要な場合は、ホーム画面から <a href="#" onclick="agreeAndClose(); setTimeout(()=>goScreen(\'resources\',null),300); return false;" style="color:rgba(123,156,245,0.7);text-decoration:none;">台湾の相談資源</a> を確認できます。',
+    welcomeAgree: '理解して始める →',
     homeEnter: 'わたしの星瓶 ★',
     homeDisclaimer: 'このアプリは感情を表現するための空間を提供しますが、専門的なカウンセリングの代わりにはなりません。<br>緊急の危機がある場合は、1925 に連絡してください。',
     homeResources: '相談資源', homePrivacy: 'プライバシー',
@@ -3443,6 +3482,20 @@ function applyTranslations() {
   setText('nav-home-label', t('navHome'));
   setText('nav-games-label', t('navGames'));
   setText('nav-settings-label', t('navSettings'));
+  setText('intro-skip-btn', t('introSkip'));
+  setText('intro-title', t('introTitle'));
+  setText('intro-subtitle', t('introSubtitle'));
+  const introBottleImg = document.getElementById('intro-bottle-img');
+  if (introBottleImg) introBottleImg.alt = t('introAlt');
+  setText('welcome-title', t('welcomeTitle'));
+  setText('welcome-warning-title', t('welcomeWarningTitle'));
+  setHtml('welcome-warning-text', t('welcomeWarningText'));
+  setText('welcome-data-title', t('welcomeDataTitle'));
+  setText('welcome-data-text', t('welcomeDataText'));
+  setText('welcome-terms-title', t('welcomeTermsTitle'));
+  setText('welcome-terms-text', t('welcomeTermsText'));
+  setHtml('welcome-help-text', t('welcomeHelpText'));
+  setText('welcome-agree-btn', t('welcomeAgree'));
   setText('home-enter-btn', t('homeEnter'));
   setHtml('home-disclaimer', `${t('homeDisclaimer')}<br><a href="#" id="home-resources-link" onclick="goScreen('resources', null); return false;">${t('homeResources')}</a>&nbsp;·&nbsp;<a href="#" id="home-privacy-link" onclick="goScreen('privacy', null); return false;">${t('homePrivacy')}</a>`);
   setText('chat-notice', t('chatNotice'));
