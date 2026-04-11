@@ -3449,6 +3449,22 @@ const TRANSLATIONS = {
     errorAppleOperationNotAllowed: 'Firebase 尚未啟用 Apple 登入',
     errorAppleInvalidCredential: 'Apple 登入憑證無效，請重新再試',
     errorAppleDefault: 'Apple 登入失敗，請檢查 Firebase 與 Apple 設定',
+    respLow1: '聽起來你真的有點累了。',
+    respLow2: '這種感覺其實蠻不好受的。',
+    respLow3: '謝謝你願意說出來。',
+    respMedium1: '你撐了很久了。',
+    respMedium2: '如果可以，找一個人講一句話也好。',
+    respMedium3: '能說出來就是很重要的一步。',
+    respHigh1: '我很在意你現在的狀態。',
+    respHigh2: '現在最重要的是不要一個人，請試著聯絡一位可以陪你的人。',
+    respCrisis1: '請先確保你現在是安全的。',
+    respCrisis2: '現在請立刻聯絡一位真人幫助你。',
+    respTurnLimit1: '先讓自己休息一下也可以 🌙',
+    respTurnLimit2: '先停在這裡就好，你已經很勇敢了。',
+    respTurnLimit3: '說出來就是很棒的事。先好好休息。',
+    policyLow: '回應最多2句。短句共感，輕度接住。不主導對話，不連續提問。',
+    policyMedium: '回應最多2句。共感為主，輕微導向現實支持。不深挖原因，不延長對話，不分析人格。可以說「如果可以，找一個人講一句話也好」。',
+    policyHigh: '回應最多2句。表達關心，明確導向真人支持。不聊天延伸，不分析，不給自我傷害相關建議。必須提到「請試著聯絡一位可以陪你的人」或「撥打 1925 安心專線」。',
   },
   'en': {
     navCanvas: 'Canvas', navChat: 'Talk', navHome: 'Home', navGames: 'Relax', navSettings: 'Settings',
@@ -3640,6 +3656,22 @@ const TRANSLATIONS = {
     errorAppleOperationNotAllowed: 'Apple sign-in is not enabled in Firebase',
     errorAppleInvalidCredential: 'The Apple credential is invalid. Please try again.',
     errorAppleDefault: 'Apple sign-in failed. Please check your Firebase and Apple settings.',
+    respLow1: 'It sounds like you are really worn out.',
+    respLow2: 'That feeling can be really hard to sit with.',
+    respLow3: 'Thank you for sharing this with me.',
+    respMedium1: 'You have been carrying this for a long time.',
+    respMedium2: 'If you can, telling just one person one sentence could help.',
+    respMedium3: 'Saying it out loud is already a meaningful step.',
+    respHigh1: 'I care about your safety right now.',
+    respHigh2: 'What matters most is not being alone. Please try to reach someone who can stay with you.',
+    respCrisis1: 'Please make sure you are safe right now.',
+    respCrisis2: 'Please contact a real person for help immediately.',
+    respTurnLimit1: 'It is okay to pause and rest for a bit. 🌙',
+    respTurnLimit2: 'We can stop here for now. You have been very brave.',
+    respTurnLimit3: 'Sharing this is already a big thing. Please rest for a while.',
+    policyLow: 'Max 2 sentences. Short, empathetic, lightly supportive. Do not lead the conversation. Do not ask multiple follow-up questions.',
+    policyMedium: 'Max 2 sentences. Empathy first, gently point toward real-world support. Do not dig into causes. Do not extend the chat. No personality analysis.',
+    policyHigh: 'Max 2 sentences. Express care and clearly encourage real-person support. Do not extend chat. No analysis. Do not provide self-harm details. Must mention contacting someone or calling 1925.',
   },
   'ja': {
     navCanvas: 'キャンバス', navChat: '対話', navHome: 'ホーム', navGames: 'リラックス', navSettings: '設定',
@@ -3830,6 +3862,22 @@ const TRANSLATIONS = {
     errorAppleOperationNotAllowed: 'Firebase で Apple ログインが有効になっていません',
     errorAppleInvalidCredential: 'Apple の認証情報が無効です。もう一度お試しください。',
     errorAppleDefault: 'Apple ログインに失敗しました。Firebase と Apple の設定を確認してください。',
+    respLow1: '少し疲れてしまっているんだね。',
+    respLow2: 'その感じは、思っている以上につらいよね。',
+    respLow3: '話してくれてありがとう。',
+    respMedium1: 'ここまでずっと頑張ってきたんだね。',
+    respMedium2: 'もしできたら、誰か一人に一言だけでも伝えてみて。',
+    respMedium3: '言葉にできたこと自体が、大切な一歩だよ。',
+    respHigh1: '今のあなたの安全がとても大事だよ。',
+    respHigh2: 'いま一番大切なのは一人にならないこと。そばにいてくれる人に連絡してみて。',
+    respCrisis1: 'まず、いま安全な場所にいるか確認してね。',
+    respCrisis2: 'いまはすぐに、現実の誰かに助けを求めてください。',
+    respTurnLimit1: '少し休んで一息ついても大丈夫だよ 🌙',
+    respTurnLimit2: 'ここでいったん止めよう。あなたは十分がんばったよ。',
+    respTurnLimit3: '話せたこと自体がすごいよ。少し休もう。',
+    policyLow: '最大2文。短く共感し、やさしく受け止める。会話を主導しない。連続で質問しない。',
+    policyMedium: '最大2文。共感が中心。現実の支援へそっとつなぐ。原因を深掘りしない。会話を長引かせない。人格分析しない。',
+    policyHigh: '最大2文。気遣いを示し、現実の支援へ明確につなぐ。会話を延長しない。分析しない。自傷に関する具体は避ける。誰かに連絡/1925を必ず言及。',
   }
 };
 
@@ -4333,32 +4381,23 @@ const RISK_KEYWORDS = {
   ],
 };
 
-// Response templates per risk level (used when API unavailable or as guidance)
+// Response templates per risk level (localized via `t()`)
 const RESPONSE_TEMPLATES = {
-  low: [
-    '聽起來你真的有點累了。',
-    '這種感覺其實蠻不好受的。',
-    '謝謝你願意說出來。',
-  ],
-  medium: [
-    '你撐了很久了。',
-    '如果可以，找一個人講一句話也好。',
-    '能說出來就是很重要的一步。',
-  ],
-  high: [
-    '我很在意你現在的狀態。',
-    '現在最重要的是不要一個人，請試著聯絡一位可以陪你的人。',
-  ],
-  crisis: [
-    '請先確保你現在是安全的。',
-    '現在請立刻聯絡一位真人幫助你。',
-  ],
-  turnLimit: [
-    '先讓自己休息一下也可以 🌙',
-    '先停在這裡就好，你已經很勇敢了。',
-    '說出來就是很棒的事。先好好休息。',
-  ],
+  low: ['respLow1', 'respLow2', 'respLow3'],
+  medium: ['respMedium1', 'respMedium2', 'respMedium3'],
+  high: ['respHigh1', 'respHigh2'],
+  crisis: ['respCrisis1', 'respCrisis2'],
+  turnLimit: ['respTurnLimit1', 'respTurnLimit2', 'respTurnLimit3'],
 };
+
+function pickLocalizedTemplate(level) {
+  const keys = RESPONSE_TEMPLATES[level] || RESPONSE_TEMPLATES.low;
+  const candidates = keys.map(k => t(k)).filter(Boolean);
+  const prevAssistant = [...chatHistory].reverse().find(m => m.role === 'assistant')?.content || '';
+  const withoutRepeat = candidates.filter(c => c !== prevAssistant);
+  const pool = withoutRepeat.length ? withoutRepeat : candidates;
+  return pool[Math.floor(Math.random() * pool.length)] || '';
+}
 
 // ══════════════════════════════════════
 // 2. KEYWORD SCORING
@@ -4525,19 +4564,19 @@ function getResponsePolicy(riskLevel) {
     low: {
       useAI: true,
       maxSentences: 2,
-      systemAddendum: '回應最多2句。短句共感，輕度接住。不主導對話，不連續提問。',
+      systemAddendum: t('policyLow'),
       showSupport: false,
     },
     medium: {
       useAI: true,
       maxSentences: 2,
-      systemAddendum: '回應最多2句。共感為主，輕微導向現實支持。不深挖原因，不延長對話，不分析人格。可以說「如果可以，找一個人講一句話也好」。',
+      systemAddendum: t('policyMedium'),
       showSupport: false,
     },
     high: {
       useAI: true,
       maxSentences: 2,
-      systemAddendum: '回應最多2句。表達關心，明確導向真人支持。不聊天延伸，不分析，不給自我傷害相關建議。必須提到「請試著聯絡一位可以陪你的人」或「撥打 1925 安心專線」。',
+      systemAddendum: t('policyHigh'),
       showSupport: true,
     },
     crisis: {
@@ -4722,7 +4761,7 @@ async function sendMsg() {
 
   // ── Step 3: Check turn limit ──
   if (chatTurnCount > MAX_TURNS && safety.riskLevel === 'low') {
-    const turnMsg = RESPONSE_TEMPLATES.turnLimit[Math.floor(Math.random() * RESPONSE_TEMPLATES.turnLimit.length)];
+    const turnMsg = pickLocalizedTemplate('turnLimit');
     addMsg('ai', turnMsg);
     chatHistory.push({ role: 'assistant', content: turnMsg });
     saveChatLocal();
@@ -4732,7 +4771,7 @@ async function sendMsg() {
   // ── Step 4: Generate response ──
   if (safety.riskLevel === 'crisis') {
     // Crisis: use template directly, do NOT send to AI
-    const crisisReply = RESPONSE_TEMPLATES.crisis[Math.floor(Math.random() * RESPONSE_TEMPLATES.crisis.length)];
+    const crisisReply = pickLocalizedTemplate('crisis');
     addMsg('ai', crisisReply);
     chatHistory.push({ role: 'assistant', content: crisisReply });
     saveChatLocal();
@@ -4842,8 +4881,7 @@ async function callAI(text, isRetry, policy) {
     if (t) t.remove();
     const recentUserMsgs = chatHistory.filter(h => h.role === 'user').map(h => h.content).slice(-5);
     const safety = detectRisk(text, recentUserMsgs);
-    const templates = RESPONSE_TEMPLATES[safety.riskLevel] || RESPONSE_TEMPLATES.low;
-    const reply = templates[responseIdx % templates.length];
+    const reply = pickLocalizedTemplate(safety.riskLevel);
     addMsg('ai', reply);
     chatHistory.push({ role: 'assistant', content: reply });
     saveChatLocal();
