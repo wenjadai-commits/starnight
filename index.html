@@ -2108,11 +2108,11 @@ window.addEventListener('load', () => {
   <!-- HOME -->
   <div class="screen active" id="screen-home" style="display:flex; flex-direction:column; align-items:center;">
     <!-- Bottle section -->
-    <div class="bottle-container bottle-entrance" id="bottle-btn" onclick="showToast(t('toast.encouragement'))">
+    <div class="bottle-container bottle-entrance" id="bottle-btn" onclick="showToast(t('toastEncouragement'))">
       <canvas id="bottle-canvas" width="340" height="340"></canvas>
       <img src="bottle.png" class="bottle-img" alt="星星瓶" draggable="false">
     </div>
-    <p class="bottle-count bottle-count-entrance" id="bottle-count">✦ 0 顆情緒星星</p>
+    <p class="bottle-count bottle-count-entrance" id="bottle-count">✦ 0 emotion stars</p>
     <button class="enter-btn enter-btn-entrance" id="home-enter-btn" onclick="goScreen('diary', null); renderDiary();">我的藏星 ★</button>
     <p class="disclaimer-bar disclaimer-entrance" id="home-disclaimer">
       本 App 提供情緒抒發空間，不能取代專業心理諮商。<br>
@@ -2131,9 +2131,7 @@ window.addEventListener('load', () => {
       </div>
       <button id="chat-clear-btn" onclick="clearChatHistory()" style="background:none; border:none; color:var(--text-dim); font-size:10px; cursor:pointer; font-family:'Noto Sans TC',sans-serif; white-space:nowrap; padding:4px 8px;">清除對話</button>
     </div>
-    <div class="chat-messages" id="chat-messages">
-      <div class="msg ai">嗨，今晚的星空很美。有什麼想說的嗎？我在這裡陪你。🌙</div>
-    </div>
+    <div class="chat-messages" id="chat-messages"></div>
     <div class="chat-input-wrap">
       <textarea class="chat-input" id="chat-input" placeholder="說說心裡的話..." rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
       <button class="send-btn" onclick="sendMsg()">
@@ -2346,127 +2344,127 @@ window.addEventListener('load', () => {
 
   <!-- RESOURCES -->
   <div class="screen scrollable" id="screen-resources" style="display:none;" class="screen scrollable">
-    <button class="privacy-back" onclick="goScreen('home', document.querySelectorAll('.nav-btn')[0])">
-      ← 返回
+    <button class="privacy-back" id="resources-back-btn" onclick="goScreen('home', document.querySelectorAll('.nav-btn')[0])">
+      ← Back
     </button>
     <div class="resources-title" id="resources-title">心理諮商資源</div>
     <p class="resources-sub" id="resources-sub">你不需要一個人扛著</p>
 
     <!-- 緊急專線 -->
     <div class="hotline-strip">
-      <div class="hotline-title">✦ 24 小時緊急專線</div>
+      <div class="hotline-title" id="resources-hotline-title">✦ 24 小時緊急專線</div>
       <div class="hotline-grid">
         <div class="hotline-item">
-          <div class="hotline-name">安心專線</div>
+          <div class="hotline-name" id="hotline-1925-name">安心專線</div>
           <div class="hotline-num">1925</div>
         </div>
         <div class="hotline-item">
-          <div class="hotline-name">生命線</div>
+          <div class="hotline-name" id="hotline-1995-name">生命線</div>
           <div class="hotline-num">1995</div>
         </div>
         <div class="hotline-item">
-          <div class="hotline-name">張老師專線</div>
+          <div class="hotline-name" id="hotline-1980-name">張老師專線</div>
           <div class="hotline-num">1980</div>
         </div>
         <div class="hotline-item">
-          <div class="hotline-name">自殺防治專線</div>
+          <div class="hotline-name" id="hotline-suicide-name">自殺防治專線</div>
           <div class="hotline-num">0800-788-995</div>
         </div>
       </div>
     </div>
 
     <!-- 北部 -->
-    <div class="region-label">北部</div>
+    <div class="region-label" id="resources-region-north">北部</div>
 
     <div class="clinic-card">
       <div class="clinic-name">台北市立聯合醫院松德院區</div>
       <div class="clinic-row"><div class="clinic-icon">📍</div><div class="clinic-info">台北市信義區松德路309號</div></div>
       <div class="clinic-row"><div class="clinic-icon">📞</div><div class="clinic-info">(02) 2726-3141</div></div>
       <div class="clinic-row"><div class="clinic-icon">🔗</div><div class="clinic-info"><a href="https://www.tpech.gov.tw" target="_blank">www.tpech.gov.tw</a></div></div>
-      <span class="clinic-tag">精神科門診</span><span class="clinic-tag blue">心理治療</span>
+      <span class="clinic-tag" id="clinic-tag-psychiatry-1">精神科門診</span><span class="clinic-tag blue" id="clinic-tag-therapy-1">心理治療</span>
     </div>
 
     <div class="clinic-card">
       <div class="clinic-name">台大醫院精神醫學部</div>
       <div class="clinic-row"><div class="clinic-icon">📍</div><div class="clinic-info">台北市中正區中山南路7號</div></div>
       <div class="clinic-row"><div class="clinic-icon">📞</div><div class="clinic-info">(02) 2312-3456</div></div>
-      <span class="clinic-tag">心理諮詢</span><span class="clinic-tag blue">精神科</span>
+      <span class="clinic-tag" id="clinic-tag-counseling-1">心理諮詢</span><span class="clinic-tag blue" id="clinic-tag-psychiatry-2">精神科</span>
     </div>
 
     <div class="clinic-card">
       <div class="clinic-name">台北市社區心理衛生中心</div>
       <div class="clinic-row"><div class="clinic-icon">📍</div><div class="clinic-info">台北市大安區建國南路二段342號B棟</div></div>
       <div class="clinic-row"><div class="clinic-icon">📞</div><div class="clinic-info">(02) 3393-7885</div></div>
-      <div class="clinic-row"><div class="clinic-icon">💡</div><div class="clinic-info">提供免費心理諮商（需預約）</div></div>
-      <span class="clinic-tag coral">免費諮商</span><span class="clinic-tag">需預約</span>
+      <div class="clinic-row"><div class="clinic-icon">💡</div><div class="clinic-info" id="clinic-note-free-appointment-1">提供免費心理諮商（需預約）</div></div>
+      <span class="clinic-tag coral" id="clinic-tag-free-1">免費諮商</span><span class="clinic-tag" id="clinic-tag-appointment-1">需預約</span>
     </div>
 
     <div class="clinic-card">
       <div class="clinic-name">新北市心理健康中心</div>
       <div class="clinic-row"><div class="clinic-icon">📍</div><div class="clinic-info">新北市板橋區中山路一段161號</div></div>
       <div class="clinic-row"><div class="clinic-icon">📞</div><div class="clinic-info">(02) 2953-1287</div></div>
-      <span class="clinic-tag coral">免費諮商</span>
+      <span class="clinic-tag coral" id="clinic-tag-free-2">免費諮商</span>
     </div>
 
     <!-- 中部 -->
-    <div class="region-label">中部</div>
+    <div class="region-label" id="resources-region-central">中部</div>
 
     <div class="clinic-card">
       <div class="clinic-name">台中市立復健醫院精神科</div>
       <div class="clinic-row"><div class="clinic-icon">📍</div><div class="clinic-info">台中市北區健行路1492號</div></div>
       <div class="clinic-row"><div class="clinic-icon">📞</div><div class="clinic-info">(04) 2239-5221</div></div>
-      <span class="clinic-tag blue">精神科</span><span class="clinic-tag">心理治療</span>
+      <span class="clinic-tag blue" id="clinic-tag-psychiatry-3">精神科</span><span class="clinic-tag" id="clinic-tag-therapy-2">心理治療</span>
     </div>
 
     <div class="clinic-card">
       <div class="clinic-name">台中市社區心理衛生中心</div>
       <div class="clinic-row"><div class="clinic-icon">📍</div><div class="clinic-info">台中市西區民權路105號</div></div>
       <div class="clinic-row"><div class="clinic-icon">📞</div><div class="clinic-info">(04) 2228-0099</div></div>
-      <div class="clinic-row"><div class="clinic-icon">💡</div><div class="clinic-info">提供免費心理諮商、心理健康講座</div></div>
-      <span class="clinic-tag coral">免費諮商</span>
+      <div class="clinic-row"><div class="clinic-icon">💡</div><div class="clinic-info" id="clinic-note-free-lecture-1">提供免費心理諮商、心理健康講座</div></div>
+      <span class="clinic-tag coral" id="clinic-tag-free-3">免費諮商</span>
     </div>
 
     <div class="clinic-card">
       <div class="clinic-name">彰化縣衛生局心理衛生科</div>
       <div class="clinic-row"><div class="clinic-icon">📍</div><div class="clinic-info">彰化市中山路二段162號</div></div>
       <div class="clinic-row"><div class="clinic-icon">📞</div><div class="clinic-info">(04) 722-2718</div></div>
-      <span class="clinic-tag coral">免費資源</span>
+      <span class="clinic-tag coral" id="clinic-tag-free-resource-1">免費資源</span>
     </div>
 
     <!-- 南部 -->
-    <div class="region-label">南部</div>
+    <div class="region-label" id="resources-region-south">南部</div>
 
     <div class="clinic-card">
       <div class="clinic-name">高雄市立凱旋醫院</div>
       <div class="clinic-row"><div class="clinic-icon">📍</div><div class="clinic-info">高雄市苓雅區凱旋二路130號</div></div>
       <div class="clinic-row"><div class="clinic-icon">📞</div><div class="clinic-info">(07) 751-3171</div></div>
       <div class="clinic-row"><div class="clinic-icon">🔗</div><div class="clinic-info"><a href="https://www.ksph.gov.tw" target="_blank">www.ksph.gov.tw</a></div></div>
-      <span class="clinic-tag blue">精神科</span><span class="clinic-tag">心理治療</span>
+      <span class="clinic-tag blue" id="clinic-tag-psychiatry-4">精神科</span><span class="clinic-tag" id="clinic-tag-therapy-3">心理治療</span>
     </div>
 
     <div class="clinic-card">
       <div class="clinic-name">高雄市社區心理衛生中心</div>
       <div class="clinic-row"><div class="clinic-icon">📍</div><div class="clinic-info">高雄市三民區九如二路150號</div></div>
       <div class="clinic-row"><div class="clinic-icon">📞</div><div class="clinic-info">(07) 311-0580</div></div>
-      <div class="clinic-row"><div class="clinic-icon">💡</div><div class="clinic-info">提供免費心理諮商、危機處理</div></div>
-      <span class="clinic-tag coral">免費諮商</span>
+      <div class="clinic-row"><div class="clinic-icon">💡</div><div class="clinic-info" id="clinic-note-crisis-1">提供免費心理諮商、危機處理</div></div>
+      <span class="clinic-tag coral" id="clinic-tag-free-4">免費諮商</span>
     </div>
 
     <div class="clinic-card">
       <div class="clinic-name">成大醫院精神科部</div>
       <div class="clinic-row"><div class="clinic-icon">📍</div><div class="clinic-info">台南市北區勝利路138號</div></div>
       <div class="clinic-row"><div class="clinic-icon">📞</div><div class="clinic-info">(06) 235-3535</div></div>
-      <span class="clinic-tag blue">精神科</span><span class="clinic-tag">心理評估</span>
+      <span class="clinic-tag blue" id="clinic-tag-psychiatry-5">精神科</span><span class="clinic-tag" id="clinic-tag-eval-1">心理評估</span>
     </div>
 
     <div class="clinic-card">
       <div class="clinic-name">台南市社區心理衛生中心</div>
       <div class="clinic-row"><div class="clinic-icon">📍</div><div class="clinic-info">台南市東區林森路一段418號</div></div>
       <div class="clinic-row"><div class="clinic-icon">📞</div><div class="clinic-info">(06) 260-0022</div></div>
-      <span class="clinic-tag coral">免費諮商</span>
+      <span class="clinic-tag coral" id="clinic-tag-free-5">免費諮商</span>
     </div>
 
-    <p class="resources-note">
+    <p class="resources-note" id="resources-note">
       以上資訊僅供參考，建議來電確認最新服務內容與預約方式。<br>
       若有緊急狀況，請直接撥打 1925 安心專線。
     </p>
@@ -2474,49 +2472,49 @@ window.addEventListener('load', () => {
 
   <!-- PRIVACY -->
   <div class="screen scrollable" id="screen-privacy" style="display:none;" class="screen scrollable">
-    <button class="privacy-back" onclick="goScreen('home', document.querySelectorAll('.nav-btn')[0])">
-      ← 返回
+    <button class="privacy-back" id="privacy-back-btn" onclick="goScreen('home', document.querySelectorAll('.nav-btn')[0])">
+      ← Back
     </button>
     <div class="privacy-title" id="privacy-title">隱私權政策</div>
     <p class="privacy-updated" id="privacy-updated">最後更新：2026 年 3 月</p>
 
     <div class="privacy-section">
-      <h3>關於藏星瓶</h3>
-      <p>藏星瓶是提供情緒抒發與陪伴的個人工具。本政策說明我們如何處理您的資料。</p>
+      <h3 id="privacy-about-title">關於藏星瓶</h3>
+      <p id="privacy-about-text">藏星瓶是提供情緒抒發與陪伴的個人工具。本政策說明我們如何處理您的資料。</p>
     </div>
 
     <div class="privacy-section">
-      <h3>⚠️ 重要聲明</h3>
-      <p>藏星瓶提供情緒表達與 AI 陪伴功能，<strong style="color:#f0a07a">不能取代專業心理諮商或治療</strong>。若您有緊急心理健康需求，請尋求專業協助或撥打安心專線 1925。</p>
+      <h3 id="privacy-important-title">⚠️ 重要聲明</h3>
+      <p id="privacy-important-text">藏星瓶提供情緒表達與 AI 陪伴功能，<strong style="color:#f0a07a">不能取代專業心理諮商或治療</strong>。若您有緊急心理健康需求，請尋求專業協助或撥打安心專線 1925。</p>
     </div>
 
     <div class="privacy-section">
-      <h3>我們收集的資料</h3>
-      <p>• 您在傾訴功能中輸入的對話內容，將傳送至 OpenAI 處理並產生回應。<br>
+      <h3 id="privacy-collect-title">我們收集的資料</h3>
+      <p id="privacy-collect-text">• 您在傾訴功能中輸入的對話內容，將傳送至 OpenAI 處理並產生回應。<br>
       • 情緒日記資料僅儲存於您的裝置本地，我們無法存取。<br>
       • 我們不收集您的姓名、Email 或任何身份識別資料。</p>
     </div>
 
     <div class="privacy-section">
-      <h3>資料如何使用</h3>
-      <p>• 對話內容僅用於當次 AI 回應，不會被儲存於我們的伺服器。<br>
+      <h3 id="privacy-use-title">資料如何使用</h3>
+      <p id="privacy-use-text">• 對話內容僅用於當次 AI 回應，不會被儲存於我們的伺服器。<br>
       • OpenAI 的資料使用規範請參閱其官方隱私政策。<br>
       • 我們不會將您的資料出售或分享給第三方。</p>
     </div>
 
     <div class="privacy-section">
-      <h3>資料刪除</h3>
-      <p>您可隨時在裝置設定中清除 App 的本地資料，包含情緒日記記錄。對話內容不會被保存，無需額外刪除。</p>
+      <h3 id="privacy-delete-title">資料刪除</h3>
+      <p id="privacy-delete-text">您可隨時在裝置設定中清除 App 的本地資料，包含情緒日記記錄。對話內容不會被保存，無需額外刪除。</p>
     </div>
 
     <div class="privacy-section">
-      <h3>適用年齡</h3>
-      <p>本 App 適合 13 歲以上使用者。未成年人使用前請取得監護人同意。</p>
+      <h3 id="privacy-age-title">適用年齡</h3>
+      <p id="privacy-age-text">本 App 適合 13 歲以上使用者。未成年人使用前請取得監護人同意。</p>
     </div>
 
     <div class="privacy-section">
-      <h3>聯絡我們</h3>
-      <p>如有任何疑問，歡迎透過 App 的傾訴功能反映，或聯繫開發者。</p>
+      <h3 id="privacy-contact-title">聯絡我們</h3>
+      <p id="privacy-contact-text">如有任何疑問，歡迎透過 App 的傾訴功能反映，或聯繫開發者。</p>
     </div>
   </div>
 
@@ -2666,21 +2664,21 @@ window.addEventListener('load', () => {
     <a class="support-action" href="tel:1925">
       <div class="support-action-icon">📞</div>
       <div class="support-action-info">
-        <div class="support-action-label">安心專線 1925</div>
+        <div class="support-action-label" id="support-1925-label">安心專線 1925</div>
         <div class="support-action-desc" id="support-1925-desc">24 小時免費，專業人員接聽</div>
       </div>
     </a>
     <a class="support-action" href="tel:1995">
       <div class="support-action-icon">📞</div>
       <div class="support-action-info">
-        <div class="support-action-label">生命線 1995</div>
+        <div class="support-action-label" id="support-1995-label">生命線 1995</div>
         <div class="support-action-desc" id="support-1995-desc">24 小時免費</div>
       </div>
     </a>
     <a class="support-action" href="tel:1980">
       <div class="support-action-icon">📞</div>
       <div class="support-action-info">
-        <div class="support-action-label">張老師專線 1980</div>
+        <div class="support-action-label" id="support-1980-label">張老師專線 1980</div>
         <div class="support-action-desc" id="support-1980-desc">週一至週六 9:00-21:00</div>
       </div>
     </a>
@@ -2790,7 +2788,7 @@ function initBottleAnimation() {
 
 function updateBottleCount() {
   const el = document.getElementById('bottle-count');
-  if (el) el.textContent = '✦ ' + diaryEntries.length + ' 顆情緒星星';
+  if (el) el.textContent = t('bottleCount', { count: String(diaryEntries.length) });
 }
 
 function addBottleStar(color) {
@@ -3252,6 +3250,16 @@ const TRANSLATIONS = {
     diarySave: '✦ 化作星星',
     diaryDelete: '刪除',
     diaryToday: '今天',
+    moodCalm: '平靜',
+    moodHappy: '開心',
+    moodGrateful: '感恩',
+    moodHopeful: '期待',
+    moodTired: '疲憊',
+    moodAnxious: '焦慮',
+    moodSad: '難過',
+    moodLow: '低落',
+    moodAngry: '憤怒',
+    moodRelaxed: '放鬆',
     gamesTitle: '解壓小遊戲',
     gamesSub: '選一個放鬆方式吧',
     gamePressName: '星星點點',
@@ -3264,17 +3272,70 @@ const TRANSLATIONS = {
     gameShake: '✦ 搖一搖',
     gameRotateTitle: '請將手機轉為直向',
     gameRotateSub: '星砂瓶需要直向使用',
+    gamePressHint: '按我！',
     homeDisclaimer: '本 App 提供情緒抒發空間，不能取代專業心理諮商。<br>如有緊急心理危機，請撥打 1925 安心專線。',
     homeResources: '諮商資源',
     homePrivacy: '隱私政策',
+    backButton: '← 返回',
+    bottleCount: '✦ {count} 顆情緒星星',
     chatNotice: '✦ 對話內容將透過 AI 處理，請勿輸入個人敏感資料。',
     chatClear: '清除對話',
     chatPlaceholder: '說說心裡的話...',
     chatEmpty: '有什麼想說的嗎？我在這裡聽你說 🌙',
+    chatRetry: '↩ 重新傳送',
+    chatErrorTimeout: '回應時間較長，可能是網路較慢 🌙 要再試一次嗎？',
+    chatErrorOffline: '目前沒有網路連線，請確認後再試。',
+    chatErrorRateLimit: '訊息送得有點快，先等一下再試 🌙',
+    chatErrorTimeoutAi: 'AI 回應逾時了，請再試一次。',
+    chatErrorMissingApiKey: 'AI 設定尚未完成，請稍後再試。',
+    chatErrorInvalidApiKey: 'AI 服務驗證失敗，請稍後再試。',
+    chatErrorQuota: 'AI 服務目前較忙或額度已滿，請稍後再試。',
+    chatErrorModel: 'AI 模型設定有誤，請稍後再試。',
+    chatErrorEmpty: 'AI 這次沒有成功回應，請再試一次。',
+    chatErrorGeneric: '連線出現問題，要再試一次嗎？',
+    crisisCardTitle: '✦ 我們在乎你的安全',
+    crisisCardLine1925: '📞 安心專線：<a href="tel:1925"><strong>1925</strong></a>（24小時）',
+    crisisCardLine1995: '📞 生命線：<a href="tel:1995"><strong>1995</strong></a>',
+    crisisCardLine1980: '📞 張老師專線：<a href="tel:1980"><strong>1980</strong></a>',
+    crisisCardNote: '你不需要一個人面對。如果現在很痛苦，請撥打上面的電話，會有人陪你。',
     resourcesTitle: '心理諮商資源',
     resourcesSub: '你不需要一個人扛著',
+    resourcesHotlineTitle: '✦ 24 小時緊急專線',
+    hotline1925: '安心專線',
+    hotline1995: '生命線',
+    hotline1980: '張老師專線',
+    hotlineSuicide: '自殺防治專線',
+    resourcesRegionNorth: '北部',
+    resourcesRegionCentral: '中部',
+    resourcesRegionSouth: '南部',
+    clinicTagPsychiatryOutpatient: '精神科門診',
+    clinicTagTherapy: '心理治療',
+    clinicTagCounseling: '心理諮詢',
+    clinicTagPsychiatry: '精神科',
+    clinicNoteFreeAppointment: '提供免費心理諮商（需預約）',
+    clinicTagFreeCounseling: '免費諮商',
+    clinicTagAppointment: '需預約',
+    clinicNoteFreeLecture: '提供免費心理諮商、心理健康講座',
+    clinicTagFreeResource: '免費資源',
+    clinicNoteCrisis: '提供免費心理諮商、危機處理',
+    clinicTagEvaluation: '心理評估',
+    resourcesNote: '以上資訊僅供參考，建議來電確認最新服務內容與預約方式。<br>若有緊急狀況，請直接撥打 1925 安心專線。',
     privacyTitle: '隱私權政策',
     privacyUpdated: '最後更新：2026 年 3 月',
+    privacyAboutTitle: '關於藏星瓶',
+    privacyAboutText: '藏星瓶是提供情緒抒發與陪伴的個人工具。本政策說明我們如何處理您的資料。',
+    privacyImportantTitle: '⚠️ 重要聲明',
+    privacyImportantText: '藏星瓶提供情緒表達與 AI 陪伴功能，<strong style="color:#f0a07a">不能取代專業心理諮商或治療</strong>。若您有緊急心理健康需求，請尋求專業協助或撥打安心專線 1925。',
+    privacyCollectTitle: '我們收集的資料',
+    privacyCollectText: '• 您在傾訴功能中輸入的對話內容，將傳送至 OpenAI 處理並產生回應。<br>• 情緒日記資料僅儲存於您的裝置本地，我們無法存取。<br>• 我們不收集您的姓名、Email 或任何身份識別資料。',
+    privacyUseTitle: '資料如何使用',
+    privacyUseText: '• 對話內容僅用於當次 AI 回應，不會被儲存於我們的伺服器。<br>• OpenAI 的資料使用規範請參閱其官方隱私政策。<br>• 我們不會將您的資料出售或分享給第三方。',
+    privacyDeleteTitle: '資料刪除',
+    privacyDeleteText: '您可隨時在裝置設定中清除 App 的本地資料，包含情緒日記記錄。對話內容不會被保存，無需額外刪除。',
+    privacyAgeTitle: '適用年齡',
+    privacyAgeText: '本 App 適合 13 歲以上使用者。未成年人使用前請取得監護人同意。',
+    privacyContactTitle: '聯絡我們',
+    privacyContactText: '如有任何疑問，歡迎透過 App 的傾訴功能反映，或聯繫開發者。',
     settingsTitle: '我的設定',
     settingsSub: '個人化你的藏星瓶體驗',
     settingsProfile: '個人資料',
@@ -3308,11 +3369,16 @@ const TRANSLATIONS = {
     settingsDeleting: '刪除中...',
     supportTitle: '✦ 你不需要一個人面對',
     supportSub: '現在最重要的是讓自己安全。以下是一些可以幫助你的方式。',
+    supportLabel1925: '安心專線 1925',
+    supportLabel1995: '生命線 1995',
+    supportLabel1980: '張老師專線 1980',
     support1925: '24 小時免費，專業人員接聽',
     support1995: '24 小時免費',
     support1980: '週一至週六 9:00-21:00',
     supportTrustLabel: '聯絡信任的人',
     supportTrustDesc: '傳送預設訊息給你信任的人',
+    supportTrustNamed: '聯絡 {name}（{relation}）',
+    supportTrustRelationFallback: '信任的人',
     supportMoreLabel: '查看更多諮商資源',
     supportMoreDesc: '台灣各地心理衛生中心',
     supportClose: '稍後再看',
@@ -3352,6 +3418,14 @@ const TRANSLATIONS = {
     confirmCanvasDelete: '確定要刪除這幅畫嗎？',
     confirmDeleteDiary: '確定要刪除這則記錄嗎？',
     errorDiaryEmpty: '寫幾個字或附張照片吧 ✦',
+    diaryImageAlt: '日記照片',
+    trailNoDataTitle: '還沒有足夠的記錄',
+    trailNoDataSub: '去寫下今天的心情吧 ✦',
+    trailLabelHigh: '開心',
+    trailLabelMid: '平靜',
+    trailLabelLow: '低落',
+    trailNoRecords: '尚無記錄',
+    trailCount: '{count}次',
     confirmResetSettings: '確定要重設所有個人設定嗎？（暱稱、AI 風格、信任聯絡人）',
     confirmDeleteAccount1: '確定要刪除帳號嗎？你的雲端日記、對話與相關資料會一併刪除，且無法復原。',
     confirmDeleteAccount2: '這是最後確認：刪除帳號後將無法找回資料。確定要繼續嗎？',
@@ -3430,6 +3504,16 @@ const TRANSLATIONS = {
     diarySave: '✦ Turn into a star',
     diaryDelete: 'Delete',
     diaryToday: 'Today',
+    moodCalm: 'Calm',
+    moodHappy: 'Happy',
+    moodGrateful: 'Grateful',
+    moodHopeful: 'Hopeful',
+    moodTired: 'Tired',
+    moodAnxious: 'Anxious',
+    moodSad: 'Sad',
+    moodLow: 'Low',
+    moodAngry: 'Angry',
+    moodRelaxed: 'Relaxed',
     gamesTitle: 'Relaxing Games',
     gamesSub: 'Pick a way to unwind',
     gamePressName: 'Star Tap',
@@ -3442,14 +3526,67 @@ const TRANSLATIONS = {
     gameShake: '✦ Shake',
     gameRotateTitle: 'Please rotate your phone upright',
     gameRotateSub: 'Star Sand Bottle works in portrait mode',
+    gamePressHint: 'Tap me!',
     homeDisclaimer: 'This app offers a space to express emotions and does not replace professional counseling.<br>If you are in immediate crisis, call 1925 for support.',
     homeResources: 'Resources', homePrivacy: 'Privacy',
+    backButton: '← Back',
+    bottleCount: '✦ {count} emotion stars',
     chatNotice: '✦ Conversations are processed by AI. Please avoid sharing sensitive personal information.',
     chatClear: 'Clear',
     chatPlaceholder: 'Share what is on your mind...',
     chatEmpty: 'Anything on your mind? I am here with you. 🌙',
+    chatRetry: '↩ Retry',
+    chatErrorTimeout: 'The response is taking a while. Your connection may be slow 🌙 Want to try again?',
+    chatErrorOffline: 'You are offline right now. Please check your connection and try again.',
+    chatErrorRateLimit: 'Messages are being sent a bit too quickly. Please wait a moment 🌙',
+    chatErrorTimeoutAi: 'The AI response timed out. Please try again.',
+    chatErrorMissingApiKey: 'The AI service is not fully configured yet. Please try again later.',
+    chatErrorInvalidApiKey: 'AI service authentication failed. Please try again later.',
+    chatErrorQuota: 'The AI service is busy or out of quota right now. Please try again later.',
+    chatErrorModel: 'The AI model configuration is incorrect. Please try again later.',
+    chatErrorEmpty: 'The AI did not return a response this time. Please try again.',
+    chatErrorGeneric: 'There was a connection problem. Want to try again?',
+    crisisCardTitle: '✦ Your safety matters to us',
+    crisisCardLine1925: '📞 1925 Hotline: <a href="tel:1925"><strong>1925</strong></a> (24/7)',
+    crisisCardLine1995: '📞 Lifeline: <a href="tel:1995"><strong>1995</strong></a>',
+    crisisCardLine1980: '📞 Teacher Chang Hotline: <a href="tel:1980"><strong>1980</strong></a>',
+    crisisCardNote: 'You do not have to face this alone. If things feel unbearable right now, please call one of these numbers and let someone stay with you.',
     resourcesTitle: 'Mental Health Resources', resourcesSub: 'You do not have to carry this alone',
+    resourcesHotlineTitle: '✦ 24-hour crisis hotlines',
+    hotline1925: '安心 Hotline',
+    hotline1995: 'Lifeline',
+    hotline1980: 'Teacher Chang Hotline',
+    hotlineSuicide: 'Suicide Prevention Hotline',
+    resourcesRegionNorth: 'North',
+    resourcesRegionCentral: 'Central',
+    resourcesRegionSouth: 'South',
+    clinicTagPsychiatryOutpatient: 'Psychiatry outpatient',
+    clinicTagTherapy: 'Psychotherapy',
+    clinicTagCounseling: 'Counseling',
+    clinicTagPsychiatry: 'Psychiatry',
+    clinicNoteFreeAppointment: 'Free counseling available by appointment',
+    clinicTagFreeCounseling: 'Free counseling',
+    clinicTagAppointment: 'Appointment required',
+    clinicNoteFreeLecture: 'Free counseling and mental health workshops',
+    clinicTagFreeResource: 'Free resource',
+    clinicNoteCrisis: 'Free counseling and crisis support',
+    clinicTagEvaluation: 'Psychological assessment',
+    resourcesNote: 'Information is for reference only. Please call ahead to confirm the latest services and booking details.<br>If this is an emergency, please call 1925 right away.',
     privacyTitle: 'Privacy Policy', privacyUpdated: 'Last updated: March 2026',
+    privacyAboutTitle: 'About Starfold',
+    privacyAboutText: 'Starfold is a personal tool for emotional expression and companionship. This policy explains how your data is handled.',
+    privacyImportantTitle: '⚠️ Important',
+    privacyImportantText: 'Starfold offers emotional expression and AI companionship, but <strong style="color:#f0a07a">it does not replace professional counseling or treatment</strong>. If you are facing an urgent mental health crisis, please seek professional help or call 1925.',
+    privacyCollectTitle: 'What we collect',
+    privacyCollectText: '• Messages you enter in the chat feature are sent to OpenAI to generate responses.<br>• Diary entries are stored only on your device, and we cannot access them.<br>• We do not collect your name, email, or other identifying personal information.',
+    privacyUseTitle: 'How data is used',
+    privacyUseText: '• Chat content is used only to generate the current AI response and is not stored on our servers.<br>• Please refer to OpenAI\'s official privacy policy for its data practices.<br>• We do not sell or share your data with third parties.',
+    privacyDeleteTitle: 'Data deletion',
+    privacyDeleteText: 'You can clear the app\'s local data at any time from your device settings, including diary records. Chat content is not retained, so no extra deletion step is needed.',
+    privacyAgeTitle: 'Age guidance',
+    privacyAgeText: 'This app is intended for users aged 13 and above. Minors should use it with guardian consent.',
+    privacyContactTitle: 'Contact us',
+    privacyContactText: 'If you have any questions, you can share feedback through the chat feature or contact the developer.',
     settingsTitle: 'Settings', settingsSub: 'Personalize your Starfold experience',
     settingsProfile: 'Profile', settingsNickname: 'Nickname', settingsNicknamePlaceholder: 'How would you like to be addressed?',
     settingsStyle: 'AI Companion Style', settingsStyleLabel: 'How would you like the AI to respond?',
@@ -3463,8 +3600,12 @@ const TRANSLATIONS = {
     settingsStatus: 'Usage', settingsUid: 'ID: ', settingsChatCount: 'Chats: {count}', settingsDiaryCount: 'Diary entries: {count}',
     settingsData: 'Data', settingsClearChat: 'Clear chat history', settingsReset: 'Reset personal settings', settingsDelete: 'Delete account', settingsDeleting: 'Deleting...',
     supportTitle: '✦ You do not have to face this alone', supportSub: 'Your safety matters most right now. Here are a few ways to get support.',
+    supportLabel1925: '1925 Hotline',
+    supportLabel1995: 'Lifeline 1995',
+    supportLabel1980: 'Teacher Chang 1980',
     support1925: 'Free 24/7 support from trained staff', support1995: 'Free 24/7 hotline', support1980: 'Mon-Sat 9:00-21:00',
     supportTrustLabel: 'Contact a trusted person', supportTrustDesc: 'Send your default message to someone you trust',
+    supportTrustNamed: 'Contact {name} ({relation})', supportTrustRelationFallback: 'trusted person',
     supportMoreLabel: 'See more support resources', supportMoreDesc: 'Mental health centers across Taiwan', supportClose: 'Maybe later',
     authTitle: 'Welcome back to Starfold', authSub: 'Sign in to sync your diary',
     authLogin: 'Sign in', authRegister: 'Register', authEmailPlaceholder: 'Email', authPasswordPlaceholder: 'Password',
@@ -3474,6 +3615,14 @@ const TRANSLATIONS = {
     toastSkippedAuth: 'Skipped sign-in. Your diary stays on this device only ✦', toastSignedOut: 'Signed out ✦', toastResetSettings: 'Personal settings reset ✦',
     toastTrustMissing: 'No trusted contact has been set', toastChatCleared: 'Chat history cleared ✦', toastDiarySynced: 'Diary synced from the cloud ✦', toastAccountDeleted: 'Your account and cloud data have been deleted',
     toastDiaryDeleted: 'Deleted ✦', toastDiarySaved: 'A new star was created ✦', confirmDeleteDiary: 'Delete this entry?', errorDiaryEmpty: 'Write something or attach a photo ✦',
+    diaryImageAlt: 'Diary photo',
+    trailNoDataTitle: 'Not enough entries yet',
+    trailNoDataSub: 'Write down how you feel today ✦',
+    trailLabelHigh: 'High',
+    trailLabelMid: 'Calm',
+    trailLabelLow: 'Low',
+    trailNoRecords: 'No entries yet',
+    trailCount: '{count}',
     toastCanvasNoUndo: 'Nothing to undo', toastCanvasNoRedo: 'Nothing to redo', toastCanvasDrawFirst: 'Draw something on the canvas first ✦', toastCanvasPhotoImported: 'Photo imported. You can draw on it now ✦', toastCanvasSaved: 'Drawing saved ✦', toastCanvasNew: 'New canvas ✦', toastCanvasDeleted: 'Deleted ✦', toastCanvasBlankDelete: 'This canvas is blank, no need to delete it', confirmCanvasDelete: 'Delete this drawing?',
     confirmResetSettings: 'Reset all personal settings? This includes nickname, AI style, and trusted contact.',
     confirmDeleteAccount1: 'Delete your account? Your cloud diary, chat, and related data will be permanently removed.',
@@ -3546,6 +3695,16 @@ const TRANSLATIONS = {
     diarySave: '✦ 星にする',
     diaryDelete: '削除',
     diaryToday: '今日',
+    moodCalm: '穏やか',
+    moodHappy: 'うれしい',
+    moodGrateful: '感謝',
+    moodHopeful: '期待',
+    moodTired: '疲れた',
+    moodAnxious: '不安',
+    moodSad: '悲しい',
+    moodLow: '落ち込み',
+    moodAngry: '怒り',
+    moodRelaxed: 'リラックス',
     gamesTitle: 'リラックスゲーム',
     gamesSub: '気分に合うものを選んでみて',
     gamePressName: 'きらきらタップ',
@@ -3558,14 +3717,67 @@ const TRANSLATIONS = {
     gameShake: '✦ ふる',
     gameRotateTitle: 'スマホを縦向きにしてください',
     gameRotateSub: '星砂ボトルは縦向きで使います',
+    gamePressHint: 'タップして！',
     homeDisclaimer: 'このアプリは感情を表現するための空間を提供しますが、専門的なカウンセリングの代わりにはなりません。<br>緊急の危機がある場合は、1925 に連絡してください。',
     homeResources: '相談資源', homePrivacy: 'プライバシー',
+    backButton: '← 戻る',
+    bottleCount: '✦ 感情の星 {count} 個',
     chatNotice: '✦ 会話内容は AI により処理されます。個人の機微情報は入力しないでください。',
     chatClear: '会話を消去',
     chatPlaceholder: '今の気持ちを話してみて...',
     chatEmpty: '何か話したいことはある？ここで聞いているよ 🌙',
+    chatRetry: '↩ 再送',
+    chatErrorTimeout: '応答に少し時間がかかっています。通信が遅いかもしれません 🌙 もう一度試しますか？',
+    chatErrorOffline: '現在オフラインです。接続を確認してからもう一度お試しください。',
+    chatErrorRateLimit: '少し早めに送信されています。少し待ってからもう一度どうぞ 🌙',
+    chatErrorTimeoutAi: 'AI の応答がタイムアウトしました。もう一度お試しください。',
+    chatErrorMissingApiKey: 'AI の設定がまだ完了していません。しばらくしてからもう一度お試しください。',
+    chatErrorInvalidApiKey: 'AI サービスの認証に失敗しました。しばらくしてからもう一度お試しください。',
+    chatErrorQuota: 'AI サービスが混み合っているか、利用枠が上限に達しています。しばらくしてからお試しください。',
+    chatErrorModel: 'AI モデルの設定に問題があります。しばらくしてからお試しください。',
+    chatErrorEmpty: '今回は AI がうまく応答できませんでした。もう一度お試しください。',
+    chatErrorGeneric: '接続に問題がありました。もう一度試しますか？',
+    crisisCardTitle: '✦ あなたの安全を大切にしています',
+    crisisCardLine1925: '📞 安心ホットライン: <a href="tel:1925"><strong>1925</strong></a>（24時間）',
+    crisisCardLine1995: '📞 いのちの電話: <a href="tel:1995"><strong>1995</strong></a>',
+    crisisCardLine1980: '📞 張老師ホットライン: <a href="tel:1980"><strong>1980</strong></a>',
+    crisisCardNote: 'ひとりで抱えなくて大丈夫です。今とてもつらいなら、上の番号に電話して誰かとつながってください。',
     resourcesTitle: 'メンタルヘルス資源', resourcesSub: 'ひとりで抱え込まなくていい',
+    resourcesHotlineTitle: '✦ 24時間緊急ホットライン',
+    hotline1925: '安心ホットライン',
+    hotline1995: 'いのちの電話',
+    hotline1980: '張老師ホットライン',
+    hotlineSuicide: '自殺防止ホットライン',
+    resourcesRegionNorth: '北部',
+    resourcesRegionCentral: '中部',
+    resourcesRegionSouth: '南部',
+    clinicTagPsychiatryOutpatient: '精神科外来',
+    clinicTagTherapy: '心理療法',
+    clinicTagCounseling: '心理相談',
+    clinicTagPsychiatry: '精神科',
+    clinicNoteFreeAppointment: '無料カウンセリングあり（予約制）',
+    clinicTagFreeCounseling: '無料相談',
+    clinicTagAppointment: '要予約',
+    clinicNoteFreeLecture: '無料カウンセリングとメンタルヘルス講座あり',
+    clinicTagFreeResource: '無料資源',
+    clinicNoteCrisis: '無料カウンセリングと危機対応あり',
+    clinicTagEvaluation: '心理評価',
+    resourcesNote: '上記の情報は参考用です。最新のサービス内容や予約方法は、事前に電話でご確認ください。<br>緊急時は 1925 に直接お電話ください。',
     privacyTitle: 'プライバシーポリシー', privacyUpdated: '最終更新: 2026年3月',
+    privacyAboutTitle: '星のボトルについて',
+    privacyAboutText: '星のボトルは、感情を表現したり寄り添いを得たりするための個人的なツールです。このポリシーでは、データの扱いについて説明します。',
+    privacyImportantTitle: '⚠️ 重要なお知らせ',
+    privacyImportantText: '星のボトル は感情の表現と AI の寄り添いを提供しますが、<strong style="color:#f0a07a">専門的なカウンセリングや治療の代わりにはなりません</strong>。緊急のメンタルヘルス危機がある場合は、専門家に相談するか 1925 に連絡してください。',
+    privacyCollectTitle: '収集する情報',
+    privacyCollectText: '• 対話機能に入力した内容は、応答生成のため OpenAI に送信されます。<br>• 日記データは端末内のみに保存され、私たちがアクセスすることはできません。<br>• 氏名、メールアドレス、その他の個人を特定する情報は収集しません。',
+    privacyUseTitle: '情報の利用方法',
+    privacyUseText: '• 対話内容はその場の AI 応答生成のみに使われ、私たちのサーバーには保存されません。<br>• OpenAI のデータ利用については、公式プライバシーポリシーをご確認ください。<br>• お客様のデータを第三者に販売または共有することはありません。',
+    privacyDeleteTitle: 'データ削除',
+    privacyDeleteText: '端末の設定から、日記を含むアプリのローカルデータをいつでも削除できます。対話内容は保持されないため、追加の削除操作は不要です。',
+    privacyAgeTitle: '対象年齢',
+    privacyAgeText: 'このアプリは13歳以上を対象としています。未成年の利用には保護者の同意を得てください。',
+    privacyContactTitle: 'お問い合わせ',
+    privacyContactText: 'ご不明点があれば、対話機能からフィードバックを送るか、開発者までご連絡ください。',
     settingsTitle: '設定', settingsSub: '星のボトルをあなたらしく整える',
     settingsProfile: 'プロフィール', settingsNickname: 'ニックネーム', settingsNicknamePlaceholder: 'どう呼ばれたいですか？',
     settingsStyle: 'AI の寄り添い方', settingsStyleLabel: 'AI にどんなふうに寄り添ってほしいですか？',
@@ -3578,8 +3790,12 @@ const TRANSLATIONS = {
     settingsStatus: '利用状況', settingsUid: 'ID: ', settingsChatCount: '会話: {count}', settingsDiaryCount: '日記: {count}',
     settingsData: 'データ管理', settingsClearChat: '会話履歴を消去', settingsReset: '個人設定をリセット', settingsDelete: 'アカウントを削除', settingsDeleting: '削除中...',
     supportTitle: '✦ ひとりで向き合わなくて大丈夫', supportSub: '今はまず安全を確保することが大切です。助けにつながる方法があります。',
+    supportLabel1925: '安心ホットライン 1925',
+    supportLabel1995: 'いのちの電話 1995',
+    supportLabel1980: '張老師ホットライン 1980',
     support1925: '24時間無料、専門スタッフが対応', support1995: '24時間無料ホットライン', support1980: '月-土 9:00-21:00',
     supportTrustLabel: '信頼できる人に連絡', supportTrustDesc: '既定のメッセージを送信します',
+    supportTrustNamed: '{name}（{relation}）に連絡', supportTrustRelationFallback: '信頼できる人',
     supportMoreLabel: '相談資源をもっと見る', supportMoreDesc: '台湾各地のメンタルヘルスセンター', supportClose: 'あとで見る',
     authTitle: '星のボトルへようこそ', authSub: 'サインインして日記を同期しましょう',
     authLogin: 'ログイン', authRegister: '登録', authEmailPlaceholder: 'メールアドレス', authPasswordPlaceholder: 'パスワード',
@@ -3589,6 +3805,14 @@ const TRANSLATIONS = {
     toastSkippedAuth: 'ログインをスキップしました。日記はこの端末のみに保存されます ✦', toastSignedOut: 'ログアウトしました ✦', toastResetSettings: '個人設定をリセットしました ✦',
     toastTrustMissing: '信頼できる連絡先がまだ設定されていません', toastChatCleared: '会話履歴を消去しました ✦', toastDiarySynced: '日記をクラウドから同期しました ✦', toastAccountDeleted: 'アカウントとクラウドデータを削除しました',
     toastDiaryDeleted: '削除しました ✦', toastDiarySaved: '新しい星になりました ✦', confirmDeleteDiary: 'この記録を削除しますか？', errorDiaryEmpty: '少し書くか、写真を追加してみてください ✦',
+    diaryImageAlt: '日記の写真',
+    trailNoDataTitle: 'まだ十分な記録がありません',
+    trailNoDataSub: '今日の気持ちを書いてみよう ✦',
+    trailLabelHigh: '高め',
+    trailLabelMid: '穏やか',
+    trailLabelLow: '低め',
+    trailNoRecords: 'まだ記録がありません',
+    trailCount: '{count}回',
     toastCanvasNoUndo: '元に戻せる操作はありません', toastCanvasNoRedo: 'やり直せる操作はありません', toastCanvasDrawFirst: 'まずはキャンバスに何か描いてみてください ✦', toastCanvasPhotoImported: '写真を取り込みました。上から描けます ✦', toastCanvasSaved: '作品を保存しました ✦', toastCanvasNew: '新しいキャンバス ✦', toastCanvasDeleted: '削除しました ✦', toastCanvasBlankDelete: 'このキャンバスは空白なので削除は不要です', confirmCanvasDelete: 'この絵を削除しますか？',
     confirmResetSettings: 'ニックネーム、AI スタイル、信頼できる連絡先を含む個人設定をすべてリセットしますか？',
     confirmDeleteAccount1: 'アカウントを削除しますか？クラウド上の日記、会話、関連データは完全に削除されます。',
@@ -3621,6 +3845,38 @@ function t(key, vars = {}) {
 
 function getChatEmptyPrompt() {
   return t('chatEmpty');
+}
+
+function getMoodLabel(mood) {
+  const labels = {
+    '平靜': t('moodCalm'),
+    '開心': t('moodHappy'),
+    '感恩': t('moodGrateful'),
+    '期待': t('moodHopeful'),
+    '疲憊': t('moodTired'),
+    '焦慮': t('moodAnxious'),
+    '難過': t('moodSad'),
+    '低落': t('moodLow'),
+    '憤怒': t('moodAngry'),
+    '放鬆': t('moodRelaxed'),
+  };
+  return labels[mood] || mood || '';
+}
+
+function formatDiaryDateValue(dateInput) {
+  const value = dateInput instanceof Date ? dateInput : new Date(dateInput);
+  if (!(value instanceof Date) || Number.isNaN(value.getTime())) return '';
+  const lang = normalizeLanguage(loadSettings().language);
+  const locale = lang === 'ja' ? 'ja-JP' : (lang === 'en' ? 'en-US' : 'zh-TW');
+  return new Intl.DateTimeFormat(locale, { month: 'numeric', day: 'numeric' }).format(value);
+}
+
+function getDiaryEntryDateLabel(entry) {
+  if (entry?.createdAt) {
+    const formatted = formatDiaryDateValue(entry.createdAt);
+    if (formatted) return formatted;
+  }
+  return entry?.date || '';
 }
 
 function updateUserBarText() {
@@ -3682,6 +3938,21 @@ function applyTranslations() {
   setText('diary-add-photo-btn', t('diaryAddPhoto'));
   setText('diary-cancel-btn', t('diaryCancel'));
   setText('diary-save-btn', t('diarySave'));
+  const moodLabels = {
+    '平靜': t('moodCalm'),
+    '開心': t('moodHappy'),
+    '感恩': t('moodGrateful'),
+    '期待': t('moodHopeful'),
+    '疲憊': t('moodTired'),
+    '焦慮': t('moodAnxious'),
+    '難過': t('moodSad'),
+    '低落': t('moodLow'),
+    '憤怒': t('moodAngry'),
+    '放鬆': t('moodRelaxed'),
+  };
+  document.querySelectorAll('.diary-mood-opt').forEach(opt => {
+    opt.textContent = moodLabels[opt.dataset.mood] || opt.dataset.mood;
+  });
   setText('canvas-title', t('canvasTitle'));
   setText('canvas-sub', t('canvasSub'));
   setText('canvas-label-color', t('canvasColor'));
@@ -3714,14 +3985,59 @@ function applyTranslations() {
   setText('sand-shake-btn', t('gameShake'));
   setText('sand-rotate-title', t('gameRotateTitle'));
   setText('sand-rotate-sub', t('gameRotateSub'));
+  setText('resources-back-btn', t('backButton'));
+  setText('privacy-back-btn', t('backButton'));
   setHtml('home-disclaimer', `${t('homeDisclaimer')}<br><a href="#" id="home-resources-link" onclick="goScreen('resources', null); return false;">${t('homeResources')}</a>&nbsp;·&nbsp;<a href="#" id="home-privacy-link" onclick="goScreen('privacy', null); return false;">${t('homePrivacy')}</a>`);
   setText('chat-notice', t('chatNotice'));
   setText('chat-clear-btn', t('chatClear'));
   setPlaceholder('chat-input', t('chatPlaceholder'));
   setText('resources-title', t('resourcesTitle'));
   setText('resources-sub', t('resourcesSub'));
+  setText('resources-hotline-title', t('resourcesHotlineTitle'));
+  setText('hotline-1925-name', t('hotline1925'));
+  setText('hotline-1995-name', t('hotline1995'));
+  setText('hotline-1980-name', t('hotline1980'));
+  setText('hotline-suicide-name', t('hotlineSuicide'));
+  setText('resources-region-north', t('resourcesRegionNorth'));
+  setText('resources-region-central', t('resourcesRegionCentral'));
+  setText('resources-region-south', t('resourcesRegionSouth'));
+  setText('clinic-tag-psychiatry-1', t('clinicTagPsychiatryOutpatient'));
+  setText('clinic-tag-therapy-1', t('clinicTagTherapy'));
+  setText('clinic-tag-counseling-1', t('clinicTagCounseling'));
+  setText('clinic-tag-psychiatry-2', t('clinicTagPsychiatry'));
+  setText('clinic-note-free-appointment-1', t('clinicNoteFreeAppointment'));
+  setText('clinic-tag-free-1', t('clinicTagFreeCounseling'));
+  setText('clinic-tag-appointment-1', t('clinicTagAppointment'));
+  setText('clinic-tag-free-2', t('clinicTagFreeCounseling'));
+  setText('clinic-tag-psychiatry-3', t('clinicTagPsychiatry'));
+  setText('clinic-tag-therapy-2', t('clinicTagTherapy'));
+  setText('clinic-note-free-lecture-1', t('clinicNoteFreeLecture'));
+  setText('clinic-tag-free-3', t('clinicTagFreeCounseling'));
+  setText('clinic-tag-free-resource-1', t('clinicTagFreeResource'));
+  setText('clinic-tag-psychiatry-4', t('clinicTagPsychiatry'));
+  setText('clinic-tag-therapy-3', t('clinicTagTherapy'));
+  setText('clinic-note-crisis-1', t('clinicNoteCrisis'));
+  setText('clinic-tag-free-4', t('clinicTagFreeCounseling'));
+  setText('clinic-tag-psychiatry-5', t('clinicTagPsychiatry'));
+  setText('clinic-tag-eval-1', t('clinicTagEvaluation'));
+  setText('clinic-tag-free-5', t('clinicTagFreeCounseling'));
+  setHtml('resources-note', t('resourcesNote'));
   setText('privacy-title', t('privacyTitle'));
   setText('privacy-updated', t('privacyUpdated'));
+  setText('privacy-about-title', t('privacyAboutTitle'));
+  setText('privacy-important-title', t('privacyImportantTitle'));
+  setText('privacy-collect-title', t('privacyCollectTitle'));
+  setText('privacy-use-title', t('privacyUseTitle'));
+  setText('privacy-delete-title', t('privacyDeleteTitle'));
+  setText('privacy-age-title', t('privacyAgeTitle'));
+  setText('privacy-contact-title', t('privacyContactTitle'));
+  setHtml('privacy-about-text', t('privacyAboutText'));
+  setHtml('privacy-important-text', t('privacyImportantText'));
+  setHtml('privacy-collect-text', t('privacyCollectText'));
+  setHtml('privacy-use-text', t('privacyUseText'));
+  setHtml('privacy-delete-text', t('privacyDeleteText'));
+  setHtml('privacy-age-text', t('privacyAgeText'));
+  setHtml('privacy-contact-text', t('privacyContactText'));
   setText('sync-btn', window._currentUser ? t('authLoggedInSynced') : t('authSyncAccount'));
   setText('settings-title', t('settingsTitle'));
   setText('settings-sub', t('settingsSub'));
@@ -3757,6 +4073,9 @@ function applyTranslations() {
   setText('delete-account-btn', t('settingsDelete'));
   setText('support-panel-title', t('supportTitle'));
   setText('support-panel-sub', t('supportSub'));
+  setText('support-1925-label', t('supportLabel1925'));
+  setText('support-1995-label', t('supportLabel1995'));
+  setText('support-1980-label', t('supportLabel1980'));
   setText('support-1925-desc', t('support1925'));
   setText('support-1995-desc', t('support1995'));
   setText('support-1980-desc', t('support1980'));
@@ -3776,8 +4095,11 @@ function applyTranslations() {
   setText('auth-apple-label', t('authApple'));
   setText('auth-skip-btn', t('authSkip'));
   setText('user-signout-btn', t('authSignedOut'));
+  updateBottleCount();
   updateUserBarText();
-  if (!chatHistory.length) renderChatMessages();
+  renderChatMessages();
+  renderDiary();
+  if (typeof renderStarTrail === 'function') renderStarTrail();
 }
 
 function applyLanguagePreference(lang) {
@@ -4245,7 +4567,10 @@ function showSupportPanel() {
   const trustLabel = document.getElementById('trust-contact-label');
   if (trust && trust.name && trust.phone && trustAction) {
     trustAction.style.display = 'flex';
-    trustLabel.textContent = `聯絡 ${trust.name}（${trust.relation || '信任的人'}）`;
+    trustLabel.textContent = t('supportTrustNamed', {
+      name: trust.name,
+      relation: trust.relation || t('supportTrustRelationFallback'),
+    });
   }
 }
 
@@ -4483,16 +4808,16 @@ async function callAI(text, isRetry, policy) {
       console.error('[Starfold] Chat error:', err.message);
 
       let errText = '';
-      if (err.name === 'AbortError') errText = '回應時間較長，可能是網路較慢 🌙 要再試一次嗎？';
-      else if (!navigator.onLine) errText = '目前沒有網路連線，請確認後再試。';
-      else if (err.message.includes('rate_limit')) errText = '訊息送得有點快，先等一下再試 🌙';
-      else if (err.message.includes('ai_timeout')) errText = 'AI 回應逾時了，請再試一次。';
-      else if (err.message.includes('missing_api_key')) errText = 'AI 設定尚未完成，請稍後再試。';
-      else if (err.message.includes('invalid_api_key')) errText = 'AI 服務驗證失敗，請稍後再試。';
-      else if (err.message.includes('quota_exceeded')) errText = 'AI 服務目前較忙或額度已滿，請稍後再試。';
-      else if (err.message.includes('model_not_found')) errText = 'AI 模型設定有誤，請稍後再試。';
-      else if (err.message.includes('empty_response')) errText = 'AI 這次沒有成功回應，請再試一次。';
-      else errText = '連線出現問題，要再試一次嗎？';
+      if (err.name === 'AbortError') errText = t('chatErrorTimeout');
+      else if (!navigator.onLine) errText = t('chatErrorOffline');
+      else if (err.message.includes('rate_limit')) errText = t('chatErrorRateLimit');
+      else if (err.message.includes('ai_timeout')) errText = t('chatErrorTimeoutAi');
+      else if (err.message.includes('missing_api_key')) errText = t('chatErrorMissingApiKey');
+      else if (err.message.includes('invalid_api_key')) errText = t('chatErrorInvalidApiKey');
+      else if (err.message.includes('quota_exceeded')) errText = t('chatErrorQuota');
+      else if (err.message.includes('model_not_found')) errText = t('chatErrorModel');
+      else if (err.message.includes('empty_response')) errText = t('chatErrorEmpty');
+      else errText = t('chatErrorGeneric');
 
       const errDiv = document.createElement('div');
       errDiv.className = 'msg error';
@@ -4502,7 +4827,7 @@ async function callAI(text, isRetry, policy) {
       const retryBtn = document.createElement('button');
       retryBtn.className = 'retry-btn';
       retryBtn.type = 'button';
-      retryBtn.textContent = '↩ 重新傳送';
+      retryBtn.textContent = t('chatRetry');
       retryBtn.addEventListener('click', retryAI);
       errDiv.appendChild(retryBtn);
       msgs.appendChild(errDiv);
@@ -4546,11 +4871,11 @@ function showCrisisCard() {
   const card = document.createElement('div');
   card.className = 'crisis-card';
   card.innerHTML = `
-    <div class="crisis-card-title">✦ 我們在乎你的安全</div>
-    <div class="crisis-card-line">📞 安心專線：<a href="tel:1925"><strong>1925</strong></a>（24小時）</div>
-    <div class="crisis-card-line">📞 生命線：<a href="tel:1995"><strong>1995</strong></a></div>
-    <div class="crisis-card-line">📞 張老師專線：<a href="tel:1980"><strong>1980</strong></a></div>
-    <div class="crisis-card-note">你不需要一個人面對。如果現在很痛苦，請撥打上面的電話，會有人陪你。</div>
+    <div class="crisis-card-title">${t('crisisCardTitle')}</div>
+    <div class="crisis-card-line">${t('crisisCardLine1925')}</div>
+    <div class="crisis-card-line">${t('crisisCardLine1995')}</div>
+    <div class="crisis-card-line">${t('crisisCardLine1980')}</div>
+    <div class="crisis-card-note">${t('crisisCardNote')}</div>
   `;
   msgs.appendChild(card);
   msgs.scrollTop = msgs.scrollHeight;
@@ -5139,7 +5464,7 @@ function renderDiary() {
       const img = document.createElement('img');
       img.className = 'diary-entry-img';
       img.src = e.image;
-      img.alt = '日記照片';
+      img.alt = t('diaryImageAlt');
       img.loading = 'lazy';
       entry.appendChild(img);
     }
@@ -5156,11 +5481,11 @@ function renderDiary() {
 
     const date = document.createElement('span');
     date.className = 'entry-date';
-    date.textContent = e.date || '';
+    date.textContent = getDiaryEntryDateLabel(e);
 
     const mood = document.createElement('span');
     mood.className = 'entry-mood';
-    mood.textContent = e.mood || '';
+    mood.textContent = getMoodLabel(e.mood);
 
     const deleteBtn = document.createElement('button');
     deleteBtn.className = 'entry-delete';
@@ -5340,7 +5665,7 @@ function saveDiaryEntry() {
   const now = new Date();
   const entry = {
     id: Date.now().toString(),
-    date: `${now.getMonth()+1}月${now.getDate()}日`,
+    date: formatDiaryDateValue(now),
     mood: mood.name,
     color: mood.color,
     text: text || '',
@@ -5442,8 +5767,8 @@ function renderTrailChart(entries) {
     ctx.fillStyle = '#4a5a8a';
     ctx.font = '13px Noto Sans TC';
     ctx.textAlign = 'center';
-    ctx.fillText('還沒有足夠的記錄', W / 2, H / 2 - 8);
-    ctx.fillText('去寫下今天的心情吧 ✦', W / 2, H / 2 + 14);
+    ctx.fillText(t('trailNoDataTitle'), W / 2, H / 2 - 8);
+    ctx.fillText(t('trailNoDataSub'), W / 2, H / 2 + 14);
     return;
   }
 
@@ -5463,7 +5788,7 @@ function renderTrailChart(entries) {
   }
 
   // Side labels
-  const labels = ['開心', '', '平靜', '', '低落'];
+  const labels = [t('trailLabelHigh'), '', t('trailLabelMid'), '', t('trailLabelLow')];
   ctx.font = '9px Noto Sans TC';
   ctx.textAlign = 'left';
   for (let i = 0; i < labels.length; i++) {
@@ -5478,7 +5803,7 @@ function renderTrailChart(entries) {
     const score = getMoodScore(e.mood);
     const x = entries.length === 1 ? padL + chartW / 2 : padL + (chartW / (entries.length - 1)) * i;
     const y = padT + chartH - (score / 5) * chartH;
-    return { x, y, color: e.color || '#7b9cf5', mood: e.mood, date: e.date };
+    return { x, y, color: e.color || '#7b9cf5', mood: e.mood, date: getDiaryEntryDateLabel(e) };
   });
 
   // Gradient fill under curve
@@ -5549,14 +5874,14 @@ function renderTrailChart(entries) {
     ctx.fillStyle = last.color;
     ctx.font = '10px Noto Sans TC';
     ctx.textAlign = 'center';
-    ctx.fillText(last.mood, last.x, last.y - 10);
+    ctx.fillText(getMoodLabel(last.mood), last.x, last.y - 10);
   }
 }
 
 function renderTrailMoodSummary(entries) {
   const container = document.getElementById('trail-mood-summary');
   if (!entries.length) {
-    container.innerHTML = '<div style="color:var(--text-dim);font-size:12px;">尚無記錄</div>';
+    container.innerHTML = `<div style="color:var(--text-dim);font-size:12px;">${t('trailNoRecords')}</div>`;
     return;
   }
   // Count moods
@@ -5571,8 +5896,8 @@ function renderTrailMoodSummary(entries) {
   container.innerHTML = sorted.map(([mood, { count, color }]) =>
     `<div class="trail-mood-pill">
       <div class="trail-mood-dot" style="background:${color}"></div>
-      ${mood}
-      <span class="trail-mood-count">${count}次</span>
+      ${getMoodLabel(mood)}
+      <span class="trail-mood-count">${t('trailCount', { count: String(count) })}</span>
     </div>`
   ).join('');
 }
@@ -6562,7 +6887,7 @@ function drawPressBall() {
     gCtx.font = '14px Noto Sans TC';
     gCtx.textAlign = 'center';
     gCtx.textBaseline = 'middle';
-    gCtx.fillText('按我！', ball.x + wobbleX, ball.y + r + 24);
+    gCtx.fillText(t('gamePressHint'), ball.x + wobbleX, ball.y + r + 24);
     gCtx.restore();
   }
 
