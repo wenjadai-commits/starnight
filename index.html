@@ -2148,8 +2148,8 @@ window.addEventListener('load', () => {
   <!-- CANVAS -->
   <div class="screen" id="screen-canvas">
     <div class="canvas-header">
-      <div class="canvas-title">星空畫布</div>
-      <div class="canvas-sub">自由揮灑你的情緒</div>
+      <div class="canvas-title" id="canvas-title">星空畫布</div>
+      <div class="canvas-sub" id="canvas-sub">自由揮灑你的情緒</div>
     </div>
     <div class="canvas-wrap" id="canvas-wrap">
       <canvas id="draw-canvas"></canvas>
@@ -2158,7 +2158,7 @@ window.addEventListener('load', () => {
     <div class="canvas-toolbar">
       <!-- Colors -->
       <div class="toolbar-row">
-        <span class="toolbar-label">顏色</span>
+        <span class="toolbar-label" id="canvas-label-color">顏色</span>
         <div class="color-slider-wrap">
           <div class="color-gradient-bar" id="color-gradient-bar" onclick="pickGradientColor(event)">
             <div class="color-gradient-thumb" id="color-gradient-thumb"></div>
@@ -2168,7 +2168,7 @@ window.addEventListener('load', () => {
 
 
       <div class="toolbar-row">
-        <div class="toolbar-label">背景</div>
+        <div class="toolbar-label" id="canvas-label-background">背景</div>
         <div class="color-slider-wrap">
           <div class="color-gradient-bar" id="bg-gradient-bar">
             <div class="color-gradient-thumb" id="bg-gradient-thumb"></div>
@@ -2179,25 +2179,25 @@ window.addEventListener('load', () => {
 
       <!-- Brush type -->
       <div class="toolbar-row">
-        <span class="toolbar-label">筆刷</span>
+        <span class="toolbar-label" id="canvas-label-brush">筆刷</span>
         <div class="brush-types">
           <button class="brush-btn selected" data-brush="pen" onclick="setBrush(this)">
             <div class="b-icon">
               <svg width="20" height="18" viewBox="0 0 20 18"><path d="M2 16 Q10 2 18 8" stroke="#aac4ff" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
             </div>
-            <span class="b-name">細筆</span>
+            <span class="b-name" id="brush-pen-label">細筆</span>
           </button>
           <button class="brush-btn" data-brush="soft" onclick="setBrush(this)">
             <div class="b-icon">
               <svg width="20" height="18" viewBox="0 0 20 18"><path d="M2 16 Q10 2 18 8" stroke="#c8a8f8" stroke-width="5" fill="none" stroke-linecap="round" opacity="0.5"/></svg>
             </div>
-            <span class="b-name">柔軟</span>
+            <span class="b-name" id="brush-soft-label">柔軟</span>
           </button>
           <button class="brush-btn" data-brush="marker" onclick="setBrush(this)">
             <div class="b-icon">
               <svg width="20" height="18" viewBox="0 0 20 18"><path d="M2 14 L18 6" stroke="#8dd4b8" stroke-width="4" fill="none" stroke-linecap="square"/></svg>
             </div>
-            <span class="b-name">麥克筆</span>
+            <span class="b-name" id="brush-marker-label">麥克筆</span>
           </button>
           <button class="brush-btn" data-brush="star" onclick="setBrush(this)">
             <div class="b-icon">
@@ -2206,20 +2206,20 @@ window.addEventListener('load', () => {
                 <text x="11" y="10" font-size="8" fill="#f5e6c8">✦</text>
               </svg>
             </div>
-            <span class="b-name">星點</span>
+            <span class="b-name" id="brush-star-label">星點</span>
           </button>
           <button class="brush-btn" data-brush="eraser" onclick="setBrush(this)">
             <div class="b-icon">
               <svg width="20" height="18" viewBox="0 0 20 18"><rect x="3" y="5" width="14" height="9" rx="2" stroke="#6c6c9e" stroke-width="1.2" fill="none"/><line x1="10" y1="5" x2="10" y2="14" stroke="#6c6c9e" stroke-width="0.8"/></svg>
             </div>
-            <span class="b-name">橡皮擦</span>
+            <span class="b-name" id="brush-eraser-label">橡皮擦</span>
           </button>
         </div>
       </div>
 
       <!-- Size -->
       <div class="toolbar-row">
-        <span class="toolbar-label">大小</span>
+        <span class="toolbar-label" id="canvas-label-size">大小</span>
         <input type="range" class="size-slider" id="size-slider" min="1" max="40" value="4" oninput="updateSize(this)">
         <div class="size-preview">
           <div id="size-circle" style="width:4px;height:4px;"></div>
@@ -2228,7 +2228,7 @@ window.addEventListener('load', () => {
 
       <!-- Opacity -->
       <div class="toolbar-row">
-        <span class="toolbar-label">透明</span>
+        <span class="toolbar-label" id="canvas-label-opacity">透明</span>
         <input type="range" class="opacity-slider" id="opacity-slider" min="10" max="100" value="100" oninput="updateOpacity(this)">
         <div class="opacity-val" id="opacity-val">100%</div>
       </div>
@@ -2236,16 +2236,16 @@ window.addEventListener('load', () => {
 
     <div class="canvas-gallery-bar" id="canvas-gallery"></div>
     <div class="gallery-actions">
-      <button class="gallery-action-btn" onclick="importPhoto()">匯入照片</button>
-      <button class="gallery-action-btn"onclick="clearCanvas()">清空畫布</button>
+      <button class="gallery-action-btn" id="canvas-import-btn" onclick="importPhoto()">匯入照片</button>
+      <button class="gallery-action-btn" id="canvas-clear-btn" onclick="clearCanvas()">清空畫布</button>
     </div>
     <input type="file" id="photo-input" accept="image/*" style="display:none" onchange="handlePhotoImport(event)">
 
     <div class="canvas-actions-row">
-      <button class="clear-btn" onclick="undoCanvas()">復原</button>
-      <button class="clear-btn" onclick="redoCanvas()">重做</button>
-      <button class="clear-btn"  onclick="deleteCurrentDrawing()">刪除</button>
-      <button class="release-btn" onclick="releaseCanvas()">✦ 儲存</button>
+      <button class="clear-btn" id="canvas-undo-btn" onclick="undoCanvas()">復原</button>
+      <button class="clear-btn" id="canvas-redo-btn" onclick="redoCanvas()">重做</button>
+      <button class="clear-btn" id="canvas-delete-btn" onclick="deleteCurrentDrawing()">刪除</button>
+      <button class="release-btn" id="canvas-save-btn" onclick="releaseCanvas()">✦ 儲存</button>
     </div>
 
   </div>
@@ -2253,12 +2253,12 @@ window.addEventListener('load', () => {
   <!-- DIARY -->
   <div class="screen" id="screen-diary">
     <div class="diary-header">
-      <div class="diary-title">情緒藏星</div>
-      <div class="diary-sub">每一天都是一顆星</div>
+      <div class="diary-title" id="diary-title">情緒藏星</div>
+      <div class="diary-sub" id="diary-sub">每一天都是一顆星</div>
     </div>
     <div class="diary-tab-bar">
-      <button class="diary-tab active" onclick="switchDiaryTab('map', this)">✦ 藏星</button>
-      <button class="diary-tab" onclick="switchDiaryTab('trail', this)">☽ 數星</button>
+      <button class="diary-tab active" id="diary-tab-map" onclick="switchDiaryTab('map', this)">✦ 藏星</button>
+      <button class="diary-tab" id="diary-tab-trail" onclick="switchDiaryTab('trail', this)">☽ 數星</button>
     </div>
     <div id="star-map-view">
       <div class="star-map">
@@ -2266,37 +2266,37 @@ window.addEventListener('load', () => {
       </div>
       <div id="diary-list"></div>
       <div style="display:flex; gap:8px; margin-bottom:8px;">
-        <button onclick="if(!window._currentUser){showAuthModal();}else{showToast(t('toast.diaryAutoSync'));}" style="flex:1;background:rgba(141,212,184,0.08);border:0.5px solid rgba(141,212,184,0.2);border-radius:12px;padding:8px;color:var(--text-dim);font-size:11px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;" id="sync-btn">
+        <button onclick="if(!window._currentUser){showAuthModal();}else{showToast(t('toastDiaryAutoSync'));}" style="flex:1;background:rgba(141,212,184,0.08);border:0.5px solid rgba(141,212,184,0.2);border-radius:12px;padding:8px;color:var(--text-dim);font-size:11px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;" id="sync-btn">
           ☁ 同步帳號
         </button>
       </div>
     </div>
     <div id="star-trail-view">
       <div class="trail-period-bar">
-        <button class="trail-period-btn active" onclick="setTrailPeriod(7, this)">7天</button>
-        <button class="trail-period-btn" onclick="setTrailPeriod(14, this)">14天</button>
-        <button class="trail-period-btn" onclick="setTrailPeriod(30, this)">30天</button>
-        <button class="trail-period-btn" onclick="setTrailPeriod(0, this)">全部</button>
+        <button class="trail-period-btn active" id="trail-period-7" onclick="setTrailPeriod(7, this)">7天</button>
+        <button class="trail-period-btn" id="trail-period-14" onclick="setTrailPeriod(14, this)">14天</button>
+        <button class="trail-period-btn" id="trail-period-30" onclick="setTrailPeriod(30, this)">30天</button>
+        <button class="trail-period-btn" id="trail-period-all" onclick="setTrailPeriod(0, this)">全部</button>
       </div>
       <div class="trail-card">
-        <div class="trail-card-title">情緒曲線</div>
+        <div class="trail-card-title" id="trail-card-title-line">情緒曲線</div>
         <div class="trail-chart">
           <canvas id="trail-canvas"></canvas>
         </div>
       </div>
       <div class="trail-card" id="trail-stats-card">
-        <div class="trail-card-title">情緒分佈</div>
+        <div class="trail-card-title" id="trail-card-title-mood">情緒分佈</div>
         <div class="trail-mood-summary" id="trail-mood-summary"></div>
       </div>
       <div class="trail-card" id="trail-streak-card">
-        <div class="trail-card-title">記錄連續</div>
+        <div class="trail-card-title" id="trail-card-title-streak">記錄連續</div>
         <div class="trail-streak">
           <div class="trail-streak-num" id="trail-streak-num">0</div>
-          <div class="trail-streak-label">天<br>持續記錄中</div>
+          <div class="trail-streak-label" id="trail-streak-label">天<br>持續記錄中</div>
         </div>
       </div>
     </div>
-    <button class="new-entry-btn" onclick="openDiaryModal()">
+    <button class="new-entry-btn" id="diary-new-entry-btn" onclick="openDiaryModal()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8dd4b8" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       記錄今天的心情
     </button>
@@ -2305,16 +2305,16 @@ window.addEventListener('load', () => {
   <!-- GAME SELECT -->
   <div class="screen" id="screen-games">
     <div class="games-header">
-      <div class="games-title">解壓小遊戲</div>
-      <div class="games-sub">選一個放鬆方式吧</div>
+      <div class="games-title" id="games-title">解壓小遊戲</div>
+      <div class="games-sub" id="games-sub">選一個放鬆方式吧</div>
     </div>
     <div class="game-card" onclick="launchGame('press')">
       <div class="game-card-icon" >
         <img src="assets/icons/game-star-tap.svg" alt="星星點點 icon">
       </div>
       <div class="game-card-info">
-        <div class="game-card-name">星星點點</div>
-        <div class="game-card-desc">點擊星星，看它彈跳閃爍，釋放你的壓力</div>
+        <div class="game-card-name" id="game-press-name">星星點點</div>
+        <div class="game-card-desc" id="game-press-desc">點擊星星，看它彈跳閃爍，釋放你的壓力</div>
       </div>
       <div class="game-card-arrow">›</div>
     </div>
@@ -2323,8 +2323,8 @@ window.addEventListener('load', () => {
         <img src="assets/icons/game-bubble.svg" alt="揉捏泡泡 icon">
       </div>
       <div class="game-card-info">
-        <div class="game-card-name">揉捏泡泡</div>
-        <div class="game-card-desc">按壓、拖拽一顆柔軟的泡泡，感受它的彈性</div>
+        <div class="game-card-name" id="game-bubble-name">揉捏泡泡</div>
+        <div class="game-card-desc" id="game-bubble-desc">按壓、拖拽一顆柔軟的泡泡，感受它的彈性</div>
       </div>
       <div class="game-card-arrow">›</div>
     </div>
@@ -2333,8 +2333,8 @@ window.addEventListener('load', () => {
         <img src="assets/icons/game-sand-bottle.svg" alt="星砂瓶 icon">
       </div>
       <div class="game-card-info">
-        <div class="game-card-name">星砂瓶</div>
-        <div class="game-card-desc">傾斜手機，看星星像流沙一樣緩緩流動</div>
+        <div class="game-card-name" id="game-sand-name">星砂瓶</div>
+        <div class="game-card-desc" id="game-sand-desc">傾斜手機，看星星像流沙一樣緩緩流動</div>
       </div>
       <div class="game-card-arrow">›</div>
     </div>
@@ -2597,7 +2597,7 @@ window.addEventListener('load', () => {
   <div id="game-overlay" style="display:none; position:fixed; inset:0; z-index:20; background:#070f2b;">
     <canvas id="game-canvas" style="display:block; position:absolute; top:0; left:0;" onclick="handleGameClick(event)"></canvas>
     <div style="position:absolute; bottom:calc(env(safe-area-inset-bottom)+24px); left:0; right:0; z-index:81; display:flex; justify-content:center;">
-      <button class="game-back-btn" onclick="stopGame()">← 返回</button>
+      <button class="game-back-btn" id="game-back-btn" onclick="stopGame()">← 返回</button>
     </div>
     <div class="game-combo" id="game-combo" style="pointer-events:none;"></div>
   </div>
@@ -2606,7 +2606,7 @@ window.addEventListener('load', () => {
   <div id="bubble-overlay" style="display:none; position:fixed; inset:0; z-index:20; background:#070f2b;">
     <canvas id="bubble-canvas" style="display:block; position:absolute; top:0; left:0; touch-action:none;"></canvas>
     <div style="position:absolute; bottom:calc(env(safe-area-inset-bottom)+24px); left:0; right:0; z-index:81; display:flex; justify-content:center;">
-      <button class="game-back-btn" onclick="stopBubbleGame()">← 返回</button>
+      <button class="game-back-btn" id="bubble-back-btn" onclick="stopBubbleGame()">← 返回</button>
     </div>
   </div>
 
@@ -2614,21 +2614,21 @@ window.addEventListener('load', () => {
   <div id="sand-overlay" style="display:none; position:fixed; inset:0; z-index:20; background:#070f2b;">
     <canvas id="sand-canvas" style="display:block; position:absolute; top:20px; left:0;"></canvas>
     <div style="position:absolute; bottom:calc(env(safe-area-inset-bottom)+24px); left:0; right:0; z-index:81; display:flex; justify-content:center; gap:12px; align-items:center;">
-      <button class="game-back-btn" onclick="stopSandGame()">← 返回</button>
-      <button class="game-back-btn" onclick="shakeSand()" style="font-size:14px;">✦ 搖一搖</button>
+      <button class="game-back-btn" id="sand-back-btn" onclick="stopSandGame()">← 返回</button>
+      <button class="game-back-btn" id="sand-shake-btn" onclick="shakeSand()" style="font-size:14px;">✦ 搖一搖</button>
     </div>
     <!-- Landscape warning -->
     <div id="sand-landscape-warn" style="display:none; position:absolute; inset:0; z-index:20; background:#070f2b; justify-content:center; align-items:center; flex-direction:column; gap:12px;">
       <div style="font-size:28px;">🔄</div>
-      <div style="font-size:14px; color:#e8dff8; font-family:'Noto Sans TC',sans-serif;">請將手機轉為直向</div>
-      <div style="font-size:11px; color:#4a5a8a; font-family:'Noto Sans TC',sans-serif;">星砂瓶需要直向使用</div>
+      <div id="sand-rotate-title" style="font-size:14px; color:#e8dff8; font-family:'Noto Sans TC',sans-serif;">請將手機轉為直向</div>
+      <div id="sand-rotate-sub" style="font-size:11px; color:#4a5a8a; font-family:'Noto Sans TC',sans-serif;">星砂瓶需要直向使用</div>
     </div>
   </div>
 
 <!-- Diary Modal -->
 <div class="modal-overlay" id="diary-modal" style="display:none" onclick="closeDiaryModal(event)">
   <div class="modal">
-    <div class="modal-title">今天的心情</div>
+    <div class="modal-title" id="diary-modal-title">今天的心情</div>
     <div class="diary-mood-picker" id="diary-mood-picker">
       <div class="diary-mood-opt selected" data-mood="平靜" data-color="#7b9cf5" onclick="selectDiaryMood(this)" style="--mc:#7b9cf5">平靜</div>
       <div class="diary-mood-opt" data-mood="開心" data-color="#ffe066" onclick="selectDiaryMood(this)" style="--mc:#ffe066">開心</div>
@@ -2647,12 +2647,12 @@ window.addEventListener('load', () => {
       <button onclick="removeDiaryImg()" style="position:absolute; top:6px; right:6px; width:24px; height:24px; border-radius:50%; background:rgba(7,15,43,0.7); border:none; color:#f08080; font-size:12px; cursor:pointer;">✕</button>
     </div>
     <div style="display:flex; gap:8px; margin-bottom:12px;">
-      <button onclick="document.getElementById('diary-photo-input').click()" style="flex:1; background:rgba(141,212,184,0.08); border:0.5px solid rgba(141,212,184,0.2); border-radius:12px; padding:8px; color:var(--teal); font-size:11px; cursor:pointer; font-family:'Noto Sans TC',sans-serif;">附加照片</button>
+      <button id="diary-add-photo-btn" onclick="document.getElementById('diary-photo-input').click()" style="flex:1; background:rgba(141,212,184,0.08); border:0.5px solid rgba(141,212,184,0.2); border-radius:12px; padding:8px; color:var(--teal); font-size:11px; cursor:pointer; font-family:'Noto Sans TC',sans-serif;">附加照片</button>
     </div>
     <input type="file" id="diary-photo-input" accept="image/*" style="display:none" onchange="handleDiaryPhoto(event)">
     <div class="modal-actions">
-      <button class="modal-cancel" onclick="closeDiaryModal()">取消</button>
-      <button class="modal-save" onclick="saveDiaryEntry()">✦ 化作星星</button>
+      <button class="modal-cancel" id="diary-cancel-btn" onclick="closeDiaryModal()">取消</button>
+      <button class="modal-save" id="diary-save-btn" onclick="saveDiaryEntry()">✦ 化作星星</button>
     </div>
   </div>
 </div>
@@ -3214,6 +3214,56 @@ const TRANSLATIONS = {
     welcomeHelpText: '如需協助，可至首頁查看<a href="#" onclick="agreeAndClose(); setTimeout(()=>goScreen(\'resources\',null),300); return false;" style="color:rgba(123,156,245,0.7);text-decoration:none;">台灣諮商資源</a>',
     welcomeAgree: '我了解，開始使用 →',
     homeEnter: '我的藏星 ★',
+    canvasTitle: '星空畫布',
+    canvasSub: '自由揮灑你的情緒',
+    canvasColor: '顏色',
+    canvasBackground: '背景',
+    canvasBrush: '筆刷',
+    canvasBrushPen: '細筆',
+    canvasBrushSoft: '柔軟',
+    canvasBrushMarker: '麥克筆',
+    canvasBrushStar: '星點',
+    canvasBrushEraser: '橡皮擦',
+    canvasSize: '大小',
+    canvasOpacity: '透明',
+    canvasImportPhoto: '匯入照片',
+    canvasClear: '清空畫布',
+    canvasUndo: '復原',
+    canvasRedo: '重做',
+    canvasDelete: '刪除',
+    canvasSave: '✦ 儲存',
+    diaryTitle: '情緒藏星',
+    diarySub: '每一天都是一顆星',
+    diaryTabMap: '✦ 藏星',
+    diaryTabTrail: '☽ 數星',
+    diaryPeriod7: '7天',
+    diaryPeriod14: '14天',
+    diaryPeriod30: '30天',
+    diaryPeriodAll: '全部',
+    diaryChartTitle: '情緒曲線',
+    diaryMoodSummaryTitle: '情緒分佈',
+    diaryStreakTitle: '記錄連續',
+    diaryStreakLabel: '天<br>持續記錄中',
+    diaryNewEntry: '記錄今天的心情',
+    diaryModalTitle: '今天的心情',
+    diaryInputPlaceholder: '今天發生了什麼？心裡有什麼話想說...',
+    diaryAddPhoto: '附加照片',
+    diaryCancel: '取消',
+    diarySave: '✦ 化作星星',
+    diaryDelete: '刪除',
+    diaryToday: '今天',
+    gamesTitle: '解壓小遊戲',
+    gamesSub: '選一個放鬆方式吧',
+    gamePressName: '星星點點',
+    gamePressDesc: '點擊星星，看它彈跳閃爍，釋放你的壓力',
+    gameBubbleName: '揉捏泡泡',
+    gameBubbleDesc: '按壓、拖拽一顆柔軟的泡泡，感受它的彈性',
+    gameSandName: '星砂瓶',
+    gameSandDesc: '傾斜手機，看星星像流沙一樣緩緩流動',
+    gameBack: '← 返回',
+    gameShake: '✦ 搖一搖',
+    gameRotateTitle: '請將手機轉為直向',
+    gameRotateSub: '星砂瓶需要直向使用',
     homeDisclaimer: '本 App 提供情緒抒發空間，不能取代專業心理諮商。<br>如有緊急心理危機，請撥打 1925 安心專線。',
     homeResources: '諮商資源',
     homePrivacy: '隱私政策',
@@ -3289,6 +3339,19 @@ const TRANSLATIONS = {
     toastChatCleared: '對話紀錄已清除 ✦',
     toastDiarySynced: '日記已從雲端同步 ✦',
     toastAccountDeleted: '帳號與雲端資料已刪除',
+    toastDiaryDeleted: '已刪除 ✦',
+    toastDiarySaved: '已化作一顆新的星星 ✦',
+    toastCanvasNoUndo: '沒有可以復原的步驟',
+    toastCanvasNoRedo: '沒有可以重做的步驟',
+    toastCanvasDrawFirst: '先在畫布上畫點什麼吧 ✦',
+    toastCanvasPhotoImported: '照片已匯入，可以在上面畫畫 ✦',
+    toastCanvasSaved: '已儲存畫作 ✦',
+    toastCanvasNew: '新畫布 ✦',
+    toastCanvasDeleted: '已刪除 ✦',
+    toastCanvasBlankDelete: '這是空白畫布，不需要刪除',
+    confirmCanvasDelete: '確定要刪除這幅畫嗎？',
+    confirmDeleteDiary: '確定要刪除這則記錄嗎？',
+    errorDiaryEmpty: '寫幾個字或附張照片吧 ✦',
     confirmResetSettings: '確定要重設所有個人設定嗎？（暱稱、AI 風格、信任聯絡人）',
     confirmDeleteAccount1: '確定要刪除帳號嗎？你的雲端日記、對話與相關資料會一併刪除，且無法復原。',
     confirmDeleteAccount2: '這是最後確認：刪除帳號後將無法找回資料。確定要繼續嗎？',
@@ -3329,6 +3392,56 @@ const TRANSLATIONS = {
     welcomeHelpText: 'If you need help, you can check the <a href="#" onclick="agreeAndClose(); setTimeout(()=>goScreen(\'resources\',null),300); return false;" style="color:rgba(123,156,245,0.7);text-decoration:none;">Taiwan support resources</a> from the home screen.',
     welcomeAgree: 'I understand, let\'s begin →',
     homeEnter: 'My Star Jar ★',
+    canvasTitle: 'Star Canvas',
+    canvasSub: 'Let your feelings flow freely',
+    canvasColor: 'Color',
+    canvasBackground: 'Background',
+    canvasBrush: 'Brush',
+    canvasBrushPen: 'Fine pen',
+    canvasBrushSoft: 'Soft',
+    canvasBrushMarker: 'Marker',
+    canvasBrushStar: 'Star dots',
+    canvasBrushEraser: 'Eraser',
+    canvasSize: 'Size',
+    canvasOpacity: 'Opacity',
+    canvasImportPhoto: 'Import photo',
+    canvasClear: 'Clear canvas',
+    canvasUndo: 'Undo',
+    canvasRedo: 'Redo',
+    canvasDelete: 'Delete',
+    canvasSave: '✦ Save',
+    diaryTitle: 'Emotion Stars',
+    diarySub: 'Each day becomes a star',
+    diaryTabMap: '✦ Star Map',
+    diaryTabTrail: '☽ Star Trail',
+    diaryPeriod7: '7 days',
+    diaryPeriod14: '14 days',
+    diaryPeriod30: '30 days',
+    diaryPeriodAll: 'All',
+    diaryChartTitle: 'Emotion Trend',
+    diaryMoodSummaryTitle: 'Mood Distribution',
+    diaryStreakTitle: 'Streak',
+    diaryStreakLabel: 'days<br>in a row',
+    diaryNewEntry: 'Record today\'s mood',
+    diaryModalTitle: 'How are you feeling today?',
+    diaryInputPlaceholder: 'What happened today? What is on your heart?',
+    diaryAddPhoto: 'Add photo',
+    diaryCancel: 'Cancel',
+    diarySave: '✦ Turn into a star',
+    diaryDelete: 'Delete',
+    diaryToday: 'Today',
+    gamesTitle: 'Relaxing Games',
+    gamesSub: 'Pick a way to unwind',
+    gamePressName: 'Star Tap',
+    gamePressDesc: 'Tap the stars and watch them bounce and shimmer to ease your stress',
+    gameBubbleName: 'Soft Bubble',
+    gameBubbleDesc: 'Press and drag a soft bubble to feel its gentle elasticity',
+    gameSandName: 'Star Sand Bottle',
+    gameSandDesc: 'Tilt your phone and watch the stars drift like slow sand',
+    gameBack: '← Back',
+    gameShake: '✦ Shake',
+    gameRotateTitle: 'Please rotate your phone upright',
+    gameRotateSub: 'Star Sand Bottle works in portrait mode',
     homeDisclaimer: 'This app offers a space to express emotions and does not replace professional counseling.<br>If you are in immediate crisis, call 1925 for support.',
     homeResources: 'Resources', homePrivacy: 'Privacy',
     chatNotice: '✦ Conversations are processed by AI. Please avoid sharing sensitive personal information.',
@@ -3360,6 +3473,8 @@ const TRANSLATIONS = {
     toastEncouragement: 'You made it through today ✦', toastDiaryAutoSync: 'Signed in. Your diary will sync automatically ✦',
     toastSkippedAuth: 'Skipped sign-in. Your diary stays on this device only ✦', toastSignedOut: 'Signed out ✦', toastResetSettings: 'Personal settings reset ✦',
     toastTrustMissing: 'No trusted contact has been set', toastChatCleared: 'Chat history cleared ✦', toastDiarySynced: 'Diary synced from the cloud ✦', toastAccountDeleted: 'Your account and cloud data have been deleted',
+    toastDiaryDeleted: 'Deleted ✦', toastDiarySaved: 'A new star was created ✦', confirmDeleteDiary: 'Delete this entry?', errorDiaryEmpty: 'Write something or attach a photo ✦',
+    toastCanvasNoUndo: 'Nothing to undo', toastCanvasNoRedo: 'Nothing to redo', toastCanvasDrawFirst: 'Draw something on the canvas first ✦', toastCanvasPhotoImported: 'Photo imported. You can draw on it now ✦', toastCanvasSaved: 'Drawing saved ✦', toastCanvasNew: 'New canvas ✦', toastCanvasDeleted: 'Deleted ✦', toastCanvasBlankDelete: 'This canvas is blank, no need to delete it', confirmCanvasDelete: 'Delete this drawing?',
     confirmResetSettings: 'Reset all personal settings? This includes nickname, AI style, and trusted contact.',
     confirmDeleteAccount1: 'Delete your account? Your cloud diary, chat, and related data will be permanently removed.',
     confirmDeleteAccount2: 'Final confirmation: this cannot be undone. Continue?',
@@ -3393,6 +3508,56 @@ const TRANSLATIONS = {
     welcomeHelpText: 'サポートが必要な場合は、ホーム画面から <a href="#" onclick="agreeAndClose(); setTimeout(()=>goScreen(\'resources\',null),300); return false;" style="color:rgba(123,156,245,0.7);text-decoration:none;">台湾の相談資源</a> を確認できます。',
     welcomeAgree: '理解して始める →',
     homeEnter: 'わたしの星瓶 ★',
+    canvasTitle: '星空キャンバス',
+    canvasSub: '気持ちを自由に描いてみよう',
+    canvasColor: '色',
+    canvasBackground: '背景',
+    canvasBrush: 'ブラシ',
+    canvasBrushPen: '細筆',
+    canvasBrushSoft: 'やわらか',
+    canvasBrushMarker: 'マーカー',
+    canvasBrushStar: '星粒',
+    canvasBrushEraser: '消しゴム',
+    canvasSize: '大きさ',
+    canvasOpacity: '透明度',
+    canvasImportPhoto: '写真を追加',
+    canvasClear: 'キャンバスを消去',
+    canvasUndo: '元に戻す',
+    canvasRedo: 'やり直す',
+    canvasDelete: '削除',
+    canvasSave: '✦ 保存',
+    diaryTitle: '気持ちの星',
+    diarySub: '毎日がひとつの星になる',
+    diaryTabMap: '✦ 星をしまう',
+    diaryTabTrail: '☽ 星をたどる',
+    diaryPeriod7: '7日',
+    diaryPeriod14: '14日',
+    diaryPeriod30: '30日',
+    diaryPeriodAll: 'すべて',
+    diaryChartTitle: '感情の推移',
+    diaryMoodSummaryTitle: '感情の分布',
+    diaryStreakTitle: '連続記録',
+    diaryStreakLabel: '日<br>続けて記録中',
+    diaryNewEntry: '今日の気持ちを記録する',
+    diaryModalTitle: '今日の気持ち',
+    diaryInputPlaceholder: '今日は何があった？心の中のことを少し書いてみて...',
+    diaryAddPhoto: '写真を追加',
+    diaryCancel: 'キャンセル',
+    diarySave: '✦ 星にする',
+    diaryDelete: '削除',
+    diaryToday: '今日',
+    gamesTitle: 'リラックスゲーム',
+    gamesSub: '気分に合うものを選んでみて',
+    gamePressName: 'きらきらタップ',
+    gamePressDesc: '星をタップして、はねたりきらめいたりする動きを眺めて気持ちをほぐそう',
+    gameBubbleName: 'ぷにぷにバブル',
+    gameBubbleDesc: 'やわらかい泡を押したり引っぱったりして、その感触を味わおう',
+    gameSandName: '星砂ボトル',
+    gameSandDesc: 'スマホを傾けると、星が砂のようにゆっくり流れていく',
+    gameBack: '← 戻る',
+    gameShake: '✦ ふる',
+    gameRotateTitle: 'スマホを縦向きにしてください',
+    gameRotateSub: '星砂ボトルは縦向きで使います',
     homeDisclaimer: 'このアプリは感情を表現するための空間を提供しますが、専門的なカウンセリングの代わりにはなりません。<br>緊急の危機がある場合は、1925 に連絡してください。',
     homeResources: '相談資源', homePrivacy: 'プライバシー',
     chatNotice: '✦ 会話内容は AI により処理されます。個人の機微情報は入力しないでください。',
@@ -3423,6 +3588,8 @@ const TRANSLATIONS = {
     toastEncouragement: '今日もよくここまで来たね ✦', toastDiaryAutoSync: 'ログイン済みです。日記は自動で同期されます ✦',
     toastSkippedAuth: 'ログインをスキップしました。日記はこの端末のみに保存されます ✦', toastSignedOut: 'ログアウトしました ✦', toastResetSettings: '個人設定をリセットしました ✦',
     toastTrustMissing: '信頼できる連絡先がまだ設定されていません', toastChatCleared: '会話履歴を消去しました ✦', toastDiarySynced: '日記をクラウドから同期しました ✦', toastAccountDeleted: 'アカウントとクラウドデータを削除しました',
+    toastDiaryDeleted: '削除しました ✦', toastDiarySaved: '新しい星になりました ✦', confirmDeleteDiary: 'この記録を削除しますか？', errorDiaryEmpty: '少し書くか、写真を追加してみてください ✦',
+    toastCanvasNoUndo: '元に戻せる操作はありません', toastCanvasNoRedo: 'やり直せる操作はありません', toastCanvasDrawFirst: 'まずはキャンバスに何か描いてみてください ✦', toastCanvasPhotoImported: '写真を取り込みました。上から描けます ✦', toastCanvasSaved: '作品を保存しました ✦', toastCanvasNew: '新しいキャンバス ✦', toastCanvasDeleted: '削除しました ✦', toastCanvasBlankDelete: 'このキャンバスは空白なので削除は不要です', confirmCanvasDelete: 'この絵を削除しますか？',
     confirmResetSettings: 'ニックネーム、AI スタイル、信頼できる連絡先を含む個人設定をすべてリセットしますか？',
     confirmDeleteAccount1: 'アカウントを削除しますか？クラウド上の日記、会話、関連データは完全に削除されます。',
     confirmDeleteAccount2: '最終確認です。削除後は元に戻せません。続けますか？',
@@ -3497,6 +3664,56 @@ function applyTranslations() {
   setHtml('welcome-help-text', t('welcomeHelpText'));
   setText('welcome-agree-btn', t('welcomeAgree'));
   setText('home-enter-btn', t('homeEnter'));
+  setText('diary-title', t('diaryTitle'));
+  setText('diary-sub', t('diarySub'));
+  setText('diary-tab-map', t('diaryTabMap'));
+  setText('diary-tab-trail', t('diaryTabTrail'));
+  setText('trail-period-7', t('diaryPeriod7'));
+  setText('trail-period-14', t('diaryPeriod14'));
+  setText('trail-period-30', t('diaryPeriod30'));
+  setText('trail-period-all', t('diaryPeriodAll'));
+  setText('trail-card-title-line', t('diaryChartTitle'));
+  setText('trail-card-title-mood', t('diaryMoodSummaryTitle'));
+  setText('trail-card-title-streak', t('diaryStreakTitle'));
+  setHtml('trail-streak-label', t('diaryStreakLabel'));
+  setText('diary-new-entry-btn', t('diaryNewEntry'));
+  setText('diary-modal-title', t('diaryModalTitle'));
+  setPlaceholder('diary-input', t('diaryInputPlaceholder'));
+  setText('diary-add-photo-btn', t('diaryAddPhoto'));
+  setText('diary-cancel-btn', t('diaryCancel'));
+  setText('diary-save-btn', t('diarySave'));
+  setText('canvas-title', t('canvasTitle'));
+  setText('canvas-sub', t('canvasSub'));
+  setText('canvas-label-color', t('canvasColor'));
+  setText('canvas-label-background', t('canvasBackground'));
+  setText('canvas-label-brush', t('canvasBrush'));
+  setText('brush-pen-label', t('canvasBrushPen'));
+  setText('brush-soft-label', t('canvasBrushSoft'));
+  setText('brush-marker-label', t('canvasBrushMarker'));
+  setText('brush-star-label', t('canvasBrushStar'));
+  setText('brush-eraser-label', t('canvasBrushEraser'));
+  setText('canvas-label-size', t('canvasSize'));
+  setText('canvas-label-opacity', t('canvasOpacity'));
+  setText('canvas-import-btn', t('canvasImportPhoto'));
+  setText('canvas-clear-btn', t('canvasClear'));
+  setText('canvas-undo-btn', t('canvasUndo'));
+  setText('canvas-redo-btn', t('canvasRedo'));
+  setText('canvas-delete-btn', t('canvasDelete'));
+  setText('canvas-save-btn', t('canvasSave'));
+  setText('games-title', t('gamesTitle'));
+  setText('games-sub', t('gamesSub'));
+  setText('game-press-name', t('gamePressName'));
+  setText('game-press-desc', t('gamePressDesc'));
+  setText('game-bubble-name', t('gameBubbleName'));
+  setText('game-bubble-desc', t('gameBubbleDesc'));
+  setText('game-sand-name', t('gameSandName'));
+  setText('game-sand-desc', t('gameSandDesc'));
+  setText('game-back-btn', t('gameBack'));
+  setText('bubble-back-btn', t('gameBack'));
+  setText('sand-back-btn', t('gameBack'));
+  setText('sand-shake-btn', t('gameShake'));
+  setText('sand-rotate-title', t('gameRotateTitle'));
+  setText('sand-rotate-sub', t('gameRotateSub'));
   setHtml('home-disclaimer', `${t('homeDisclaimer')}<br><a href="#" id="home-resources-link" onclick="goScreen('resources', null); return false;">${t('homeResources')}</a>&nbsp;·&nbsp;<a href="#" id="home-privacy-link" onclick="goScreen('privacy', null); return false;">${t('homePrivacy')}</a>`);
   setText('chat-notice', t('chatNotice'));
   setText('chat-clear-btn', t('chatClear'));
@@ -4714,7 +4931,7 @@ function updateOpacity(input) {
 
 function undoCanvas() {
   if (!dCtx || undoStack.length === 0) {
-    showToast('沒有可以復原的步驟');
+    showToast(t('toastCanvasNoUndo'));
     return;
   }
 
@@ -4730,7 +4947,7 @@ function undoCanvas() {
 
 function redoCanvas() {
   if (!dCtx || redoStack.length === 0) {
-    showToast('沒有可以重做的步驟');
+    showToast(t('toastCanvasNoRedo'));
     return;
   }
 
@@ -4768,7 +4985,7 @@ function clearCanvas() {
 }
 
 function releaseCanvas() {
-  if (!hasDrawn) { showToast('先在畫布上畫點什麼吧 ✦'); return; }
+  if (!hasDrawn) { showToast(t('toastCanvasDrawFirst')); return; }
   // Save with star animation
   const wrap = document.getElementById('canvas-wrap');
   const rect = wrap.getBoundingClientRect();
@@ -4810,7 +5027,7 @@ function handlePhotoImport(e) {
       dCtx.globalCompositeOperation = 'source-over';
       dCtx.drawImage(img, x, y, w, h);
       hasDrawn = true;
-      showToast('照片已匯入，可以在上面畫畫 ✦');
+      showToast(t('toastCanvasPhotoImported'));
     };
     img.src = ev.target.result;
   };
@@ -4837,7 +5054,7 @@ function renderSavedGallery() {
 }
 
 function deleteDrawingAt(idx) {
-  if (!confirm('確定要刪除這幅畫嗎？')) return;
+  if (!confirm(t('confirmCanvasDelete'))) return;
   canvasDrawings.splice(idx, 1);
   saveCanvasGallery();
   if (currentDrawingIdx >= canvasDrawings.length) {
@@ -4855,7 +5072,7 @@ function deleteDrawingAt(idx) {
   }
   renderGalleryBar();
   renderSavedGallery();
-  showToast('已刪除 ✦');
+  showToast(t('toastDiaryDeleted'));
 }
 
 // ─── Diary ───
@@ -4948,7 +5165,7 @@ function renderDiary() {
     const deleteBtn = document.createElement('button');
     deleteBtn.className = 'entry-delete';
     deleteBtn.type = 'button';
-    deleteBtn.textContent = '刪除';
+    deleteBtn.textContent = t('diaryDelete');
     deleteBtn.addEventListener('click', () => deleteDiaryEntry(e.id));
 
     top.appendChild(dot);
@@ -4973,7 +5190,7 @@ function renderDiary() {
 }
 
 async function deleteDiaryEntry(id) {
-  if (!confirm('確定要刪除這則記錄嗎？')) return;
+  if (!confirm(t('confirmDeleteDiary'))) return;
   diaryEntries = diaryEntries.filter(e => e.id !== id);
   saveDiary();
   renderDiary();
@@ -4986,7 +5203,7 @@ async function deleteDiaryEntry(id) {
       await deleteDoc(doc(db, 'users', uid, 'diary', id));
     } catch(e) { console.error('delete diary cloud:', e); }
   }
-  showToast('已刪除 ✦');
+  showToast(t('toastDiaryDeleted'));
 }
 
 function drawStarMap() {
@@ -5044,7 +5261,7 @@ function drawStarMap() {
     ctx.fillStyle = '#8090b8';
     ctx.font = '10px Noto Sans TC';
     ctx.textAlign = 'center';
-    ctx.fillText('今天', last.x, last.y + last.r + 14);
+    ctx.fillText(t('diaryToday'), last.x, last.y + last.r + 14);
   }
 
   // Background stars
@@ -5118,7 +5335,7 @@ function removeDiaryImg() {
 
 function saveDiaryEntry() {
   const text = document.getElementById('diary-input').value.trim();
-  if (!text && !_diaryImageData) { showToast('寫幾個字或附張照片吧 ✦'); return; }
+  if (!text && !_diaryImageData) { showToast(t('errorDiaryEmpty')); return; }
   const mood = _diaryMood || { name: '平靜', color: '#7b9cf5' };
   const now = new Date();
   const entry = {
@@ -5136,7 +5353,7 @@ function saveDiaryEntry() {
   _diaryImageData = null;
   renderDiary();
   flyStarToBottle(mood.color);
-  showToast('已化作一顆新的星星 ✦');
+  showToast(t('toastDiarySaved'));
 }
 
 // ─── Toast ───
@@ -5423,7 +5640,7 @@ function renderGalleryBar() {
 }
 
 function saveCurrentDrawing() {
-  if (!drawCanvas || !dCtx) { showToast('先畫點東西吧 ✦'); return; }
+  if (!drawCanvas || !dCtx) { showToast(t('toastCanvasDrawFirst')); return; }
   const dataUrl = drawCanvas.toDataURL('image/png');
   // Create small thumbnail
   const thumbCanvas = document.createElement('canvas');
@@ -5451,7 +5668,7 @@ function saveCurrentDrawing() {
   saveCanvasGallery();
   renderGalleryBar();
   renderSavedGallery();
-  showToast('已儲存畫作 ✦');
+  showToast(t('toastCanvasSaved'));
 }
 
 function newCanvasDrawing() {
@@ -5478,7 +5695,7 @@ function newCanvasDrawing() {
   currentDrawingIdx = canvasDrawings.length; // points to new unsaved slot
   renderGalleryBar();
   renderSavedGallery();
-  showToast('新畫布 ✦');
+  showToast(t('toastCanvasNew'));
 }
 
 function loadDrawing(idx) {
@@ -5514,10 +5731,10 @@ function loadDrawing(idx) {
 
 function deleteCurrentDrawing() {
   if (!canvasDrawings[currentDrawingIdx]) {
-    showToast('這是空白畫布，不需要刪除');
+    showToast(t('toastCanvasBlankDelete'));
     return;
   }
-  if (!confirm('確定要刪除這幅畫嗎？')) return;
+  if (!confirm(t('confirmCanvasDelete'))) return;
   canvasDrawings.splice(currentDrawingIdx, 1);
   saveCanvasGallery();
   if (currentDrawingIdx >= canvasDrawings.length) {
@@ -5533,7 +5750,7 @@ function deleteCurrentDrawing() {
   }
   renderGalleryBar();
   renderSavedGallery();
-  showToast('已刪除 ✦');
+  showToast(t('toastCanvasDeleted'));
 }
 const _origInitCanvas = initCanvas;
 initCanvas = function() {
