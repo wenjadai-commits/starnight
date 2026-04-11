@@ -4338,7 +4338,8 @@ goScreen = function(name, btn) {
 
 // ─── Chat: Safety-First Architecture ───
 // Flow: User Input → Safety Layer → Response Policy → Response Generator → Support UI
-const CHAT_API = '/api/chat';
+const CHAT_API_PRIMARY = '/api/chat';
+const CHAT_API_FALLBACK = 'https://starnight-api.vercel.app/api/chat';
 const MAX_TURNS = 5; // max conversation turns before winding down
 let chatTurnCount = 0;
 let responseIdx = 0;
@@ -4801,12 +4802,12 @@ async function callAI(text, isRetry, policy) {
   msgs.appendChild(typing);
   msgs.scrollTop = 99999;
 
-  if (CHAT_API) {
+  async function postChat(apiUrl) {
     try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 20000);
 
-      const res = await fetch(CHAT_API, {
+      const res = await fetch(apiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         signal: controller.signal,
@@ -4842,37 +4843,74 @@ async function callAI(text, isRetry, policy) {
       return;
 
     } catch (err) {
-      const t = document.getElementById('typing');
-      if (t) t.remove();
-      console.error('[Starfold] Chat error:', err.message);
-
-      let errText = '';
-      if (err.name === 'AbortError') errText = t('chatErrorTimeout');
-      else if (!navigator.onLine) errText = t('chatErrorOffline');
-      else if (err.message.includes('rate_limit')) errText = t('chatErrorRateLimit');
-      else if (err.message.includes('ai_timeout')) errText = t('chatErrorTimeoutAi');
-      else if (err.message.includes('missing_api_key')) errText = t('chatErrorMissingApiKey');
-      else if (err.message.includes('invalid_api_key')) errText = t('chatErrorInvalidApiKey');
-      else if (err.message.includes('quota_exceeded')) errText = t('chatErrorQuota');
-      else if (err.message.includes('model_not_found')) errText = t('chatErrorModel');
-      else if (err.message.includes('empty_response')) errText = t('chatErrorEmpty');
-      else errText = t('chatErrorGeneric');
-
-      const errDiv = document.createElement('div');
-      errDiv.className = 'msg error';
-      const errTextNode = document.createElement('div');
-      errTextNode.textContent = errText;
-      errDiv.appendChild(errTextNode);
-      const retryBtn = document.createElement('button');
-      retryBtn.className = 'retry-btn';
-      retryBtn.type = 'button';
-      retryBtn.textContent = t('chatRetry');
-      retryBtn.addEventListener('click', retryAI);
-      errDiv.appendChild(retryBtn);
-      msgs.appendChild(errDiv);
-      msgs.scrollTop = 99999;
-      return;
+      throw err;
     }
+  }
+
+  function renderChatError(err) {
+    let errText = '';
+    if (err?.name === 'AbortError') errText = t('chatErrorTimeout');
+    else if (!navigator.onLine) errText = t('chatErrorOffline');
+    else if (String(err?.message || '').includes('rate_limit')) errText = t('chatErrorRateLimit');
+    else if (String(err?.message || '').includes('ai_timeout')) errText = t('chatErrorTimeoutAi');
+    else if (String(err?.message || '').includes('missing_api_key')) errText = t('chatErrorMissingApiKey');
+    else if (String(err?.message || '').includes('invalid_api_key')) errText = t('chatErrorInvalidApiKey');
+    else if (String(err?.message || '').includes('quota_exceeded')) errText = t('chatErrorQuota');
+    else if (String(err?.message || '').includes('model_not_found')) errText = t('chatErrorModel');
+    else if (String(err?.message || '').includes('empty_response')) errText = t('chatErrorEmpty');
+    else errText = t('chatErrorGeneric');
+
+    const errDiv = document.createElement('div');
+    errDiv.className = 'msg error';
+    const errTextNode = document.createElement('div');
+    errTextNode.textContent = errText;
+    errDiv.appendChild(errTextNode);
+    const retryBtn = document.createElement('button');
+    retryBtn.className = 'retry-btn';
+    retryBtn.type = 'button';
+    retryBtn.textContent = t('chatRetry');
+    retryBtn.addEventListener('click', retryAI);
+    errDiv.appendChild(retryBtn);
+    msgs.appendChild(errDiv);
+    msgs.scrollTop = 99999;
+  }
+
+  const tryChat = async () => {
+    try {
+      await postChat(CHAT_API_PRIMARY);
+      return true;
+    } catch (err) {
+      // If we're not running behind Vercel functions (e.g. GitHub Pages / file://),
+      // `/api/chat` will 404 or fail to fetch. In that case, fall back to the external API.
+      const msg = String(err?.message || '');
+      const isPrimaryUnreachable =
+        err?.name === 'TypeError' ||
+        msg.includes('server_error_404') ||
+        msg.includes('server_error_405') ||
+        msg.includes('server_error_0') ||
+        msg.includes('invalid_json_404') ||
+        msg.includes('invalid_json_405');
+
+      if (isPrimaryUnreachable && CHAT_API_FALLBACK) {
+        try {
+          await postChat(CHAT_API_FALLBACK);
+          return true;
+        } catch (fallbackErr) {
+          err = fallbackErr;
+        }
+      }
+
+      const typingEl = document.getElementById('typing');
+      if (typingEl) typingEl.remove();
+      console.error('[Starfold] Chat error:', err?.message || err);
+      renderChatError(err);
+      return false;
+    }
+  };
+
+  if (CHAT_API_PRIMARY) {
+    const ok = await tryChat();
+    if (ok) return;
   }
 
   // Fallback: use templates based on detected risk
