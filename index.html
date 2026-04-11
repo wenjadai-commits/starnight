@@ -4829,11 +4829,30 @@ async function callAI(text, isRetry, policy) {
       console.log('[Starfold] API status:', res.status, 'raw:', raw);
 
       let data = {};
-      try { data = raw ? JSON.parse(raw) : {}; } catch (e) { throw new Error('invalid_json_' + res.status); }
-      if (!res.ok) throw new Error(data.error || 'server_error_' + res.status);
+      try {
+        data = raw ? JSON.parse(raw) : {};
+      } catch (e) {
+        const err = new Error('invalid_json');
+        err._status = res.status;
+        err._raw = raw;
+        throw err;
+      }
+      if (!res.ok) {
+        const err = new Error(String(data?.error || 'upstream_error'));
+        err._status = res.status;
+        err._code = String(data?.error || '');
+        err._requestId = data?.requestId ? String(data.requestId) : '';
+        err._raw = raw;
+        throw err;
+      }
 
       const reply = data.reply;
-      if (!reply) throw new Error('empty_response');
+      if (!reply) {
+        const err = new Error('missing_reply');
+        err._status = res.status;
+        err._raw = raw;
+        throw err;
+      }
 
       const t = document.getElementById('typing');
       if (t) t.remove();
@@ -4848,22 +4867,29 @@ async function callAI(text, isRetry, policy) {
   }
 
   function renderChatError(err) {
+    const code = String(err?._code || err?.message || 'unknown_error');
+    const status = err?._status ? String(err._status) : '';
+    const requestId = err?._requestId ? String(err._requestId) : '';
+    const debugSuffix = ` (${[status ? `http_${status}` : '', code, requestId ? `rid_${requestId}` : ''].filter(Boolean).join(' ')})`;
+
     let errText = '';
     if (err?.name === 'AbortError') errText = t('chatErrorTimeout');
     else if (!navigator.onLine) errText = t('chatErrorOffline');
-    else if (String(err?.message || '').includes('rate_limit')) errText = t('chatErrorRateLimit');
+    else if (code.includes('rate_limit') || code.includes('rate_limited')) errText = t('chatErrorRateLimit');
     else if (String(err?.message || '').includes('ai_timeout')) errText = t('chatErrorTimeoutAi');
     else if (String(err?.message || '').includes('missing_api_key')) errText = t('chatErrorMissingApiKey');
     else if (String(err?.message || '').includes('invalid_api_key')) errText = t('chatErrorInvalidApiKey');
     else if (String(err?.message || '').includes('quota_exceeded')) errText = t('chatErrorQuota');
     else if (String(err?.message || '').includes('model_not_found')) errText = t('chatErrorModel');
-    else if (String(err?.message || '').includes('empty_response')) errText = t('chatErrorEmpty');
+    else if (code.includes('empty_response') || code.includes('missing_reply')) errText = t('chatErrorEmpty');
+    else if (code.includes('invalid_json')) errText = '⚠️ invalid_json';
+    else if (code.includes('upstream_error')) errText = '⚠️ upstream_error';
     else errText = t('chatErrorGeneric');
 
     const errDiv = document.createElement('div');
     errDiv.className = 'msg error';
     const errTextNode = document.createElement('div');
-    errTextNode.textContent = errText;
+    errTextNode.textContent = `${errText}${debugSuffix}`;
     errDiv.appendChild(errTextNode);
     const retryBtn = document.createElement('button');
     retryBtn.className = 'retry-btn';
@@ -4888,8 +4914,9 @@ async function callAI(text, isRetry, policy) {
         msg.includes('server_error_404') ||
         msg.includes('server_error_405') ||
         msg.includes('server_error_0') ||
-        msg.includes('invalid_json_404') ||
-        msg.includes('invalid_json_405');
+        (msg === 'invalid_json' && (err?._status === 404 || err?._status === 405)) ||
+        (msg === 'method_not_allowed' && err?._status === 405) ||
+        (err?._status === 404 && msg !== 'rate_limited');
 
       if (isPrimaryUnreachable && CHAT_API_FALLBACK) {
         try {
@@ -4911,9 +4938,10 @@ async function callAI(text, isRetry, policy) {
   if (CHAT_API_PRIMARY) {
     const ok = await tryChat();
     if (ok) return;
+    return; // do not fall back to "template replies" when API fails; show explicit error instead
   }
 
-  // Fallback: use templates based on detected risk
+  // No API configured at all: use templates as a last-resort fallback
   setTimeout(() => {
     const t = document.getElementById('typing');
     if (t) t.remove();
