@@ -1668,6 +1668,15 @@
     display:flex; align-items:center; justify-content:center; gap:8px;
   }
   .auth-google:hover { border-color:var(--text-muted); color:var(--text-main); }
+  .auth-apple {
+    width:100%; padding:12px; background:rgba(255,255,255,0.04);
+    border:0.5px solid rgba(255,255,255,0.22); border-radius:20px;
+    color:var(--text-main); font-family:'Noto Sans TC',sans-serif;
+    font-size:13px; cursor:pointer; transition:all 0.2s;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    margin-top:8px;
+  }
+  .auth-apple:hover { background:rgba(255,255,255,0.08); border-color:rgba(255,255,255,0.32); }
   .auth-skip {
     width:100%; padding:10px; background:none; border:none;
     color:var(--text-dim); font-family:'Noto Sans TC',sans-serif;
@@ -2002,7 +2011,7 @@
 <!-- Firebase SDK -->
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, AppleAuthProvider, signOut } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 import { getFirestore, collection, doc, setDoc, getDocs, deleteDoc, query, orderBy, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 const firebaseConfig = {
@@ -2018,9 +2027,12 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
+const appleProvider = new AppleAuthProvider();
+appleProvider.addScope('email');
+appleProvider.addScope('name');
 
 // Expose to global scope
-window._fb = { auth, db, googleProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, collection, doc, setDoc, getDocs, deleteDoc, query, orderBy, serverTimestamp };
+window._fb = { auth, db, googleProvider, appleProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, AppleAuthProvider, signOut, onAuthStateChanged, collection, doc, setDoc, getDocs, deleteDoc, query, orderBy, serverTimestamp };
 
 // Auth state listener
 onAuthStateChanged(auth, (user) => {
@@ -5986,6 +5998,24 @@ async function handleGoogleAuth() {
   }
 }
 
+async function handleAppleAuth() {
+  try {
+    const { auth, signInWithPopup, appleProvider } = window._fb;
+    await signInWithPopup(auth, appleProvider);
+    document.getElementById('auth-error').textContent = '';
+  } catch(e) {
+    const msgs = {
+      'auth/account-exists-with-different-credential': '此 Email 已用其他登入方式註冊，請先用原本方式登入',
+      'auth/popup-closed-by-user': '你已取消 Apple 登入',
+      'auth/popup-blocked': '瀏覽器擋住登入視窗，請允許彈出視窗後再試一次',
+      'auth/unauthorized-domain': '目前網域尚未加入 Firebase 授權網域',
+      'auth/operation-not-allowed': 'Firebase 尚未啟用 Apple 登入',
+      'auth/invalid-credential': 'Apple 登入憑證無效，請重新再試',
+    };
+    document.getElementById('auth-error').textContent = msgs[e.code] || 'Apple 登入失敗，請檢查 Firebase 與 Apple 設定';
+  }
+}
+
 async function handleSignOut() {
   try {
     await setSignedOutState();
@@ -6022,6 +6052,10 @@ function checkAuthOnStart() {
     <button class="auth-google" onclick="handleGoogleAuth()">
       <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
       使用 Google 登入
+    </button>
+    <button class="auth-apple" onclick="handleAppleAuth()">
+      <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19.67 16.2c-.28.65-.61 1.26-1.01 1.82-.55.78-1 1.31-1.37 1.58-.57.45-1.18.68-1.83.7-.46 0-1.02-.13-1.68-.4-.67-.26-1.28-.4-1.84-.4-.58 0-1.21.13-1.9.4-.69.27-1.24.41-1.65.43-.63.03-1.25-.21-1.87-.72-.39-.31-.87-.86-1.44-1.65-.61-.84-1.11-1.81-1.5-2.92-.42-1.19-.63-2.34-.63-3.45 0-1.27.27-2.37.82-3.29.43-.74 1.01-1.32 1.73-1.75.72-.43 1.5-.65 2.33-.67.46 0 1.06.14 1.81.43.74.29 1.22.43 1.43.43.15 0 .67-.16 1.55-.48.84-.3 1.55-.42 2.13-.37 1.58.13 2.77.75 3.56 1.88-1.41.85-2.11 2.04-2.09 3.57.01 1.19.44 2.18 1.3 2.98.39.37.82.65 1.3.84-.11.33-.23.65-.35.95zM14.92 1.5c0 .93-.34 1.8-1.01 2.61-.81.96-1.8 1.52-2.87 1.44-.01-.11-.02-.22-.02-.34 0-.89.39-1.84 1.08-2.62.35-.4.79-.73 1.31-.99.52-.25 1.01-.4 1.47-.44.03.12.04.23.04.34z"/></svg>
+      使用 Apple 登入
     </button>
     <button class="auth-skip" onclick="skipAuth()">暫時跳過，不同步</button>
   </div>
