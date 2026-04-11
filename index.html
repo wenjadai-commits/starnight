@@ -2560,6 +2560,7 @@ window.addEventListener('load', () => {
       <div class="settings-section-title">資料管理</div>
       <button class="settings-btn" onclick="clearChatHistory()">清除對話紀錄</button>
       <button class="settings-btn danger" onclick="resetAllSettings()">重設所有個人設定</button>
+      <button class="settings-btn danger" id="delete-account-btn" onclick="handleDeleteAccount()" style="display:none;">刪除帳號</button>
     </div>
   </div>
 
@@ -3206,6 +3207,8 @@ function initSettingsPage() {
   if (chatCountEl) chatCountEl.textContent = chatHistory.length;
   const diaryCountEl = document.getElementById('settings-diary-count');
   if (diaryCountEl) diaryCountEl.textContent = (typeof diaryEntries !== 'undefined' ? diaryEntries.length : 0);
+  const deleteBtn = document.getElementById('delete-account-btn');
+  if (deleteBtn) deleteBtn.style.display = window._currentUser ? 'block' : 'none';
 }
 
 function resetAllSettings() {
@@ -3214,6 +3217,91 @@ function resetAllSettings() {
   localStorage.removeItem('starfold-trust-contact');
   initSettingsPage();
   showToast('已重設個人設定 ✦');
+}
+
+function clearLocalUserData() {
+  chatHistory = [];
+  chatTurnCount = 0;
+  _chatLoaded = false;
+  try { localStorage.removeItem('starfold-chat'); } catch {}
+
+  diaryEntries = [];
+  try { localStorage.removeItem('starnight-diary'); } catch {}
+
+  try { localStorage.removeItem('starfold-settings'); } catch {}
+  try { localStorage.removeItem('starfold-trust-contact'); } catch {}
+
+  renderChatMessages();
+  renderDiary();
+  initBottleAnimation();
+  initSettingsPage();
+}
+
+async function setSignedOutState() {
+  try {
+    if (window._fb?.auth?.currentUser) {
+      const { auth, signOut } = window._fb;
+      await signOut(auth);
+    }
+  } catch (e) {
+    console.error('sign out after cleanup:', e);
+  }
+
+  window._currentUser = null;
+  clearLocalUserData();
+  goScreen('home', document.querySelectorAll('.nav-btn')[0]);
+  showAuthModal();
+}
+
+async function handleDeleteAccount() {
+  if (!window._currentUser || !window._fb?.auth?.currentUser) {
+    showToast('請先登入帳號');
+    return;
+  }
+
+  const firstConfirm = confirm('確定要刪除帳號嗎？你的雲端日記、對話與相關資料會一併刪除，且無法復原。');
+  if (!firstConfirm) return;
+
+  const secondConfirm = confirm('這是最後確認：刪除帳號後將無法找回資料。確定要繼續嗎？');
+  if (!secondConfirm) return;
+
+  const btn = document.getElementById('delete-account-btn');
+  const originalText = btn ? btn.textContent : '';
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = '刪除中...';
+  }
+
+  try {
+    const token = await window._fb.auth.currentUser.getIdToken(true);
+    const res = await fetch('/api/delete-account', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    let payload = null;
+    try {
+      payload = await res.json();
+    } catch {}
+
+    if (!res.ok) {
+      throw new Error(payload?.error || '刪除帳號失敗');
+    }
+
+    await setSignedOutState();
+    showToast('帳號與雲端資料已刪除');
+  } catch (e) {
+    console.error('delete account:', e);
+    alert(e.message || '刪除帳號失敗，請稍後再試。');
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = originalText || '刪除帳號';
+    }
+  }
 }
 
 // Hook into goScreen to init settings
@@ -5900,9 +5988,7 @@ async function handleGoogleAuth() {
 
 async function handleSignOut() {
   try {
-    const { auth, signOut } = window._fb;
-    await signOut(auth);
-    window._currentUser = null;
+    await setSignedOutState();
     showToast('已登出 ✦');
   } catch(e) { console.error(e); }
 }
