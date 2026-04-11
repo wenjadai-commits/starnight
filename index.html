@@ -4290,7 +4290,7 @@ goScreen = function(name, btn) {
 
 // ─── Chat: Safety-First Architecture ───
 // Flow: User Input → Safety Layer → Response Policy → Response Generator → Support UI
-const CHAT_API = 'https://starnight-api.vercel.app/api/chat';
+const CHAT_API = '/api/chat';
 const MAX_TURNS = 5; // max conversation turns before winding down
 let chatTurnCount = 0;
 let responseIdx = 0;
