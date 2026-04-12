@@ -4340,8 +4340,44 @@ goScreen = function(name, btn) {
 // Flow: User Input → Safety Layer → Response Policy → Response Generator → Support UI
 const CHAT_API_PRIMARY = '/api/chat';
 const CHAT_API_FALLBACK = 'https://starnight-api.vercel.app/api/chat';
-const MAX_TURNS = 5; // max conversation turns before winding down
-let chatTurnCount = 0;
+const MAX_TURNS = 20; // daily turn budget (assistant replies)
+const _CHAT_TURN_DAY_KEY = 'starfold-chat-turn-day';
+const _CHAT_TURN_COUNT_KEY = 'starfold-chat-turn-count';
+
+function _getLocalDayKey(d = new Date()) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function _loadDailyChatTurnCount() {
+  try {
+    const today = _getLocalDayKey();
+    const savedDay = localStorage.getItem(_CHAT_TURN_DAY_KEY);
+    const savedCount = Number(localStorage.getItem(_CHAT_TURN_COUNT_KEY) || '0');
+    if (savedDay !== today || !Number.isFinite(savedCount) || savedCount < 0) {
+      localStorage.setItem(_CHAT_TURN_DAY_KEY, today);
+      localStorage.setItem(_CHAT_TURN_COUNT_KEY, '0');
+      return 0;
+    }
+    return savedCount;
+  } catch {
+    return 0;
+  }
+}
+
+function _setDailyChatTurnCount(count) {
+  try { localStorage.setItem(_CHAT_TURN_COUNT_KEY, String(Math.max(0, count | 0))); } catch {}
+}
+
+function _incrementDailyChatTurns() {
+  chatTurnCount = _loadDailyChatTurnCount();
+  chatTurnCount += 1;
+  _setDailyChatTurnCount(chatTurnCount);
+}
+
+let chatTurnCount = _loadDailyChatTurnCount();
 let responseIdx = 0;
 let chatHistory = [];
 let _chatLoaded = false;
@@ -4678,6 +4714,7 @@ window.loadChatFromCloud = async function() {
       const data = snap.data();
       if (data.messages && data.messages.length > chatHistory.length) {
         chatHistory = data.messages;
+        chatTurnCount = _loadDailyChatTurnCount();
         saveChatLocalOnly();
         renderChatMessages();
       }
@@ -4693,7 +4730,8 @@ function loadChatHistory() {
   if (_chatLoaded) return;
   _chatLoaded = true;
   chatHistory = loadChatLocal();
-  chatTurnCount = Math.floor(chatHistory.filter(h => h.role === 'user').length);
+  // Daily limit is independent from chat history length.
+  chatTurnCount = _loadDailyChatTurnCount();
   renderChatMessages();
   if (window._currentUser) window.loadChatFromCloud();
 }
@@ -4714,7 +4752,8 @@ function renderChatMessages() {
 function clearChatHistory() {
   if (!confirm(t('confirmClearChat'))) return;
   chatHistory = [];
-  chatTurnCount = 0;
+  // Do not reset daily turn budget when clearing chat.
+  chatTurnCount = _loadDailyChatTurnCount();
   _chatLoaded = false;
   saveChatLocal();
   loadChatHistory();
@@ -4746,8 +4785,10 @@ async function sendMsg() {
   input.value = '';
   input.style.height = '';
   chatHistory.push({ role: 'user', content: text });
-  chatTurnCount++;
   saveChatLocal();
+
+  // Refresh daily budget (handles day rollover without reload)
+  chatTurnCount = _loadDailyChatTurnCount();
 
   // ── Step 1: Safety Layer ──
   const recentUserMsgs = chatHistory.filter(h => h.role === 'user').map(h => h.content).slice(-5);
@@ -4761,7 +4802,7 @@ async function sendMsg() {
   }
 
   // ── Step 3: Check turn limit ──
-  if (chatTurnCount > MAX_TURNS && safety.riskLevel === 'low') {
+  if (chatTurnCount >= MAX_TURNS && safety.riskLevel === 'low') {
     const turnMsg = pickLocalizedTemplate('turnLimit');
     addMsg('ai', turnMsg);
     chatHistory.push({ role: 'assistant', content: turnMsg });
@@ -4775,6 +4816,7 @@ async function sendMsg() {
     const crisisReply = pickLocalizedTemplate('crisis');
     addMsg('ai', crisisReply);
     chatHistory.push({ role: 'assistant', content: crisisReply });
+    _incrementDailyChatTurns();
     saveChatLocal();
     return;
   }
@@ -4858,6 +4900,7 @@ async function callAI(text, isRetry, policy) {
       if (t) t.remove();
       addMsg('ai', reply);
       chatHistory.push({ role: 'assistant', content: reply });
+      _incrementDailyChatTurns();
       saveChatLocal();
       return;
 
@@ -4870,11 +4913,18 @@ async function callAI(text, isRetry, policy) {
     const code = String(err?._code || err?.message || 'unknown_error');
     const status = err?._status ? String(err._status) : '';
     const requestId = err?._requestId ? String(err._requestId) : '';
-    const debugSuffix = ` (${[status ? `http_${status}` : '', code, requestId ? `rid_${requestId}` : ''].filter(Boolean).join(' ')})`;
+    const endpoint = err?._endpoint ? String(err._endpoint) : '';
+    const debugSuffix = ` (${[
+      status ? `http_${status}` : '',
+      code,
+      requestId ? `rid_${requestId}` : '',
+      endpoint ? `ep_${endpoint}` : '',
+    ].filter(Boolean).join(' ')})`;
 
     let errText = '';
     if (err?.name === 'AbortError') errText = t('chatErrorTimeout');
     else if (!navigator.onLine) errText = t('chatErrorOffline');
+    else if (err?.name === 'TypeError') errText = '⚠️ cors_or_network';
     else if (code.includes('rate_limit') || code.includes('rate_limited')) errText = t('chatErrorRateLimit');
     else if (String(err?.message || '').includes('ai_timeout')) errText = t('chatErrorTimeoutAi');
     else if (String(err?.message || '').includes('missing_api_key')) errText = t('chatErrorMissingApiKey');
@@ -4906,6 +4956,7 @@ async function callAI(text, isRetry, policy) {
       await postChat(CHAT_API_PRIMARY);
       return true;
     } catch (err) {
+      if (err) err._endpoint = 'primary';
       // If we're not running behind Vercel functions (e.g. GitHub Pages / file://),
       // `/api/chat` will 404 or fail to fetch. In that case, fall back to the external API.
       const msg = String(err?.message || '');
@@ -4923,6 +4974,7 @@ async function callAI(text, isRetry, policy) {
           await postChat(CHAT_API_FALLBACK);
           return true;
         } catch (fallbackErr) {
+          if (fallbackErr) fallbackErr._endpoint = 'fallback';
           err = fallbackErr;
         }
       }
