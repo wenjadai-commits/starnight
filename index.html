@@ -2006,6 +2006,37 @@
   .settings-btn:hover { background: rgba(123,156,245,0.08); }
   .settings-btn.danger { border-color: rgba(240,128,128,0.3); color: #f08080; }
   .settings-btn.danger:hover { background: rgba(240,128,128,0.08); }
+
+  /* Star Toast — gentle floating notification */
+  .star-toast {
+    position: fixed;
+    top: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(13,27,62,0.88);
+    border: 0.5px solid rgba(245,230,200,0.2);
+    border-radius: 20px;
+    padding: 8px 20px;
+    color: #f5e6c8;
+    font-size: 12px;
+    font-family: 'Noto Sans TC', sans-serif;
+    letter-spacing: 0.5px;
+    z-index: 999;
+    pointer-events: none;
+    animation: starToastIn 0.4s ease;
+    backdrop-filter: blur(8px);
+  }
+  .star-toast-fade {
+    animation: starToastOut 0.5s ease forwards;
+  }
+  @keyframes starToastIn {
+    0% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+    100% { opacity: 1; transform: translateX(-50%) translateY(0); }
+  }
+  @keyframes starToastOut {
+    0% { opacity: 1; transform: translateX(-50%) translateY(0); }
+    100% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+  }
 </style>
 
 <!-- Firebase SDK -->
@@ -2779,8 +2810,8 @@ function initBottleAnimation() {
   // Cancel previous animation
   if (bottleAnimFrame) cancelAnimationFrame(bottleAnimFrame);
 
-  // Stars = diary count, minimum 0
-  const count = diaryEntries.length;
+  // Stars = diary + chat stars combined
+  const count = diaryEntries.length + (typeof _loadStars === 'function' ? _loadStars() : 0);
   bottleStars = Array.from({ length: count }, makeStar);
   updateBottleCount();
   animateBottle();
@@ -2788,7 +2819,8 @@ function initBottleAnimation() {
 
 function updateBottleCount() {
   const el = document.getElementById('bottle-count');
-  if (el) el.textContent = t('bottleCount', { count: String(diaryEntries.length) });
+  const total = diaryEntries.length + (typeof _loadStars === 'function' ? _loadStars() : 0);
+  if (el) el.textContent = '✦ ' + total + ' ' + t('bottleCountUnit');
 }
 
 function addBottleStar(color) {
@@ -3462,6 +3494,11 @@ const TRANSLATIONS = {
     respTurnLimit1: '先讓自己休息一下也可以 🌙',
     respTurnLimit2: '先停在這裡就好，你已經很勇敢了。',
     respTurnLimit3: '說出來就是很棒的事。先好好休息。',
+    dailyLimitReached: '今天的星星已經收集完了 ✨ 明天會重新恢復，可以再來找我聊天 💛',
+    dailyLimitNear2: '今天還剩 2 次對話，好好珍惜這最後的星光 ✦',
+    dailyLimitNear1: '今天只剩最後 1 次對話了，讓我們好好說 ✦',
+    starCollected: '✨ 你收集到一顆星星',
+    bottleCountUnit: '顆情緒星星',
     policyLow: '回應最多2句。短句共感，輕度接住。不主導對話，不連續提問。',
     policyMedium: '回應最多2句。共感為主，輕微導向現實支持。不深挖原因，不延長對話，不分析人格。可以說「如果可以，找一個人講一句話也好」。',
     policyHigh: '回應最多2句。表達關心，明確導向真人支持。不聊天延伸，不分析，不給自我傷害相關建議。必須提到「請試著聯絡一位可以陪你的人」或「撥打 1925 安心專線」。',
@@ -3669,6 +3706,11 @@ const TRANSLATIONS = {
     respTurnLimit1: 'It is okay to pause and rest for a bit. 🌙',
     respTurnLimit2: 'We can stop here for now. You have been very brave.',
     respTurnLimit3: 'Sharing this is already a big thing. Please rest for a while.',
+    dailyLimitReached: 'We\'ve gathered all the stars for today ✨ You can come back tomorrow, I\'ll be here 💛',
+    dailyLimitNear2: 'You have 2 chats left today — let\'s make them count ✦',
+    dailyLimitNear1: 'This is your last chat for today — let\'s make it a good one ✦',
+    starCollected: '✨ You collected a star',
+    bottleCountUnit: 'emotional stars',
     policyLow: 'Max 2 sentences. Short, empathetic, lightly supportive. Do not lead the conversation. Do not ask multiple follow-up questions.',
     policyMedium: 'Max 2 sentences. Empathy first, gently point toward real-world support. Do not dig into causes. Do not extend the chat. No personality analysis.',
     policyHigh: 'Max 2 sentences. Express care and clearly encourage real-person support. Do not extend chat. No analysis. Do not provide self-harm details. Must mention contacting someone or calling 1925.',
@@ -3875,6 +3917,11 @@ const TRANSLATIONS = {
     respTurnLimit1: '少し休んで一息ついても大丈夫だよ 🌙',
     respTurnLimit2: 'ここでいったん止めよう。あなたは十分がんばったよ。',
     respTurnLimit3: '話せたこと自体がすごいよ。少し休もう。',
+    dailyLimitReached: '今日の星はもう全部集めたよ ✨ 明日になればまた話せるから、ここで待ってるね 💛',
+    dailyLimitNear2: '今日はあと2回だけ話せるよ。大切にしようね ✦',
+    dailyLimitNear1: '今日はあと1回だけ。大事に使おうね ✦',
+    starCollected: '✨ 星をひとつ集めたよ',
+    bottleCountUnit: 'つの星',
     policyLow: '最大2文。短く共感し、やさしく受け止める。会話を主導しない。連続で質問しない。',
     policyMedium: '最大2文。共感が中心。現実の支援へそっとつなぐ。原因を深掘りしない。会話を長引かせない。人格分析しない。',
     policyHigh: '最大2文。気遣いを示し、現実の支援へ明確につなぐ。会話を延長しない。分析しない。自傷に関する具体は避ける。誰かに連絡/1925を必ず言及。',
@@ -4803,11 +4850,20 @@ async function sendMsg() {
 
   // ── Step 3: Check turn limit ──
   if (chatTurnCount >= MAX_TURNS && safety.riskLevel === 'low') {
-    const turnMsg = pickLocalizedTemplate('turnLimit');
-    addMsg('ai', turnMsg);
-    chatHistory.push({ role: 'assistant', content: turnMsg });
+    // Daily limit reached — warm message instead of generic turn limit
+    const limitMsg = t('dailyLimitReached');
+    addMsg('ai', limitMsg);
+    chatHistory.push({ role: 'assistant', content: limitMsg });
     saveChatLocal();
     return;
+  }
+
+  // ── Step 3b: Approaching limit hint (only for low risk, non-intrusive) ──
+  const remaining = MAX_TURNS - chatTurnCount;
+  if (remaining === 2 && safety.riskLevel === 'low') {
+    showStarToast(t('dailyLimitNear2'));
+  } else if (remaining === 1 && safety.riskLevel === 'low') {
+    showStarToast(t('dailyLimitNear1'));
   }
 
   // ── Step 4: Generate response ──
@@ -4901,6 +4957,7 @@ async function callAI(text, isRetry, policy) {
       addMsg('ai', reply);
       chatHistory.push({ role: 'assistant', content: reply });
       _incrementDailyChatTurns();
+      _collectStar(); // ★ collect a star on successful reply
       saveChatLocal();
       return;
 
@@ -5043,6 +5100,50 @@ function handleKey(e) {
 function autoResize(el) {
   el.style.height = 'auto';
   el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+}
+
+// ─── Star Collection System ───
+const _STARS_KEY = 'starfold-stars';
+
+function _loadStars() {
+  try {
+    return Math.max(0, Number(localStorage.getItem(_STARS_KEY) || '0'));
+  } catch { return 0; }
+}
+
+function _saveStars(count) {
+  try { localStorage.setItem(_STARS_KEY, String(Math.max(0, count | 0))); } catch {}
+}
+
+function _collectStar() {
+  const total = _loadStars() + 1;
+  _saveStars(total);
+  showStarToast(t('starCollected'));
+  // Update bottle display
+  if (typeof updateBottleCount === 'function') updateBottleCount();
+  if (typeof initBottleAnimation === 'function') {
+    // Add a new visual star to the bottle
+    if (typeof addBottleStar === 'function') addBottleStar('#f5e6c8');
+  }
+}
+
+function getStarCount() {
+  return _loadStars();
+}
+
+// ─── Star Toast (lightweight, non-intrusive) ───
+function showStarToast(msg) {
+  // Remove existing star toast
+  const old = document.querySelector('.star-toast');
+  if (old) old.remove();
+  const toast = document.createElement('div');
+  toast.className = 'star-toast';
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(() => {
+    toast.classList.add('star-toast-fade');
+    setTimeout(() => toast.remove(), 500);
+  }, 2200);
 }
 
 // ─── Home Entrance Stars ───
