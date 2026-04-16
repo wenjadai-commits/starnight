@@ -2,6 +2,9 @@
   "name": "starnight-app",
   "private": true,
   "version": "1.0.0",
+  "engines": {
+    "node": ">=18"
+  },
   "dependencies": {
     "firebase-admin": "^12.7.0"
   }

@@ -129,12 +129,43 @@
     padding: 4px 16px;
     opacity: 0.5;
     transition: opacity 0.2s;
+    position: relative;
   }
   .nav-btn.active { opacity: 1; }
   .nav-btn svg { width: 22px; height: 22px; }
   .nav-btn img { width: 22px; height: 22px; display: block; }
   .nav-btn span { font-size: 10px; color: var(--text-muted); font-family: 'Noto Sans TC'; }
   .nav-btn.active span { color: var(--blue); }
+
+  /* Tier badge above chat icon */
+  .tier-badge {
+    position: absolute;
+    top: -6px;
+    right: 4px;
+    font-size: 7px !important;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    padding: 2px 5px;
+    border-radius: 8px;
+    line-height: 1;
+    color: #8090b8 !important;
+    background: rgba(123,156,245,0.15);
+    border: 0.5px solid rgba(123,156,245,0.3);
+    pointer-events: none;
+    transform: scale(1);
+    transition: all 0.2s;
+  }
+  .tier-badge.tier-pro {
+    color: #f5e6c8 !important;
+    background: linear-gradient(135deg, rgba(245,230,200,0.25), rgba(247,200,140,0.18));
+    border-color: rgba(245,230,200,0.5);
+    box-shadow: 0 0 8px rgba(245,230,200,0.25);
+  }
+  .tier-badge.tier-trial {
+    color: #c8a8f8 !important;
+    background: rgba(167,141,224,0.18);
+    border-color: rgba(167,141,224,0.4);
+  }
 
   .nav { overflow: visible; }
   .nav-btn-center {
@@ -2112,6 +2143,7 @@ window.addEventListener('load', () => {
     <span id="nav-canvas-label">畫布</span>
   </button>
   <button class="nav-btn" onclick="goScreen('chat', this); loadChatHistory()">
+    <span class="tier-badge" id="nav-tier-badge">FREE</span>
     <img src="assets/icons/nav-chat.svg" alt="傾訴 icon">
     <span id="nav-chat-label">傾訴</span>
   </button>
@@ -2609,6 +2641,24 @@ window.addEventListener('load', () => {
         <div class="settings-info" id="settings-uid-wrap">識別碼：<code id="settings-uid">-</code></div>
         <div class="settings-info" id="settings-chat-count-wrap">對話紀錄：<span id="settings-chat-count">0</span> 則</div>
         <div class="settings-info" id="settings-diary-count-wrap">情緒日記：<span id="settings-diary-count">0</span> 則</div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">會員方案</div>
+      <div class="settings-card">
+        <div class="settings-label" id="settings-tier-status">免費會員</div>
+        <div class="settings-info" id="settings-tier-trial" style="color:#f5e6c8; display:none;"></div>
+        <div class="settings-info" id="settings-tier-desc">每天 20 次對話，使用基本陪伴。</div>
+        <button class="settings-btn" id="settings-tier-toggle" onclick="toggleProTier()">升級為 Pro</button>
+      </div>
+    </div>
+
+    <div class="settings-section" id="settings-section-memory" style="display:none;">
+      <div class="settings-section-title" id="settings-memory-title">AI 記得的關於你</div>
+      <div class="settings-card">
+        <div class="settings-info" id="settings-memory-content">還沒有累積任何記憶</div>
+        <button class="settings-btn" id="settings-memory-clear-btn" onclick="clearAIMemory()">清除 AI 記憶</button>
       </div>
     </div>
 
@@ -3499,6 +3549,22 @@ const TRANSLATIONS = {
     dailyLimitNear1: '今天只剩最後 1 次對話了，讓我們好好說 ✦',
     starCollected: '✨ 你收集到一顆星星',
     bottleCountUnit: '顆情緒星星',
+    dailyLimitReachedFree: '今天的星星已經收集完了 ✨ 如果你還想繼續，我可以一直陪你 💛 升級後可以聊更多，也會慢慢記住你',
+    upgradeButton: '了解 Pro 方案 ✦',
+    upgradeNotNow: '明天再來',
+    proStatus: 'Pro 會員',
+    freeStatus: '免費會員',
+    upgradeToPro: '升級為 Pro',
+    cancelPro: '切換回免費',
+    proCooldownHint: '聊了一陣子了，要不要先深呼吸一下 🌙',
+    trialBadge: 'Pro 試用中（剩 {days} 天）',
+    trialEnded: '試用已結束',
+    memoryTitle: 'AI 記得的關於你',
+    memoryEmpty: '還沒有累積任何記憶',
+    memoryThemes: '最近常聊：{themes}',
+    memoryMoods: '最近心情：{moods}',
+    memoryClear: '清除 AI 記憶',
+    memoryCleared: '已清除 AI 記憶',
     policyLow: '回應最多2句。短句共感，輕度接住。不主導對話，不連續提問。',
     policyMedium: '回應最多2句。共感為主，輕微導向現實支持。不深挖原因，不延長對話，不分析人格。可以說「如果可以，找一個人講一句話也好」。',
     policyHigh: '回應最多2句。表達關心，明確導向真人支持。不聊天延伸，不分析，不給自我傷害相關建議。必須提到「請試著聯絡一位可以陪你的人」或「撥打 1925 安心專線」。',
@@ -3711,6 +3777,22 @@ const TRANSLATIONS = {
     dailyLimitNear1: 'This is your last chat for today — let\'s make it a good one ✦',
     starCollected: '✨ You collected a star',
     bottleCountUnit: 'emotional stars',
+    dailyLimitReachedFree: 'We\'ve gathered all the stars for today ✨ If you\'d like to keep going, I can stay with you 💛 Pro lets you chat more, and I\'ll slowly remember you',
+    upgradeButton: 'Learn about Pro ✦',
+    upgradeNotNow: 'See you tomorrow',
+    proStatus: 'Pro member',
+    freeStatus: 'Free member',
+    upgradeToPro: 'Upgrade to Pro',
+    cancelPro: 'Switch back to Free',
+    proCooldownHint: 'We\'ve been talking for a while — take a deep breath? 🌙',
+    trialBadge: 'Pro trial ({days} days left)',
+    trialEnded: 'Trial ended',
+    memoryTitle: 'What I remember about you',
+    memoryEmpty: 'Nothing remembered yet',
+    memoryThemes: 'Often talk about: {themes}',
+    memoryMoods: 'Recent moods: {moods}',
+    memoryClear: 'Clear AI memory',
+    memoryCleared: 'AI memory cleared',
     policyLow: 'Max 2 sentences. Short, empathetic, lightly supportive. Do not lead the conversation. Do not ask multiple follow-up questions.',
     policyMedium: 'Max 2 sentences. Empathy first, gently point toward real-world support. Do not dig into causes. Do not extend the chat. No personality analysis.',
     policyHigh: 'Max 2 sentences. Express care and clearly encourage real-person support. Do not extend chat. No analysis. Do not provide self-harm details. Must mention contacting someone or calling 1925.',
@@ -3922,6 +4004,22 @@ const TRANSLATIONS = {
     dailyLimitNear1: '今日はあと1回だけ。大事に使おうね ✦',
     starCollected: '✨ 星をひとつ集めたよ',
     bottleCountUnit: 'つの星',
+    dailyLimitReachedFree: '今日の星はもう全部集めたよ ✨ もっと話したいなら、ずっとそばにいられるよ 💛 Pro になればもっと話せて、あなたのことも少しずつ覚えていくね',
+    upgradeButton: 'Pro について見る ✦',
+    upgradeNotNow: '明日また来るね',
+    proStatus: 'Pro 会員',
+    freeStatus: '無料会員',
+    upgradeToPro: 'Pro にアップグレード',
+    cancelPro: '無料に戻す',
+    proCooldownHint: 'たくさん話したね、少し深呼吸してみない？ 🌙',
+    trialBadge: 'Pro 体験中（残り {days} 日）',
+    trialEnded: '体験期間が終わったよ',
+    memoryTitle: 'AI が覚えているあなたのこと',
+    memoryEmpty: 'まだ何も覚えていないよ',
+    memoryThemes: '最近よく話すこと：{themes}',
+    memoryMoods: '最近の気分：{moods}',
+    memoryClear: 'AI の記憶をクリア',
+    memoryCleared: 'AI の記憶をクリアしたよ',
     policyLow: '最大2文。短く共感し、やさしく受け止める。会話を主導しない。連続で質問しない。',
     policyMedium: '最大2文。共感が中心。現実の支援へそっとつなぐ。原因を深掘りしない。会話を長引かせない。人格分析しない。',
     policyHigh: '最大2文。気遣いを示し、現実の支援へ明確につなぐ。会話を延長しない。分析しない。自傷に関する具体は避ける。誰かに連絡/1925を必ず言及。',
@@ -4281,12 +4379,139 @@ function initSettingsPage() {
   if (diaryWrap) diaryWrap.innerHTML = t('settingsDiaryCount', { count: String(diaryCount) }).replace(String(diaryCount), `<span id="settings-diary-count">${diaryCount}</span>`);
   const deleteBtn = document.getElementById('delete-account-btn');
   if (deleteBtn) deleteBtn.style.display = window._currentUser ? 'block' : 'none';
+
+  // Tier status display
+  updateTierUI();
+}
+
+// ── Nav Tier Badge ──
+// Shows current tier on the chat icon: PRO / TRIAL / FREE
+function updateNavTierBadge() {
+  const badge = document.getElementById('nav-tier-badge');
+  if (!badge) return;
+
+  const isExplicitPro = (() => {
+    try { return localStorage.getItem('starfold-tier') === 'pro'; } catch { return false; }
+  })();
+  const isTrial = isTrialActive() && !isExplicitPro;
+
+  // Reset classes
+  badge.classList.remove('tier-pro', 'tier-trial');
+
+  if (isExplicitPro) {
+    badge.textContent = 'PRO';
+    badge.classList.add('tier-pro');
+  } else if (isTrial) {
+    badge.textContent = 'TRIAL';
+    badge.classList.add('tier-trial');
+  } else {
+    badge.textContent = 'FREE';
+    // default style (no extra class)
+  }
+}
+
+// Call on app init
+setTimeout(updateNavTierBadge, 100);
+
+// ── Tier UI Update ──
+function updateTierUI() {
+  updateNavTierBadge(); // always update nav badge
+  const isProUser = isPro();
+  const trialDays = getTrialDaysRemaining();
+  const isTrial = isTrialActive() && localStorage.getItem('starfold-tier') !== 'pro';
+
+  const statusEl = document.getElementById('settings-tier-status');
+  const trialEl = document.getElementById('settings-tier-trial');
+  const descEl = document.getElementById('settings-tier-desc');
+  const btnEl = document.getElementById('settings-tier-toggle');
+
+  if (statusEl) statusEl.textContent = isProUser ? t('proStatus') : t('freeStatus');
+
+  // Trial badge
+  if (trialEl) {
+    if (isTrial) {
+      trialEl.textContent = t('trialBadge', { days: String(trialDays) });
+      trialEl.style.display = 'block';
+    } else {
+      trialEl.style.display = 'none';
+    }
+  }
+
+  if (descEl) {
+    descEl.textContent = isProUser
+      ? `每天 ${TIER_LIMITS.pro} 次對話，回應更完整，會記住你的近況。`
+      : `每天 ${TIER_LIMITS.free} 次對話，使用基本陪伴。`;
+  }
+
+  if (btnEl) {
+    // During trial, button shows "upgrade" (since real Pro isn't active)
+    if (isTrial) {
+      btnEl.textContent = t('upgradeToPro');
+    } else {
+      btnEl.textContent = isProUser ? t('cancelPro') : t('upgradeToPro');
+    }
+  }
+
+  // Memory section (only show for Pro / Trial users)
+  updateMemoryUI();
+}
+
+// ── Memory UI Update ──
+function updateMemoryUI() {
+  const section = document.getElementById('settings-section-memory');
+  const titleEl = document.getElementById('settings-memory-title');
+  const contentEl = document.getElementById('settings-memory-content');
+  const clearBtn = document.getElementById('settings-memory-clear-btn');
+
+  if (!section) return;
+  if (!isPro()) {
+    section.style.display = 'none';
+    return;
+  }
+  section.style.display = 'block';
+  if (titleEl) titleEl.textContent = t('memoryTitle');
+  if (clearBtn) clearBtn.textContent = t('memoryClear');
+
+  const mem = loadUserMemory();
+  const hasThemes = mem.themes && mem.themes.length > 0;
+  const hasMoods = mem.lastMoods && mem.lastMoods.length > 0;
+  if (!hasThemes && !hasMoods) {
+    if (contentEl) contentEl.textContent = t('memoryEmpty');
+  } else {
+    const lines = [];
+    if (hasThemes) lines.push(t('memoryThemes', { themes: mem.themes.slice(0, 3).join('、') }));
+    if (hasMoods) lines.push(t('memoryMoods', { moods: mem.lastMoods.slice(0, 3).join('、') }));
+    if (contentEl) contentEl.innerHTML = lines.join('<br>');
+  }
+}
+
+// ── Clear AI Memory (user-controlled) ──
+function clearAIMemory() {
+  if (!confirm(t('memoryClear') + '？')) return;
+  clearUserMemory();
+  showToast(t('memoryCleared'));
+  updateMemoryUI();
+}
+
+// ── Toggle Pro Tier ──
+// First version: localStorage flag. Replace with IAP receipt validation later.
+function toggleProTier() {
+  if (isPro()) {
+    if (!confirm('確定要切換回免費會員嗎？')) return;
+    setUserTier('free');
+    showToast('已切換為免費會員');
+  } else {
+    setUserTier('pro');
+    showToast('已升級為 Pro ✦');
+  }
+  updateTierUI();
 }
 
 function resetAllSettings() {
   if (!confirm(t('confirmResetSettings'))) return;
   localStorage.removeItem('starfold-settings');
   localStorage.removeItem('starfold-trust-contact');
+  clearUserMemory(); // clear Pro memory
   initSettingsPage();
   showToast(t('toastResetSettings'));
 }
@@ -4387,7 +4612,140 @@ goScreen = function(name, btn) {
 // Flow: User Input → Safety Layer → Response Policy → Response Generator → Support UI
 const CHAT_API_PRIMARY = '/api/chat';
 const CHAT_API_FALLBACK = 'https://starnight-api.vercel.app/api/chat';
-const MAX_TURNS = 20; // daily turn budget (assistant replies)
+
+// ══════════════════════════════════════
+// USER TIER SYSTEM (Free vs Pro)
+// ══════════════════════════════════════
+// Future: replace localStorage check with IAP receipt validation
+const TIER_LIMITS = {
+  free: 20,
+  pro: 60,  // 3x of free, balances cost vs value
+};
+
+const TRIAL_DAYS = 7;
+const COOLDOWN_THRESHOLD = 10; // consecutive turns before suggesting break
+
+function getUserTier() {
+  try {
+    // Check explicit Pro subscription
+    if (localStorage.getItem('starfold-tier') === 'pro') return 'pro';
+    // Check active trial
+    if (isTrialActive()) return 'pro';
+    return 'free';
+  } catch { return 'free'; }
+}
+
+function setUserTier(tier) {
+  try { localStorage.setItem('starfold-tier', tier === 'pro' ? 'pro' : 'free'); } catch {}
+}
+
+function isPro() { return getUserTier() === 'pro'; }
+
+function getMaxTurns() { return TIER_LIMITS[getUserTier()] || TIER_LIMITS.free; }
+
+// ── 7-day Pro Trial (auto-start for new users) ──
+function _getTrialStartDate() {
+  try { return localStorage.getItem('starfold-trial-start'); } catch { return null; }
+}
+
+function _setTrialStartDate(iso) {
+  try { localStorage.setItem('starfold-trial-start', iso); } catch {}
+}
+
+function startTrial() {
+  if (_getTrialStartDate()) return; // already started
+  _setTrialStartDate(new Date().toISOString());
+}
+
+function getTrialDaysRemaining() {
+  const start = _getTrialStartDate();
+  if (!start) return 0;
+  const elapsed = (Date.now() - new Date(start).getTime()) / (1000 * 60 * 60 * 24);
+  return Math.max(0, Math.ceil(TRIAL_DAYS - elapsed));
+}
+
+function isTrialActive() {
+  return getTrialDaysRemaining() > 0;
+}
+
+// Auto-start trial on first ever app open
+(function autoStartTrial() {
+  try {
+    if (!_getTrialStartDate() && !localStorage.getItem('starfold-tier')) {
+      _setTrialStartDate(new Date().toISOString());
+    }
+  } catch {}
+})();
+
+// ══════════════════════════════════════
+// USER MEMORY (Pro only)
+// ══════════════════════════════════════
+// Lightweight long-term memory: keeps recent emotional themes & interaction style
+// Stored as a small JSON, never sends full chat history
+const _MEMORY_KEY = 'starfold-user-memory';
+
+function loadUserMemory() {
+  try {
+    const saved = localStorage.getItem(_MEMORY_KEY);
+    return saved ? JSON.parse(saved) : { themes: [], lastMoods: [], updatedAt: null };
+  } catch { return { themes: [], lastMoods: [], updatedAt: null }; }
+}
+
+function saveUserMemory(mem) {
+  try { localStorage.setItem(_MEMORY_KEY, JSON.stringify(mem)); } catch {}
+}
+
+// Update memory after a successful chat (Pro only)
+function updateUserMemoryAfterChat(userMsg, mood) {
+  if (!isPro()) return;
+  const mem = loadUserMemory();
+  // Track last 5 moods
+  if (mood && mood !== '未知') {
+    mem.lastMoods = [mood, ...(mem.lastMoods || [])].slice(0, 5);
+  }
+  // Extract simple themes (rough keyword categorization, no NLP)
+  const themes = mem.themes || [];
+  const text = (userMsg || '').toLowerCase();
+  const themeKeywords = {
+    '工作': ['工作','上班','加班','同事','老闆','会社','仕事','work','job','boss'],
+    '感情': ['男友','女友','分手','喜歡','恋人','彼氏','彼女','relationship','crush','breakup'],
+    '家庭': ['家人','爸','媽','爸爸','媽媽','家族','両親','family','mom','dad','parents'],
+    '睡眠': ['失眠','睡不著','疲憊','眠れない','疲れた','insomnia','tired','sleep'],
+    '焦慮': ['焦慮','緊張','害怕','不安','怖い','anxious','nervous','scared'],
+    '孤單': ['孤單','一個人','寂寞','一人','寂しい','lonely','alone'],
+  };
+  Object.entries(themeKeywords).forEach(([theme, kws]) => {
+    if (kws.some(kw => text.includes(kw))) {
+      // Move to front, keep unique, max 5
+      const filtered = themes.filter(th => th !== theme);
+      themes.unshift(theme);
+      mem.themes = filtered.slice(0, 4);
+      mem.themes.unshift(theme);
+      mem.themes = mem.themes.slice(0, 5);
+    }
+  });
+  mem.updatedAt = new Date().toISOString();
+  saveUserMemory(mem);
+}
+
+// Build a short memory summary to send to AI (Pro only, ~50 tokens max)
+function getMemorySummary() {
+  if (!isPro()) return '';
+  const mem = loadUserMemory();
+  const parts = [];
+  if (mem.themes && mem.themes.length) {
+    parts.push(`最近常聊到：${mem.themes.slice(0, 3).join('、')}`);
+  }
+  if (mem.lastMoods && mem.lastMoods.length) {
+    parts.push(`最近心情：${mem.lastMoods.slice(0, 3).join('、')}`);
+  }
+  return parts.join('；');
+}
+
+function clearUserMemory() {
+  try { localStorage.removeItem(_MEMORY_KEY); } catch {}
+}
+
 const _CHAT_TURN_DAY_KEY = 'starfold-chat-turn-day';
 const _CHAT_TURN_COUNT_KEY = 'starfold-chat-turn-count';
 
@@ -4848,10 +5206,11 @@ async function sendMsg() {
     setTimeout(() => showSupportPanel(), 800); // full panel after brief delay
   }
 
-  // ── Step 3: Check turn limit ──
-  if (chatTurnCount >= MAX_TURNS && safety.riskLevel === 'low') {
-    // Daily limit reached — warm message instead of generic turn limit
-    const limitMsg = t('dailyLimitReached');
+  // ── Step 3: Check daily turn limit (tier-aware) ──
+  const maxTurns = getMaxTurns();
+  if (chatTurnCount >= maxTurns && safety.riskLevel === 'low') {
+    // Free users see upgrade prompt; Pro users see standard limit message
+    const limitMsg = isPro() ? t('dailyLimitReached') : t('dailyLimitReachedFree');
     addMsg('ai', limitMsg);
     chatHistory.push({ role: 'assistant', content: limitMsg });
     saveChatLocal();
@@ -4859,11 +5218,17 @@ async function sendMsg() {
   }
 
   // ── Step 3b: Approaching limit hint (only for low risk, non-intrusive) ──
-  const remaining = MAX_TURNS - chatTurnCount;
+  const remaining = maxTurns - chatTurnCount;
   if (remaining === 2 && safety.riskLevel === 'low') {
     showStarToast(t('dailyLimitNear2'));
   } else if (remaining === 1 && safety.riskLevel === 'low') {
     showStarToast(t('dailyLimitNear1'));
+  }
+
+  // ── Step 3c: Cool-down hint for Pro (suggest break after long sessions) ──
+  // Only triggers once per session at the threshold
+  if (isPro() && chatTurnCount === COOLDOWN_THRESHOLD && safety.riskLevel === 'low') {
+    showStarToast(t('proCooldownHint'));
   }
 
   // ── Step 4: Generate response ──
@@ -4919,6 +5284,8 @@ async function callAI(text, isRetry, policy) {
           nickname: loadSettings().nickname || '',
           aiStyle: loadSettings().aiStyle || '',
           language: normalizeLanguage(loadSettings().language),
+          tier: getUserTier(),
+          memory: isPro() ? getMemorySummary() : '',
         })
       });
       clearTimeout(timeout);
@@ -4958,6 +5325,8 @@ async function callAI(text, isRetry, policy) {
       chatHistory.push({ role: 'assistant', content: reply });
       _incrementDailyChatTurns();
       _collectStar(); // ★ collect a star on successful reply
+      // Update Pro user memory (no-op for free users)
+      updateUserMemoryAfterChat(text, selectedMood ? selectedMood.name : '');
       saveChatLocal();
       return;
 
