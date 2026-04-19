@@ -4,23 +4,27 @@ service cloud.firestore {
     function isSignedIn() {
       return request.auth != null;
     }
-
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
-
+    // users 主結構
     match /users/{userId} {
+      // 禁止直接存取 users root
       allow read, write: if false;
-
-      match /chat/{docId} {
-        allow read, create, update, delete: if isOwner(userId);
-      }
-
+      // 日記
       match /diary/{entryId} {
-        allow read, create, update, delete: if isOwner(userId);
+        allow read, write: if isOwner(userId);
+      }
+      // 聊天
+      match /chat/{docId} {
+        allow read, write: if isOwner(userId);
+      }
+      // 之後你如果把 emergency 放進來也會安全
+      match /{subcollection}/{docId} {
+        allow read, write: if isOwner(userId);
       }
     }
-
+    // 其他全部禁止
     match /{document=**} {
       allow read, write: if false;
     }
